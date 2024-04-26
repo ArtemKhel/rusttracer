@@ -1,22 +1,13 @@
+use std::ops::{Add, Div, Mul, Neg, Sub};
+
 use crate::unit_vec::UnitVec;
 use crate::{Cross, Dot};
-use std::ops::{Add, Div, Mul, Neg, Sub};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Vec3 {
     pub x: f32,
     pub y: f32,
     pub z: f32,
-}
-
-impl Div<f32> for Vec3 {
-    type Output = Self;
-
-    fn div(self, rhs: f32) -> Self::Output {
-        assert_ne!(rhs, 0.);
-        let x = 1.0 / rhs;
-        self * x
-    }
 }
 
 impl Vec3 {
@@ -29,6 +20,15 @@ impl Vec3 {
 
     pub fn len(&self) -> f32 {
         f32::sqrt(self.x.powi(2) + self.y.powi(2) + self.z.powi(2))
+    }
+}
+
+impl Div<f32> for Vec3 {
+    type Output = Self;
+
+    fn div(self, rhs: f32) -> Self::Output {
+        let x = 1.0 / rhs;
+        self * x
     }
 }
 
@@ -60,7 +60,7 @@ impl Mul<f32> for Vec3 {
     type Output = Self;
 
     fn mul(self, rhs: f32) -> Self::Output {
-        Vec3::new(self.x * rhs, self.z * rhs, self.y * rhs)
+        Vec3::new(self.x * rhs, self.y * rhs, self.z * rhs)
     }
 }
 
@@ -68,11 +68,11 @@ impl Mul<Vec3> for f32 {
     type Output = Vec3;
 
     fn mul(self, rhs: Vec3) -> Self::Output {
-        Vec3::new(rhs.x * self, rhs.z * self, rhs.y * self)
+        Vec3::new(rhs.x * self, rhs.y * self, rhs.z * self)
     }
 }
 
-impl Cross for Vec3 {
+impl Cross<Vec3> for Vec3 {
     fn cross(&self, rhs: Vec3) -> Vec3 {
         Vec3::new(
             self.y * rhs.z - self.z * rhs.y,
@@ -82,9 +82,15 @@ impl Cross for Vec3 {
     }
 }
 
-impl Dot for Vec3 {
-    fn cross(&self, rhs: Vec3) -> f32 {
+impl Dot<Vec3> for Vec3 {
+    fn dot(&self, rhs: Vec3) -> f32 {
         self.x * rhs.x + self.y * rhs.y + self.z * rhs.z
+    }
+}
+
+impl Dot<UnitVec> for Vec3 {
+    fn dot(&self, rhs: UnitVec) -> f32 {
+        self.dot(rhs.vec)
     }
 }
 

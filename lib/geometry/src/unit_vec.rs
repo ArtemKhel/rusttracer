@@ -1,4 +1,5 @@
 use crate::vec::Vec3;
+use crate::Dot;
 use std::ops::Mul;
 
 #[derive(Debug, Clone, Copy)]
@@ -14,8 +15,22 @@ impl Mul<f32> for UnitVec {
     }
 }
 
+impl Dot<UnitVec> for UnitVec {
+    fn dot(&self, rhs: UnitVec) -> f32 {
+        self.vec.dot(rhs.vec)
+    }
+}
+
+impl Dot<Vec3> for UnitVec {
+    fn dot(&self, rhs: Vec3) -> f32 {
+        self.vec.dot(rhs)
+    }
+}
+
 impl From<Vec3> for UnitVec {
     fn from(value: Vec3) -> Self {
-        UnitVec { vec: value / value.len() }
+        UnitVec {
+            vec: value / value.len(),
+        }
     }
 }

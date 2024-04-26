@@ -5,25 +5,25 @@ use crate::vec::Vec3;
 
 #[derive(Default, Debug, Clone, Copy)]
 pub struct Point {
-    pub pos: Vec3,
+    pub radius_vector: Vec3,
 }
 
 impl Point {
     pub fn new(x: f32, y: f32, z: f32) -> Point {
         Point {
-            pos: Vec3::new(x, y, z),
+            radius_vector: Vec3::new(x, y, z),
         }
     }
-    pub fn vector_to(self, target: Point) -> UnitVec {
-        (target - self).to_unit()
+    pub fn unit_vector_to(self, target: Point) -> UnitVec {
+        self.vector_to(target).to_unit()
     }
-}
 
-impl Add<Vec3> for Point {
-    type Output = Point;
+    pub fn vector_to(self, target: Point) -> Vec3 {
+        target - self
+    }
 
-    fn add(self, rhs: Vec3) -> Self::Output {
-        Point { pos: self.pos + rhs }
+    pub fn distance_to(self, other: Point) -> f32 {
+        (self - other).len()
     }
 }
 
@@ -31,13 +31,25 @@ impl Sub for Point {
     type Output = Vec3;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        self.pos - rhs.pos
+        self.radius_vector - rhs.radius_vector
+    }
+}
+
+impl Add<Vec3> for Point {
+    type Output = Point;
+
+    fn add(self, rhs: Vec3) -> Self::Output {
+        Point {
+            radius_vector: self.radius_vector + rhs,
+        }
     }
 }
 impl Sub<Vec3> for Point {
     type Output = Point;
 
     fn sub(self, rhs: Vec3) -> Self::Output {
-        Point { pos: self.pos - rhs }
+        Point {
+            radius_vector: self.radius_vector - rhs,
+        }
     }
 }
