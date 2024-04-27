@@ -2,6 +2,9 @@ use std::ops::{Add, Div, Mul, Neg, Sub};
 
 use crate::unit_vec::UnitVec;
 use crate::{Cross, Dot};
+use rand;
+use rand::distributions::{Distribution, Standard};
+use rand::Rng;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Vec3 {
@@ -20,6 +23,11 @@ impl Vec3 {
 
     pub fn len(&self) -> f32 {
         f32::sqrt(self.x.powi(2) + self.y.powi(2) + self.z.powi(2))
+    }
+}
+impl Distribution<Vec3> for Standard {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Vec3 {
+        Vec3::new(rng.gen(), rng.gen(), rng.gen())
     }
 }
 

@@ -1,10 +1,18 @@
 use crate::vec::Vec3;
 use crate::Dot;
-use std::ops::Mul;
+use std::ops::{Mul, Neg};
 
 #[derive(Debug, Clone, Copy)]
 pub struct UnitVec {
     pub vec: Vec3,
+}
+
+impl Neg for UnitVec {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        UnitVec { vec: -self.vec }
+    }
 }
 
 impl Mul<f32> for UnitVec {
