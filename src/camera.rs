@@ -2,13 +2,14 @@ use std::time::Instant;
 
 use image::{ImageBuffer, Pixel, Rgb};
 use rand::distributions::Distribution;
-use rand::Rng;
 
+use crate::intersection::Intersection;
+use crate::primitive::Primitive;
 use geometry::point::Point;
 use geometry::ray::Ray;
-use geometry::unit_vec::UnitVec;
+use geometry::utils::random_unit;
 use geometry::vec::Vec3;
-use geometry::{Dot, Object};
+use geometry::Object;
 
 pub struct CameraConfig {
     // aspect_ratio: f32,
@@ -33,17 +34,16 @@ impl Default for CameraConfig {
 pub struct Camera<'a> {
     position: Point,
     look_at: Point,
-    // TODO: dyn
-    world: &'a Vec<Box<dyn Object>>,
+    world: &'a Vec<Box<Primitive>>,
     config: CameraConfig,
 }
 
 impl<'a> Camera<'a> {
-    pub fn new(position: Point, look_at: Point, objects: &'a Vec<Box<dyn Object>>) -> Camera {
+    pub fn new(position: Point, look_at: Point, world: &'a Vec<Box<Primitive>>) -> Camera<'a> {
         Camera {
             position,
             look_at,
-            world: objects,
+            world,
             config: CameraConfig::default(),
         }
     }
@@ -74,6 +74,17 @@ impl<'a> Camera<'a> {
             0.25 * (-pixel_delta_u + pixel_delta_v),
             0.25 * (-pixel_delta_u - pixel_delta_v),
         ];
+        // let aliasing_offsets = [
+        //     Vec3::default(),
+        //     -pixel_delta_u - pixel_delta_v,
+        //     -pixel_delta_u,
+        //     -pixel_delta_u + pixel_delta_v,
+        //     pixel_delta_v,
+        //     pixel_delta_u - pixel_delta_v,
+        //     pixel_delta_u,
+        //     -pixel_delta_u + pixel_delta_v,
+        //     -pixel_delta_v,
+        // ].map(|x| x*0.25);
 
         let start = Instant::now();
         // let bar = indicatif::ProgressBar::new(self.config.width as u64);
@@ -90,7 +101,7 @@ impl<'a> Camera<'a> {
                         *c += x;
                     });
             }
-            *pixel = Self::linear_to_gamma(Rgb(color.map(|x| (x / aliasing_offsets.len() as f32))))
+            *pixel = Self::linear_to_gamma(Rgb(color.map(|x| x / aliasing_offsets.len() as f32)))
             // if self.config.width == 0 { bar.inc(1); }
         }
         let finish = Instant::now();
@@ -110,60 +121,49 @@ impl<'a> Camera<'a> {
         if reflection_depth == 0 {
             return Rgb([0., 0., 0.]);
         }
-        if let (Some(hit), _) = self.world.iter().fold((None, f32::INFINITY), |closest, obj| {
-            if let Some(hit) = obj.hit(ray) {
+
+        let closest_hit = self.world.iter().fold((None, f32::INFINITY), |closest, primitive| {
+            if let Some(hit) = primitive.object.hit(ray) {
                 let dist = ray.origin.distance_to(hit.point);
                 if dist < closest.1 {
-                    return (Some(hit), dist);
+                    return (
+                        Some(Intersection {
+                            hit,
+                            material: primitive.material,
+                        }),
+                        dist,
+                    );
                 }
             }
             closest
-        }) {
-            // let reflected = Self::random_on_hemisphere(&hit.normal);
-            let reflected = (hit.normal.vec + Self::random_unit().vec).to_unit();
-            return self
-                .ray_color(
-                    &Ray::new(hit.point + hit.normal * 0.01, reflected),
-                    reflection_depth - 1,
-                )
-                .map(|x| x / 2.);
-            // return Rgb([
-            //     (255. * 0.5 * (hit.normal.vec.x + 1.)) as u8,
-            //     (255. * 0.5 * (hit.normal.vec.y + 1.)) as u8,
-            //     (255. * 0.5 * (hit.normal.vec.z + 1.)) as u8,
-            // ]);
+        });
+        if let (Some(intersection), _) = closest_hit {
+            // Note the third option: we could scatter with some fixed probability p and have attenuation be albedo/p
+            let scatter_direction = if !intersection.material.metal{
+                (intersection.hit.normal.vec + random_unit().vec).to_unit()
+            } else{
+                (ray.dir.reflect(intersection.hit.normal).vec + random_unit() * intersection.material.fuzz).to_unit()
+            };
+            let color = self.ray_color(
+                &Ray::new(
+                    intersection.hit.point + intersection.hit.normal * 0.01,
+                    scatter_direction,
+                ),
+                reflection_depth - 1,
+            );
+            return intersection.material.color.map2(&color, |x, y| x * y);
         }
         let a = 0.5 * (ray.dir.vec.y + 1.0);
         lerp(a)
-    }
-
-    fn random_unit() -> UnitVec {
-        let mut rng = rand::thread_rng();
-        loop {
-            let rnd: Vec3 = rng.gen();
-            if rnd.len() <= 1. {
-                break rnd.to_unit();
-            }
-        }
-    }
-    fn random_on_hemisphere(normal: &UnitVec) -> UnitVec {
-        let random = Self::random_unit();
-        if normal.dot(random) >= 0. {
-            random
-        } else {
-            -random
-        }
     }
 }
 
 fn lerp(/*a: Rgb<u8>, b: Rgb<u8>,*/ t: f32) -> Rgb<f32> {
     let a = Rgb([1.0, 1.0, 1.0]);
     let b = Rgb([0.5, 0.7, 1.0]);
-    // let a = Rgb([0, 0, 0]);
-    // let b = Rgb([255, 255, 255]);
     Rgb([
-        ((1. - t) * a.0[0] + t * b.0[0]),
-        ((1. - t) * a.0[1] + t * b.0[1]),
-        ((1. - t) * a.0[2] + t * b.0[2]),
+        (1. - t) * a.0[0] + t * b.0[0],
+        (1. - t) * a.0[1] + t * b.0[1],
+        (1. - t) * a.0[2] + t * b.0[2],
     ])
 }

@@ -1,24 +1,40 @@
 #![allow(unused)]
-mod camera;
-mod material;
-mod scene;
 
-use geometry::Object;
 use image::buffer::ConvertBuffer;
-use image::{ImageBuffer, Rgb, RgbImage};
+use image::{Rgb, RgbImage};
 
-use crate::camera::Camera;
 use geometry::point::Point;
-use geometry::ray::Ray;
 use geometry::sphere::Sphere;
-use geometry::vec::Vec3;
+use rusttracer::camera::Camera;
+use rusttracer::material::Material;
+use rusttracer::primitive::Primitive;
 
 fn main() {
-    // TODO: dyn
-    let world: Vec<Box<dyn Object>> = vec![
-        Box::new(Sphere::new(Point::new(2., 0., -3.), 1.0)),
-        Box::new(Sphere::new(Point::new(-2., 0.5, -4.), 2.0)),
-        Box::new(Sphere::new(Point::new(0., -101., 0.), 100.0)),
+    let world: Vec<Box<Primitive>> = vec![
+        Box::new(Primitive {
+            object: Box::new(Sphere::new(Point::new(0., 0., -3.), 1.0)),
+            material: Material::new(Rgb([0.2, 0.2, 0.7])),
+        }),
+        Box::new(Primitive {
+            object: Box::new(Sphere::new(Point::new(-3., 0., -3.), 1.5)),
+            material: Material {
+                color: Rgb([0.7, 0.2, 0.2]),
+                metal:true,
+                fuzz: 0.3
+            },
+        }),
+        Box::new(Primitive {
+            object: Box::new(Sphere::new(Point::new(3., 0., -3.), 1.5)),
+            material: Material {
+                color: Rgb([0.7, 0.7, 0.7]),
+                metal:true,
+                fuzz: 0.3
+            },
+        }),
+        Box::new(Primitive {
+            object: Box::new(Sphere::new(Point::new(0., -101., 0.), 100.0)),
+            material: Material::new( Rgb([0.2, 0.5, 0.2])),
+        }),
     ];
 
     let camera = Camera::new(Point::default(), Point::new(0., 0., -1.), &world);

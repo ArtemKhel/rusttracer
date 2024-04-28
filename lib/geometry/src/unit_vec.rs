@@ -7,6 +7,12 @@ pub struct UnitVec {
     pub vec: Vec3,
 }
 
+impl UnitVec{
+    pub fn reflect(&self, normal: UnitVec)-> UnitVec{
+        (self.vec - (normal * self.dot(normal) * 2.0)).to_unit()
+    }
+}
+
 impl Neg for UnitVec {
     type Output = Self;
 

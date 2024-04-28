@@ -64,9 +64,10 @@
           cargo = toolchain;
           rustc = toolchain;
         };
-
       in {
         packages.default = naersk'.buildPackage ./.;
+
+        formatter = pkgs.alejandra;
 
         # TODO: devshell treefmt-nix pre-commit-hooks-nix
         devShells.default = with pkgs;
