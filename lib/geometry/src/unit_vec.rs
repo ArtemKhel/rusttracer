@@ -1,15 +1,23 @@
+use std::cmp::min;
 use crate::vec::Vec3;
 use crate::Dot;
 use std::ops::{Mul, Neg};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialOrd, PartialEq)]
 pub struct UnitVec {
     pub vec: Vec3,
 }
 
-impl UnitVec{
-    pub fn reflect(&self, normal: UnitVec)-> UnitVec{
+impl UnitVec {
+    pub fn reflect(&self, normal: UnitVec) -> UnitVec {
         (self.vec - (normal * self.dot(normal) * 2.0)).to_unit()
+    }
+
+    pub fn refract(&self, normal: UnitVec, refraction_coef_ratio: f32) -> UnitVec {
+        let cos_theta = self.dot(normal);
+        let perpend = refraction_coef_ratio * (self.vec + normal * cos_theta);
+        let parallel = normal * -f32::sqrt(f32::abs(1. - perpend.dot(perpend)));
+        (perpend + parallel).to_unit()
     }
 }
 

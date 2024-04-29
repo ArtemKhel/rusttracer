@@ -2,7 +2,7 @@ use crate::hit::Hit;
 use crate::point::Point;
 use crate::ray::Ray;
 use crate::unit_vec::UnitVec;
-use crate::{Dot, Object};
+use crate::{Dot, Intersect};
 
 #[derive(Default, Debug, Clone, Copy)]
 pub struct Sphere {
@@ -20,7 +20,7 @@ impl Sphere {
     }
 }
 
-impl Object for Sphere {
+impl Intersect for Sphere {
     fn hit(&self, ray: &Ray) -> Option<Hit> {
         // let o = ray.origin.vector_to(self.center);
         // let o = ray.origin - self.center;

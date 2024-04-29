@@ -3,7 +3,7 @@ use std::ops::{Add, Sub};
 
 use crate::vec::Vec3;
 
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy, PartialOrd, PartialEq)]
 pub struct Point {
     pub radius_vector: Vec3,
 }

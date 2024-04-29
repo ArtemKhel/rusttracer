@@ -1,0 +1,27 @@
+use image::Rgb;
+
+use geometry::ray::Ray;
+use geometry::utils::random_unit;
+
+use crate::intersection::Intersection;
+use crate::material::{Material, Scatter};
+
+#[derive(Debug, Clone, Copy)]
+pub struct Metal {
+    pub albedo: Rgb<f32>,
+    pub fuzz: f32,
+}
+
+impl Material for Metal {
+    fn scatter(&self, ray: &Ray, intersection: &Intersection) -> Option<Scatter> {
+        let reflected_direction = (ray.dir.reflect(intersection.hit.normal).vec + random_unit() * self.fuzz).to_unit();
+        let ray = Ray::new(
+            intersection.hit.point + intersection.hit.normal * 0.01,
+            reflected_direction,
+        );
+        Some(Scatter {
+            ray,
+            attenuation: self.albedo,
+        })
+    }
+}

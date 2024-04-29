@@ -6,7 +6,7 @@ use rand;
 use rand::distributions::{Distribution, Standard};
 use rand::Rng;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialOrd, PartialEq)]
 pub struct Vec3 {
     pub x: f32,
     pub y: f32,
@@ -22,7 +22,7 @@ impl Vec3 {
     }
 
     pub fn len(&self) -> f32 {
-        f32::sqrt(self.x.powi(2) + self.y.powi(2) + self.z.powi(2))
+        f32::sqrt(self.dot(*self))
     }
 }
 impl Distribution<Vec3> for Standard {

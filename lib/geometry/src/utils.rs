@@ -12,7 +12,7 @@ pub fn random_unit() -> UnitVec {
         }
     }
 }
-pub fn random_on_hemisphere(normal: &UnitVec) -> UnitVec {
+pub(crate) fn random_on_hemisphere(normal: &UnitVec) -> UnitVec {
     let random = random_unit();
     if normal.dot(random) >= 0. {
         random
