@@ -27,7 +27,7 @@ fn main() {
             shape: Box::new(Sphere::new(Point::new(-3., 0., -3.), 1.5)),
             material: Box::new(Dielectric {
                 refraction_index: 1.5,
-                // refraction_index: 0.75,
+                // refraction_index: 0.8,
                 attenuation: Rgb([0.8, 0.8, 0.8]),
             }),
         },

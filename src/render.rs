@@ -67,34 +67,53 @@ impl Render for RayTracer {
 
         let mut image = ImageBuffer::new(self.resolution.width, self.resolution.height);
 
-        let aliasing_offsets = [
-            Vec3::default(),
-            0.25 * (pixel_delta_u + pixel_delta_v),
-            0.25 * (pixel_delta_u - pixel_delta_v),
-            0.25 * (-pixel_delta_u + pixel_delta_v),
-            0.25 * (-pixel_delta_u - pixel_delta_v),
-        ];
         // let aliasing_offsets = [
         //     Vec3::default(),
-        //     -pixel_delta_u - pixel_delta_v,
-        //     -pixel_delta_u,
-        //     -pixel_delta_u + pixel_delta_v,
-        //     pixel_delta_v,
-        //     pixel_delta_u - pixel_delta_v,
-        //     pixel_delta_u,
-        //     -pixel_delta_u + pixel_delta_v,
-        //     -pixel_delta_v,
-        // ].map(|x| x*0.25);
+        //     0.25 * (pixel_delta_u + pixel_delta_v),
+        //     0.25 * (pixel_delta_u - pixel_delta_v),
+        //     0.25 * (-pixel_delta_u + pixel_delta_v),
+        //     0.25 * (-pixel_delta_u - pixel_delta_v),
+        // ];
+        let aliasing_offsets = [
+            -2. * pixel_delta_u - 2. * pixel_delta_v,
+            -2. * pixel_delta_u - pixel_delta_v,
+            -2. * pixel_delta_u,
+            -2. * pixel_delta_u + pixel_delta_v,
+            -2. * pixel_delta_u + 2. * pixel_delta_v,
+            -pixel_delta_u - 2. * pixel_delta_v,
+            -pixel_delta_u - pixel_delta_v,
+            -pixel_delta_u,
+            -pixel_delta_u + pixel_delta_v,
+            -pixel_delta_u + 2. * pixel_delta_v,
+            -2. * pixel_delta_v,
+            -pixel_delta_v,
+            Vec3::default(),
+            pixel_delta_v,
+            2. * pixel_delta_v,
+            pixel_delta_u - 2. * pixel_delta_v,
+            pixel_delta_u - pixel_delta_v,
+            pixel_delta_u,
+            pixel_delta_u + pixel_delta_v,
+            pixel_delta_u + 2. * pixel_delta_v,
+            2. * pixel_delta_u - 2. * pixel_delta_v,
+            2. * pixel_delta_u - pixel_delta_v,
+            2. * pixel_delta_u,
+            2. * pixel_delta_u + pixel_delta_v,
+            2. * pixel_delta_u + 2. * pixel_delta_v,
+        ]
+        .map(|x| x * 0.333 * 0.5);
 
         let start = Instant::now();
         for (x, y, pixel) in image.enumerate_pixels_mut() {
             let mut color = Rgb([0., 0., 0.]);
+
             for offset in aliasing_offsets {
                 let pixel_center = pixel00_loc + (pixel_delta_u * x as f32) + (pixel_delta_v * y as f32) + offset;
                 let ray_direction = self.scene.camera.position.unit_vector_to(pixel_center);
                 let ray = Ray::new(self.scene.camera.position, ray_direction);
                 color.apply2(&self.ray_color(&ray, 0), |x, y| x + y);
             }
+
             *pixel = linear_to_gamma(color.map(|x| x / aliasing_offsets.len() as f32))
         }
         let finish = Instant::now();

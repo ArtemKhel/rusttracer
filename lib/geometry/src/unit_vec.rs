@@ -1,6 +1,6 @@
-use std::cmp::min;
 use crate::vec::Vec3;
 use crate::Dot;
+use std::cmp::min;
 use std::ops::{Mul, Neg};
 
 #[derive(Debug, Clone, Copy, PartialOrd, PartialEq)]

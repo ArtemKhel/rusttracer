@@ -1,7 +1,7 @@
 use image::Pixel;
 use image::Rgb;
-use rand::Rng;
 use rand::rngs::ThreadRng;
+use rand::Rng;
 
 pub(crate) fn lerp(/*a: Rgb<u8>, b: Rgb<u8>,*/ t: f32) -> Rgb<f32> {
     let a = Rgb([1.0, 1.0, 1.0]);
