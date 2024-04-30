@@ -51,7 +51,7 @@
         #   .rust;
         toolchain = fenix.packages."${system}".fromToolchainFile {
           file = ./rust-toolchain.toml;
-          sha256 = "sha256-CGoaGyU0UYlSRQQYHrof060SUsOq5b24L5g5hnqcXMk=";
+          sha256 = "sha256-GJ6T8aniCNJiznb/n/9l0lItNWinUk93FpdrNijxDog=";
         };
         # toolchain = with fenix.packages.${system};
         #   combine [
@@ -74,6 +74,9 @@
           mkShell {
             buildInputs = [
               toolchain
+
+              # pkgs.perf-tools
+              pkgs.linuxPackages_latest.perf
 
               # pre-commit
               # rustup

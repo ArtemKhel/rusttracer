@@ -100,8 +100,7 @@ impl Render for RayTracer {
             2. * pixel_delta_u,
             2. * pixel_delta_u + pixel_delta_v,
             2. * pixel_delta_u + 2. * pixel_delta_v,
-        ]
-        .map(|x| x * 0.333 * 0.5);
+        ].map(|x| x * 0.333 * 0.5);
 
         let start = Instant::now();
         for (x, y, pixel) in image.enumerate_pixels_mut() {

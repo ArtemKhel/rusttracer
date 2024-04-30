@@ -18,30 +18,36 @@ fn main() {
     let materials = vec![];
     let world: Vec<Object> = vec![
         Object {
-            shape: Box::new(Sphere::new(Point::new(0., 0., -3.), 1.0)),
+            shape: Box::new(Sphere::new(Point::new(0., -1.0, -4.), 1.0)),
             material: Box::new(Lambertian {
                 albedo: Rgb([0.2, 0.2, 0.7]),
             }),
         },
         Object {
-            shape: Box::new(Sphere::new(Point::new(-3., 0., -3.), 1.5)),
+            shape: Box::new(Sphere::new(Point::new(2.5, 0., -3.), 1.5)),
             material: Box::new(Dielectric {
                 refraction_index: 1.5,
-                // refraction_index: 0.8,
-                attenuation: Rgb([0.8, 0.8, 0.8]),
+                attenuation: Rgb([0.95, 0.95, 0.95]),
             }),
         },
         Object {
-            shape: Box::new(Sphere::new(Point::new(3., 0., -3.), 1.5)),
+            shape: Box::new(Sphere::new(Point::new(-2.5, 0., -3.), 1.5)),
+            material: Box::new(Dielectric {
+                refraction_index: 0.8,
+                attenuation: Rgb([0.95, 0.95, 0.95]),
+            }),
+        },
+        Object {
+            shape: Box::new(Sphere::new(Point::new(0., 1., -4.), 1.5)),
             material: Box::new(Metal {
                 albedo: Rgb([0.8, 0.4, 0.1]),
                 fuzz: 0.05,
             }),
         },
         Object {
-            shape: Box::new(Sphere::new(Point::new(0., -101., 0.), 100.0)),
+            shape: Box::new(Sphere::new(Point::new(0., -102., 0.), 100.0)),
             material: Box::new(Lambertian {
-                albedo: Rgb([0.2, 0.7, 0.2]),
+                albedo: Rgb([0.2, 0.2, 0.2]),
             }),
         },
     ];

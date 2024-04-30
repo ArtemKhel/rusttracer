@@ -33,10 +33,10 @@ impl Material for Dielectric {
         let cos_theta = ray.dir.dot(intersection.hit.normal);
         let sin_theta = f32::sqrt(1.0 - cos_theta.powi(2));
 
-        let can_refract =
+        let refracted =
             refract_coef * sin_theta < 1.0 && Self::reflectance(f32::abs(cos_theta), refract_coef) < random::<f32>();
 
-        let direction = if can_refract {
+        let direction = if refracted {
             ray.dir.refract(intersection.hit.normal, refract_coef)
         } else {
             ray.dir.reflect(intersection.hit.normal)
@@ -45,7 +45,7 @@ impl Material for Dielectric {
         Some(Scatter {
             ray: Ray::new(
                 intersection.hit.point
-                    + if on_front ^ can_refract {
+                    + if on_front ^ refracted {
                         intersection.hit.normal * 0.01
                     } else {
                         intersection.hit.normal * -0.01

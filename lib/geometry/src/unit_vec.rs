@@ -14,8 +14,10 @@ impl UnitVec {
     }
 
     pub fn refract(&self, normal: UnitVec, refraction_coef_ratio: f32) -> UnitVec {
-        let cos_theta = self.dot(normal);
-        let perpend = refraction_coef_ratio * (self.vec + normal * cos_theta);
+        let mut cos_theta = self.dot(normal);
+        let sign = cos_theta.signum();
+        // cos_theta *= sign;
+        let perpend = refraction_coef_ratio * (self.vec + normal * cos_theta * sign);
         let parallel = normal * -f32::sqrt(f32::abs(1. - perpend.dot(perpend)));
         (perpend + parallel).to_unit()
     }
