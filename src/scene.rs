@@ -1,15 +1,9 @@
 use crate::intersection::Intersection;
 use crate::material::Material;
 use crate::object::Object;
-use geometry::point::Point;
 use geometry::ray::Ray;
+use crate::camera::Camera;
 
-pub struct Camera {
-    pub position: Point,
-    pub look_at: Point,
-    pub focal_length: f32,
-    // pub config: CameraConfig,
-}
 pub struct Scene {
     pub camera: Camera,
     pub objects: Vec<Object>,

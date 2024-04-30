@@ -39,6 +39,14 @@ impl Mul<f32> for UnitVec {
     }
 }
 
+impl Mul<UnitVec> for f32{
+    type Output = Vec3;
+
+    fn mul(self, rhs: UnitVec) -> Self::Output {
+        rhs.vec * self
+    }
+}
+
 impl Dot<UnitVec> for UnitVec {
     fn dot(&self, rhs: UnitVec) -> f32 {
         self.vec.dot(rhs.vec)
