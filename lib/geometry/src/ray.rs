@@ -14,6 +14,10 @@ impl Ray {
         Ray { origin, dir }
     }
 
+    pub fn from_to(origin: Point, end: Point) -> Ray {
+        Ray::new(origin, (end - origin).to_unit())
+    }
+
     pub fn at(&self, t: f32) -> Point {
         self.origin + self.dir * t
     }

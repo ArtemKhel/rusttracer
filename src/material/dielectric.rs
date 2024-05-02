@@ -1,8 +1,8 @@
 use image::Rgb;
 use rand::{random, Rng};
 
-use geometry::ray::Ray;
 use geometry::Dot;
+use geometry::Ray;
 
 use crate::intersection::Intersection;
 use crate::material::{Material, Scatter};

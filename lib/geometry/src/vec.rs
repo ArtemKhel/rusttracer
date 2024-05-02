@@ -17,9 +17,10 @@ impl Vec3 {
     pub fn new(x: f32, y: f32, z: f32) -> Self {
         Vec3 { x, y, z }
     }
-    // pub fn to_unit(self) -> UnitVec {
-    //     UnitVec::from(self)
-    // }
+
+    pub fn to_unit(self) -> UnitVec {
+        self.into()
+    }
 
     pub fn len(&self) -> f32 {
         f32::sqrt(self.dot(*self))

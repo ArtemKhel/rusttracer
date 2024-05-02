@@ -1,8 +1,8 @@
-use crate::camera::Camera;
 use crate::intersection::Intersection;
 use crate::material::Material;
-use crate::object::Object;
-use geometry::ray::Ray;
+use crate::scene::camera::Camera;
+use crate::scene::object::Object;
+use geometry::Ray;
 
 pub struct Scene {
     pub camera: Camera,

@@ -2,12 +2,13 @@ use crate::unit_vec::UnitVec;
 use crate::vec::Vec3;
 use crate::Dot;
 use rand::{random, Rng};
+// TODO: SmallRng
 
 pub fn random_unit() -> UnitVec {
     loop {
         let rnd: Vec3 = random();
         if rnd.len() <= 1. {
-            break rnd.into();
+            break rnd.to_unit();
         }
     }
 }

@@ -7,14 +7,14 @@ use rand::random;
 use geometry::point::Point;
 use geometry::sphere::Sphere;
 use geometry::vec::Vec3;
-use rusttracer::camera::Camera;
 use rusttracer::material::dielectric::Dielectric;
 use rusttracer::material::lambertian::Lambertian;
 use rusttracer::material::metal::Metal;
 use rusttracer::material::Material;
-use rusttracer::object::Object;
 use rusttracer::render::{RayTracer, Render, Resolution};
+use rusttracer::scene::Object;
 use rusttracer::scene::Scene;
+use rusttracer::scene::{Camera, CameraConfig};
 
 fn main() {
     let materials = vec![];
@@ -78,14 +78,15 @@ fn main() {
         }
     }
 
-    let camera = Camera {
+    let camera = Camera::from(CameraConfig {
         position: Point::new(13., 2., 4.),
         look_at: Point::new(0., 0., 0.),
         up: Vec3::new(0., 1., 0.),
+        aspect_ratio: 16.0 / 9.0,
         vertical_fov: 20.0,
-        defocus_angle: 0.0,
+        defocus_angle: 0.5,
         focus_dist: 10.0,
-    };
+    });
 
     let scene = Scene {
         camera,

@@ -1,5 +1,5 @@
 use crate::intersection::Intersection;
-use geometry::ray::Ray;
+use geometry::Ray;
 use image::Rgb;
 pub mod dielectric;
 pub mod lambertian;

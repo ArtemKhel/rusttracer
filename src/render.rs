@@ -1,16 +1,18 @@
+use std::ops::Add;
 use std::time::Instant;
 
 use image::{ImageBuffer, Pixel, Rgb};
-use rand::random;
-
-use geometry::point::Point;
-use geometry::ray::Ray;
-use geometry::unit_vec::UnitVec;
-use geometry::utils::random_in_unit_disk;
-use geometry::vec::Vec3;
-use geometry::Cross;
+use rand::rngs::SmallRng;
+use rand::{random, Rng};
 
 use crate::scene::Scene;
+use geometry::utils::random_in_unit_disk;
+use geometry::Cross;
+use geometry::Point;
+use geometry::Ray;
+use geometry::UnitVec;
+use geometry::Vec3;
+
 use crate::utils;
 use crate::utils::{degrees_to_radians, linear_to_gamma};
 
@@ -52,70 +54,37 @@ impl RayTracer {
         let a = 0.5 * (ray.dir.vec.y + 1.0);
         utils::lerp(a)
     }
-
-    fn defocus_disk_sample(&self, u: Vec3, v: Vec3) -> Point {
-        let rnd = random_in_unit_disk();
-        self.scene.camera.position + u * rnd.x + v * rnd.y
-    }
 }
 
 impl Render for RayTracer {
     fn render(&self) -> ImageBuffer<Rgb<f32>, Vec<f32>> {
-        let theta = degrees_to_radians(self.scene.camera.vertical_fov);
-        let h = f32::tan(theta / 2.0);
-
-        let viewport_height = 2. * h * self.scene.camera.focus_dist;
-        let viewport_width = viewport_height * (self.resolution.width as f32 / self.resolution.height as f32);
-
-        let w: UnitVec = (self.scene.camera.position - self.scene.camera.look_at).into();
-        let u: UnitVec = self.scene.camera.up.cross(w.vec).into();
-        let v: UnitVec = w.vec.cross(u.vec).into();
-
-        // Calculate the vectors across the horizontal and down the vertical viewport edges.
-        let viewport_u = u * viewport_width;
-        let viewport_v = v * -viewport_height;
-
-        // Calculate the horizontal and vertical delta vectors from pixel to pixel.
-        let pixel_delta_u = viewport_u / self.resolution.width as f32;
-        let pixel_delta_v = viewport_v / self.resolution.height as f32;
-
-        // Calculate the location of the upper left pixel.
-        let viewport_upper_left =
-            self.scene.camera.position - self.scene.camera.focus_dist * w - viewport_u / 2. - viewport_v / 2.;
-        let pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
-
-        let defocus_radius =
-            self.scene.camera.focus_dist * f32::tan(degrees_to_radians(self.scene.camera.defocus_angle / 2.));
-        let defocus_disk_u = u * defocus_radius;
-        let defocus_disk_v = v * defocus_radius;
-
         let mut image = ImageBuffer::new(self.resolution.width, self.resolution.height);
 
-        let aliasing_offsets = [0.5 * (pixel_delta_u * random::<f32>() + pixel_delta_v * random::<f32>()); 4];
+        let mut rng = SmallRng::from_thread_rng();
+        // TODO:
+        // let aliasing_offsets = [random::<f32>() - 1.0; 40];
+        let aliasing_offsets = 4;
+        let map_x = |x: f32| x / (self.resolution.width as f32 / 2.0) - 1.0;
+        let map_y = |y: f32| y / (self.resolution.height as f32 / 2.0) - 1.0;
 
         let start = Instant::now();
         for (x, y, pixel) in image.enumerate_pixels_mut() {
             let mut color = Rgb([0., 0., 0.]);
 
-            for offset in aliasing_offsets {
-                let pixel_center = pixel00_loc + (pixel_delta_u * x as f32) + (pixel_delta_v * y as f32) + offset;
-                let ray_origin = if self.scene.camera.defocus_angle <= 0. {
-                    self.scene.camera.position
-                } else {
-                    self.defocus_disk_sample(defocus_disk_u, defocus_disk_v)
-                };
-                let ray_direction = self.scene.camera.position.unit_vector_to(pixel_center);
-                let ray = Ray::new(ray_origin, ray_direction);
+            for offset in 0..aliasing_offsets {
+                let x = map_x(x as f32 + rng.gen::<f32>());
+                let y = map_y(y as f32 + rng.gen::<f32>());
+                let ray = self.scene.camera.create_ray(x, y);
                 color.apply2(&self.ray_color(&ray, 0), |x, y| x + y);
             }
 
-            *pixel = linear_to_gamma(color.map(|x| x / aliasing_offsets.len() as f32))
+            *pixel = linear_to_gamma(color.map(|x| x / aliasing_offsets as f32))
         }
         let finish = Instant::now();
         println!("Render time: {:?}", finish - start);
         // let bar = indicatif::ProgressBar::new(self.config.width as u64);
-        // bar.finish();
         // bar.inc(1);
+        // bar.finish();
         // println!("{:?}", bar.elapsed());
 
         image

@@ -1,17 +1,26 @@
 #![allow(unused)]
 
-use crate::hit::Hit;
-use crate::ray::Ray;
-use crate::vec::Vec3;
 use std::ops::{Add, Mul, Neg};
 
-pub mod hit;
-pub mod point;
-pub mod ray;
-pub mod sphere;
-pub mod unit_vec;
+pub use hit::Hit;
+pub use point::Point;
+pub use ray::Ray;
+pub use sphere::Sphere;
+pub use unit_vec::UnitVec;
+pub use vec::Vec3;
+
+mod hit;
+
+mod point;
+
+mod ray;
+
+mod sphere;
+
+mod unit_vec;
+
 pub mod utils;
-pub mod vec;
+mod vec;
 
 pub trait Dot<T> {
     fn dot(&self, rhs: T) -> f32;

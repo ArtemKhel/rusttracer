@@ -10,7 +10,7 @@ members = [
 ]
 
 [dependencies]
-rand = "0.9.0-alpha.1"
+rand = { version = "0.9.0-alpha.1", features = ["small_rng"] }
 image = "0.25.1"
 geometry = { path = "./lib/geometry" }
 indicatif = "0.17.8"

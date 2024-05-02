@@ -1,4 +1,4 @@
-use geometry::vec::Vec3;
+use geometry::Vec3;
 use image::Pixel;
 use image::Rgb;
 use rand::distributions::{Distribution, Standard};
@@ -19,5 +19,5 @@ pub(crate) fn linear_to_gamma(linear: Rgb<f32>) -> Rgb<f32> {
 }
 
 pub fn degrees_to_radians(degrees: f32) -> f32 {
-    degrees / 180.0 * PI
+    PI * degrees / 180.0
 }
