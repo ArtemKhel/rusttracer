@@ -3,8 +3,8 @@ use image::Rgb;
 use geometry::utils::random_unit;
 use geometry::Ray;
 
-use crate::intersection::Intersection;
 use crate::material::{Material, Scatter};
+use crate::scene::Intersection;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Metal {

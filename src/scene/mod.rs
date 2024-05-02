@@ -1,7 +1,11 @@
-mod scene;
-pub use scene::*;
-mod object;
+pub use camera::*;
+pub use intersection::Intersection;
 pub use object::*;
+pub use scene::*;
+
+mod scene;
+
+mod object;
 
 mod camera;
-pub use camera::*;
+mod intersection;

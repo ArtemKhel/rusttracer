@@ -6,7 +6,7 @@ use geometry::Vec3;
 
 use crate::utils::degrees_to_radians;
 
-type Pixel = [u32; 2]; // TODO:
+pub type PixelCoord = [f32; 2]; // TODO:
 
 #[derive(Debug, Default)]
 pub struct Screen {

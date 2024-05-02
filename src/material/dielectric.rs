@@ -4,8 +4,8 @@ use rand::{random, Rng};
 use geometry::Dot;
 use geometry::Ray;
 
-use crate::intersection::Intersection;
 use crate::material::{Material, Scatter};
+use crate::scene::Intersection;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Dielectric {
@@ -24,7 +24,6 @@ impl Material for Dielectric {
     fn scatter(&self, ray: &Ray, intersection: &Intersection) -> Option<Scatter> {
         let on_front = intersection.hit.on_front_side(ray);
         let refract_coef = if on_front {
-            // TODO: check
             1.0 / self.refraction_index
         } else {
             self.refraction_index

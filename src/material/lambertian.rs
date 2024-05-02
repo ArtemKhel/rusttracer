@@ -1,5 +1,5 @@
-use crate::intersection::Intersection;
 use crate::material::{Material, Scatter};
+use crate::scene::Intersection;
 use geometry::utils::random_unit;
 use geometry::Ray;
 use image::Rgb;

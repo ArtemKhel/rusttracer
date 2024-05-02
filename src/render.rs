@@ -1,24 +1,39 @@
-use std::ops::Add;
 use std::time::Instant;
 
 use image::{ImageBuffer, Pixel, Rgb};
-use rand::rngs::SmallRng;
-use rand::{random, Rng};
+use rand::random;
 
-use crate::scene::Scene;
-use geometry::utils::random_in_unit_disk;
-use geometry::Cross;
-use geometry::Point;
 use geometry::Ray;
-use geometry::UnitVec;
-use geometry::Vec3;
 
+use crate::scene::{PixelCoord, Scene};
 use crate::utils;
-use crate::utils::{degrees_to_radians, linear_to_gamma};
+use crate::utils::linear_to_gamma;
 
 pub struct Resolution {
     pub width: u32,
     pub height: u32,
+}
+
+pub struct AntiAliasing {
+    pub offsets: Vec<PixelCoord>,
+}
+
+pub enum AAType {
+    Random(usize),
+    RegularGrid(usize),
+}
+
+impl AntiAliasing {
+    pub fn new(aa_type: AAType) -> Self {
+        match aa_type {
+            AAType::Random(n) => AntiAliasing {
+                offsets: vec![[random::<f32>() - 1.0, random::<f32>() - 1.0]; n],
+            },
+            AAType::RegularGrid(n) => {
+                todo!()
+            }
+        }
+    }
 }
 
 pub trait Render {
@@ -28,8 +43,8 @@ pub trait Render {
 pub struct RayTracer {
     pub scene: Scene,
     pub resolution: Resolution,
-    pub antialiasing: u32,
-    // TODO: <-
+    pub antialiasing: Option<AntiAliasing>,
+    // TODO: from config
     pub max_reflections: u32,
 }
 
@@ -60,10 +75,10 @@ impl Render for RayTracer {
     fn render(&self) -> ImageBuffer<Rgb<f32>, Vec<f32>> {
         let mut image = ImageBuffer::new(self.resolution.width, self.resolution.height);
 
-        let mut rng = SmallRng::from_thread_rng();
+        // let mut rng = SmallRng::from_thread_rng();
         // TODO:
         // let aliasing_offsets = [random::<f32>() - 1.0; 40];
-        let aliasing_offsets = 4;
+        // let aliasing_offsets = 4;
         let map_x = |x: f32| x / (self.resolution.width as f32 / 2.0) - 1.0;
         let map_y = |y: f32| y / (self.resolution.height as f32 / 2.0) - 1.0;
 
@@ -71,14 +86,22 @@ impl Render for RayTracer {
         for (x, y, pixel) in image.enumerate_pixels_mut() {
             let mut color = Rgb([0., 0., 0.]);
 
-            for offset in 0..aliasing_offsets {
-                let x = map_x(x as f32 + rng.gen::<f32>());
-                let y = map_y(y as f32 + rng.gen::<f32>());
+            // TODO: None as AA with offsets [0,0]?
+            // .unwrap_or_...?
+            if let Some(aa) = self.antialiasing.as_ref() {
+                for offset in aa.offsets.iter() {
+                    let x = map_x(x as f32 + offset[0]);
+                    let y = map_y(y as f32 + offset[1]);
+                    let ray = self.scene.camera.create_ray(x, y);
+                    color.apply2(&self.ray_color(&ray, 0), |x, y| x + y);
+                }
+                *pixel = linear_to_gamma(color.map(|x| x / aa.offsets.len() as f32))
+            } else {
+                let x = map_x(x as f32);
+                let y = map_y(y as f32);
                 let ray = self.scene.camera.create_ray(x, y);
-                color.apply2(&self.ray_color(&ray, 0), |x, y| x + y);
+                *pixel = linear_to_gamma(self.ray_color(&ray, 0));
             }
-
-            *pixel = linear_to_gamma(color.map(|x| x / aliasing_offsets as f32))
         }
         let finish = Instant::now();
         println!("Render time: {:?}", finish - start);

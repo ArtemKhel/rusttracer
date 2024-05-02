@@ -1,6 +1,6 @@
-use crate::intersection::Intersection;
 use crate::material::Material;
 use crate::scene::camera::Camera;
+use crate::scene::intersection::Intersection;
 use crate::scene::object::Object;
 use geometry::Ray;
 

@@ -1,4 +1,4 @@
-use crate::intersection::Intersection;
+use crate::scene::Intersection;
 use geometry::Ray;
 use image::Rgb;
 pub mod dielectric;

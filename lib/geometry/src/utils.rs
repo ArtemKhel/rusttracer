@@ -2,7 +2,6 @@ use crate::unit_vec::UnitVec;
 use crate::vec::Vec3;
 use crate::Dot;
 use rand::{random, Rng};
-// TODO: SmallRng
 
 pub fn random_unit() -> UnitVec {
     loop {

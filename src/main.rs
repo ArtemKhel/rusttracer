@@ -4,14 +4,14 @@ use image::buffer::ConvertBuffer;
 use image::{Rgb, RgbImage};
 use rand::random;
 
-use geometry::point::Point;
-use geometry::sphere::Sphere;
-use geometry::vec::Vec3;
+use geometry::Point;
+use geometry::Sphere;
+use geometry::Vec3;
 use rusttracer::material::dielectric::Dielectric;
 use rusttracer::material::lambertian::Lambertian;
 use rusttracer::material::metal::Metal;
 use rusttracer::material::Material;
-use rusttracer::render::{RayTracer, Render, Resolution};
+use rusttracer::render::{AAType, AntiAliasing, RayTracer, Render, Resolution};
 use rusttracer::scene::Object;
 use rusttracer::scene::Scene;
 use rusttracer::scene::{Camera, CameraConfig};
@@ -102,15 +102,13 @@ fn main() {
             // width: 1280,
             // height: 720,
         },
-        antialiasing: 1,
+        // antialiasing: Some(AntiAliasing::new(AAType::Random(4))),
+        antialiasing: None,
         max_reflections: 5,
     };
 
     let image = raytracer.render();
 
     let image: RgbImage = image.convert();
-    image.save("./images/image.png").or_else(|err| {
-        eprintln!("{err}");
-        Err(err)
-    });
+    image.save("./images/image.png").unwrap()
 }

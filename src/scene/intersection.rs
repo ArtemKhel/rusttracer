@@ -1,5 +1,6 @@
-use geometry::Hit;
 use std::cmp::Ordering;
+
+use geometry::Hit;
 
 use crate::scene::Object;
 
