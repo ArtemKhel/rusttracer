@@ -10,7 +10,7 @@ pub struct UnitVec {
 
 impl UnitVec {
     pub fn reflect(&self, normal: UnitVec) -> UnitVec {
-        (self.vec - (normal * self.dot(normal) * 2.0)).to_unit()
+        (self.vec - (normal * self.dot(normal) * 2.0)).into()
     }
 
     pub fn refract(&self, normal: UnitVec, refraction_coef_ratio: f32) -> UnitVec {
@@ -19,7 +19,7 @@ impl UnitVec {
         // cos_theta *= sign;
         let perpend = refraction_coef_ratio * (self.vec + normal * cos_theta * sign);
         let parallel = normal * -f32::sqrt(f32::abs(1. - perpend.dot(perpend)));
-        (perpend + parallel).to_unit()
+        (perpend + parallel).into()
     }
 }
 
@@ -39,7 +39,7 @@ impl Mul<f32> for UnitVec {
     }
 }
 
-impl Mul<UnitVec> for f32{
+impl Mul<UnitVec> for f32 {
     type Output = Vec3;
 
     fn mul(self, rhs: UnitVec) -> Self::Output {

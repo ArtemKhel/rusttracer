@@ -1,9 +1,9 @@
-use std::f32::consts::PI;
+use geometry::vec::Vec3;
 use image::Pixel;
 use image::Rgb;
 use rand::distributions::{Distribution, Standard};
 use rand::Rng;
-use geometry::vec::Vec3;
+use std::f32::consts::PI;
 
 pub(crate) fn lerp(/*a: Rgb<u8>, b: Rgb<u8>,*/ t: f32) -> Rgb<f32> {
     let a = Rgb([1.0, 1.0, 1.0]);

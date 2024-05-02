@@ -6,7 +6,8 @@ pub struct Camera {
     pub look_at: Point,
     pub up: Vec3,
     pub vertical_fov: f32,
-    // pub config: CameraConfig,
+    pub defocus_angle: f32,
+    pub focus_dist: f32,
 }
 
 impl Camera {
@@ -17,13 +18,15 @@ impl Camera {
     // }
 }
 
-impl Default for Camera{
+impl Default for Camera {
     fn default() -> Self {
         Camera {
             position: Point::default(),
             look_at: Point::new(0., 0., -1.),
             up: Vec3::new(0., 1., 0.),
             vertical_fov: 90.0,
+            defocus_angle: 0.25,
+            focus_dist: 10.,
         }
     }
 }

@@ -7,7 +7,7 @@ pub fn random_unit() -> UnitVec {
     loop {
         let rnd: Vec3 = random();
         if rnd.len() <= 1. {
-            break rnd.to_unit();
+            break rnd.into();
         }
     }
 }

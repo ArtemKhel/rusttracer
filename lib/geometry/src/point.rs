@@ -15,7 +15,7 @@ impl Point {
         }
     }
     pub fn unit_vector_to(self, target: Point) -> UnitVec {
-        self.vector_to(target).to_unit()
+        self.vector_to(target).into()
     }
 
     pub fn vector_to(self, target: Point) -> Vec3 {

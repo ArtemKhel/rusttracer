@@ -14,7 +14,7 @@ pub struct Metal {
 
 impl Material for Metal {
     fn scatter(&self, ray: &Ray, intersection: &Intersection) -> Option<Scatter> {
-        let reflected_direction = (ray.dir.reflect(intersection.hit.normal).vec + random_unit() * self.fuzz).to_unit();
+        let reflected_direction = (ray.dir.reflect(intersection.hit.normal).vec + random_unit() * self.fuzz).into();
         let ray = Ray::new(
             intersection.hit.point + intersection.hit.normal * 0.01,
             reflected_direction,
