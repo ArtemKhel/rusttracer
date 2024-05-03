@@ -2,6 +2,7 @@
 
 use std::ops::{Add, Mul, Neg};
 
+pub use aabb::AABB;
 pub use hit::Hit;
 pub use point::Point;
 pub use ray::Ray;
@@ -19,8 +20,10 @@ mod sphere;
 
 mod unit_vec;
 
+mod aabb;
 pub mod utils;
 mod vec;
+mod bvh;
 
 pub trait Dot<T> {
     fn dot(&self, rhs: T) -> f32;
@@ -32,6 +35,8 @@ pub trait Cross<T> {
 
 pub trait Intersect {
     fn hit(&self, ray: &Ray) -> Option<Hit>;
+
+    fn bounding_box(&self) -> AABB;
 }
 
 #[cfg(test)]

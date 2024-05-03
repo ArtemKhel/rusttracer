@@ -1,6 +1,6 @@
 use std::{
     cmp::min,
-    ops::{Mul, Neg},
+    ops::{Index, Mul, Neg},
 };
 
 use crate::{vec::Vec3, Dot};
@@ -11,6 +11,8 @@ pub struct UnitVec {
 }
 
 impl UnitVec {
+    pub fn new(x: f32, y: f32, z: f32) -> Self { Vec3 { x, y, z }.to_unit() }
+
     pub fn reflect(&self, normal: UnitVec) -> UnitVec { (self.vec - (normal * self.dot(normal) * 2.0)).to_unit() }
 
     pub fn refract(&self, normal: UnitVec, refraction_coef_ratio: f32) -> UnitVec {
@@ -21,6 +23,12 @@ impl UnitVec {
         let parallel = normal * -f32::sqrt(f32::abs(1. - perpend.dot(perpend)));
         (perpend + parallel).to_unit()
     }
+}
+
+impl Index<usize> for UnitVec {
+    type Output = f32;
+
+    fn index(&self, index: usize) -> &Self::Output { &self.vec[index] }
 }
 
 impl Neg for UnitVec {

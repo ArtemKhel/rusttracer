@@ -3,6 +3,7 @@ use image::Rgb;
 
 use crate::scene::Intersection;
 pub mod dielectric;
+pub mod diffuse_light;
 pub mod lambertian;
 pub mod metal;
 

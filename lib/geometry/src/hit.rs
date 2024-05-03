@@ -16,6 +16,7 @@ impl Hit {
 }
 
 impl Eq for Hit {}
+
 impl Ord for Hit {
     fn cmp(&self, other: &Self) -> Ordering { self.t.partial_cmp(&other.t).unwrap() }
 }

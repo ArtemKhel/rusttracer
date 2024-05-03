@@ -1,4 +1,4 @@
-use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::ops::{Add, Div, Index, Mul, Neg, Sub};
 
 use rand::{
     self,
@@ -8,6 +8,7 @@ use rand::{
 
 use crate::{unit_vec::UnitVec, Cross, Dot};
 
+// TODO: macros?
 #[derive(Debug, Clone, Copy, PartialOrd, PartialEq)]
 pub struct Vec3 {
     pub x: f32,
@@ -24,6 +25,19 @@ impl Vec3 {
 }
 impl Distribution<Vec3> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Vec3 { Vec3::new(rng.gen(), rng.gen(), rng.gen()) }
+}
+
+impl Index<usize> for Vec3 {
+    type Output = f32;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        match index {
+            0 => &self.x,
+            1 => &self.y,
+            2 => &self.z,
+            _ => panic!(),
+        }
+    }
 }
 
 impl Div<f32> for Vec3 {
