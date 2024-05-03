@@ -1,22 +1,16 @@
 #![allow(unused)]
 
-use image::buffer::ConvertBuffer;
-use image::{Rgb, RgbImage};
+use geometry::{Point, Sphere, Vec3};
+use image::{buffer::ConvertBuffer, Rgb, RgbImage};
 use rand::random;
-
-use geometry::Point;
-use geometry::Sphere;
-use geometry::Vec3;
-use rusttracer::material::dielectric::Dielectric;
-use rusttracer::material::lambertian::Lambertian;
-use rusttracer::material::metal::Metal;
-use rusttracer::material::Material;
-use rusttracer::render::{AAType, AntiAliasing, RayTracer, Render, Resolution};
-use rusttracer::scene::Object;
-use rusttracer::scene::Scene;
-use rusttracer::scene::{Camera, CameraConfig};
+use rusttracer::{
+    material::{dielectric::Dielectric, lambertian::Lambertian, metal::Metal, Material},
+    rendering::{AAType, AAType::RegularGrid, RayTracer, Render, Resolution},
+    scene::{Camera, CameraConfig, Object, Scene},
+};
 
 fn main() {
+    // TODO:
     let materials = vec![];
 
     let mut world: Vec<Object> = vec![
@@ -97,13 +91,13 @@ fn main() {
     let raytracer = RayTracer {
         scene,
         resolution: Resolution {
-            width: 400,
-            height: 225,
+            width: 480,
+            height: 270,
             // width: 1280,
             // height: 720,
         },
-        // antialiasing: Some(AntiAliasing::new(AAType::Random(4))),
-        antialiasing: None,
+        antialiasing: AAType::None.into(),
+        // antialiasing: RegularGrid(2).into(),
         max_reflections: 5,
     };
 

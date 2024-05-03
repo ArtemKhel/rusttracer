@@ -1,11 +1,11 @@
+use geometry::{Dot, Ray};
 use image::Rgb;
 use rand::{random, Rng};
 
-use geometry::Dot;
-use geometry::Ray;
-
-use crate::material::{Material, Scatter};
-use crate::scene::Intersection;
+use crate::{
+    material::{Material, Scatter},
+    scene::Intersection,
+};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Dielectric {

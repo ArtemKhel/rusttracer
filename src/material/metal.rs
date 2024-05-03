@@ -1,10 +1,10 @@
+use geometry::{utils::random_unit, Ray};
 use image::Rgb;
 
-use geometry::utils::random_unit;
-use geometry::Ray;
-
-use crate::material::{Material, Scatter};
-use crate::scene::Intersection;
+use crate::{
+    material::{Material, Scatter},
+    scene::Intersection,
+};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Metal {

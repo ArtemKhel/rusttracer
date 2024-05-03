@@ -1,8 +1,4 @@
-use crate::hit::Hit;
-use crate::point::Point;
-use crate::ray::Ray;
-use crate::unit_vec::UnitVec;
-use crate::{Dot, Intersect};
+use crate::{hit::Hit, point::Point, ray::Ray, unit_vec::UnitVec, Dot, Intersect};
 
 #[derive(Default, Debug, Clone, Copy)]
 pub struct Sphere {
@@ -11,13 +7,9 @@ pub struct Sphere {
 }
 
 impl Sphere {
-    pub fn new(center: Point, radius: f32) -> Sphere {
-        Sphere { center, radius }
-    }
+    pub fn new(center: Point, radius: f32) -> Sphere { Sphere { center, radius } }
 
-    pub fn normal(&self, point: Point) -> UnitVec {
-        self.center.unit_vector_to(point)
-    }
+    pub fn normal(&self, point: Point) -> UnitVec { self.center.unit_vector_to(point) }
 }
 
 impl Intersect for Sphere {

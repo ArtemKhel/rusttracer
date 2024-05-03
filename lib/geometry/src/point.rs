@@ -1,7 +1,6 @@
-use crate::unit_vec::UnitVec;
 use std::ops::{Add, Sub};
 
-use crate::vec::Vec3;
+use crate::{unit_vec::UnitVec, vec::Vec3};
 
 #[derive(Default, Debug, Clone, Copy, PartialOrd, PartialEq)]
 pub struct Point {
@@ -14,25 +13,18 @@ impl Point {
             radius_vector: Vec3::new(x, y, z),
         }
     }
-    pub fn unit_vector_to(self, target: Point) -> UnitVec {
-        self.vector_to(target).to_unit()
-    }
 
-    pub fn vector_to(self, target: Point) -> Vec3 {
-        target - self
-    }
+    pub fn unit_vector_to(self, target: Point) -> UnitVec { self.vector_to(target).to_unit() }
 
-    pub fn distance_to(self, other: Point) -> f32 {
-        (self - other).len()
-    }
+    pub fn vector_to(self, target: Point) -> Vec3 { target - self }
+
+    pub fn distance_to(self, other: Point) -> f32 { (self - other).len() }
 }
 
 impl Sub for Point {
     type Output = Vec3;
 
-    fn sub(self, rhs: Self) -> Self::Output {
-        self.radius_vector - rhs.radius_vector
-    }
+    fn sub(self, rhs: Self) -> Self::Output { self.radius_vector - rhs.radius_vector }
 }
 
 impl Add<Vec3> for Point {

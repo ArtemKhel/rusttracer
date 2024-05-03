@@ -1,6 +1,7 @@
-use crate::scene::Intersection;
 use geometry::Ray;
 use image::Rgb;
+
+use crate::scene::Intersection;
 pub mod dielectric;
 pub mod lambertian;
 pub mod metal;

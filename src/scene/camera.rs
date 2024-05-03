@@ -1,12 +1,6 @@
-use geometry::utils::random_in_unit_disk;
-use geometry::Cross;
-use geometry::Point;
-use geometry::Ray;
-use geometry::Vec3;
+use geometry::{utils::random_in_unit_disk, Cross, Point, Ray, Vec3};
 
-use crate::utils::degrees_to_radians;
-
-pub type PixelCoord = [f32; 2]; // TODO:
+use crate::{rendering::PixelCoord, utils::degrees_to_radians};
 
 #[derive(Debug, Default)]
 pub struct Screen {
@@ -32,9 +26,8 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn create_ray(&self, x: f32, y: f32) -> Ray {
-        let direction = self.screen.center + self.screen.basis[0] * x + self.screen.basis[1] * y;
-        // Ray::from_to(self.position, direction)
+    pub fn create_ray(&self, coord: PixelCoord) -> Ray {
+        let direction = self.screen.center + self.screen.basis[0] * coord[0] + self.screen.basis[1] * coord[1];
         Ray::from_to(self.defocus_disk_sample(), direction)
     }
 

@@ -1,7 +1,6 @@
-use crate::unit_vec::UnitVec;
-use crate::vec::Vec3;
-use crate::Dot;
 use rand::{random, Rng};
+
+use crate::{unit_vec::UnitVec, vec::Vec3, Dot};
 
 pub fn random_unit() -> UnitVec {
     loop {
