@@ -1,9 +1,9 @@
 #![allow(unused)]
 
-use geometry::{Point, Sphere, Vec3};
 use image::{buffer::ConvertBuffer, Rgb, RgbImage};
 use rand::random;
 use rusttracer::{
+    geometry::{Point, Sphere, Vec3},
     material::{dielectric::Dielectric, lambertian::Lambertian, metal::Metal, Material},
     rendering::{AAType, AAType::RegularGrid, RayTracer, Render, Resolution},
     scene::{Camera, CameraConfig, Object, Scene},

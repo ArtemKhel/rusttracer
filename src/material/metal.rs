@@ -1,7 +1,7 @@
-use geometry::{utils::random_unit, Ray};
 use image::Rgb;
 
 use crate::{
+    geometry::{utils::random_unit, Ray},
     material::{Material, Scatter},
     scene::Intersection,
 };

@@ -1,6 +1,6 @@
 use std::{arch::x86_64::__m128, path::Path};
 
-use crate::{point::Point, unit_vec::UnitVec, vec::Vec3};
+use crate::geometry::{point::Point, unit_vec::UnitVec, vec::Vec3};
 
 pub struct Ray {
     pub origin: Point,

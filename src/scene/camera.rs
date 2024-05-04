@@ -1,6 +1,8 @@
-use geometry::{utils::random_in_unit_disk, Cross, Point, Ray, Vec3};
-
-use crate::{rendering::PixelCoord, utils::degrees_to_radians};
+use crate::{
+    geometry::{utils::random_in_unit_disk, Cross, Point, Ray, Vec3},
+    rendering::PixelCoord,
+    utils::degrees_to_radians,
+};
 
 #[derive(Debug, Default)]
 pub struct Screen {

@@ -4,13 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-[workspace]
-members = [
-    "lib/geometry",
-]
 
 [dependencies]
-geometry = { path = "./lib/geometry" }
 image = { version = "0.25.1", features = ["rayon"] }
 indicatif = "0.17.8"
 itertools = "0.12.1"

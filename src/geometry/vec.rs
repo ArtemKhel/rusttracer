@@ -6,7 +6,7 @@ use rand::{
     Rng,
 };
 
-use crate::{unit_vec::UnitVec, Cross, Dot};
+use crate::geometry::{unit_vec::UnitVec, Cross, Dot};
 
 // TODO: macros?
 #[derive(Debug, Clone, Copy, PartialOrd, PartialEq)]

@@ -21,9 +21,9 @@ mod sphere;
 mod unit_vec;
 
 mod aabb;
+mod bvh;
 pub mod utils;
 mod vec;
-mod bvh;
 
 pub trait Dot<T> {
     fn dot(&self, rhs: T) -> f32;

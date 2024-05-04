@@ -1,10 +1,10 @@
 use std::time::Instant;
 
-use geometry::Ray;
 use image::{ImageBuffer, Pixel, Rgb};
 use rayon::iter::ParallelIterator;
 
 use crate::{
+    geometry::Ray,
     rendering::{antialiasing::AntiAliasing, PixelCoord, Render, Resolution},
     scene::Scene,
     utils,

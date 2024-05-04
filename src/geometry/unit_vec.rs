@@ -3,7 +3,7 @@ use std::{
     ops::{Index, Mul, Neg},
 };
 
-use crate::{vec::Vec3, Dot};
+use crate::geometry::{vec::Vec3, Dot};
 
 #[derive(Debug, Clone, Copy, PartialOrd, PartialEq)]
 pub struct UnitVec {

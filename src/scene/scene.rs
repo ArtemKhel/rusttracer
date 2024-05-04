@@ -1,6 +1,5 @@
-use geometry::Ray;
-
 use crate::{
+    geometry::Ray,
     material::Material,
     scene::{camera::Camera, intersection::Intersection, object::Object},
 };
@@ -8,6 +7,7 @@ use crate::{
 pub struct Scene {
     pub camera: Camera,
     pub objects: Vec<Object>,
+    // pub objects: ObjectList
     pub materials: Vec<Box<dyn Material>>,
     // lights:
 }

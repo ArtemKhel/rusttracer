@@ -1,7 +1,6 @@
-use std::cmp::max;
-use std::mem::swap;
+use std::{cmp::max, mem::swap};
 
-use crate::{Point, Ray};
+use crate::geometry::{Point, Ray};
 
 #[derive(Default, Debug, PartialOrd, PartialEq)]
 pub struct AABB {
@@ -47,7 +46,7 @@ impl AABB {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::UnitVec;
+    use crate::geometry::UnitVec;
 
     #[test]
     fn test_aabb() {
@@ -58,12 +57,12 @@ mod tests {
 
         let ray = Ray::new(Point::default(), UnitVec::new(1., 0., 0.));
         assert!(bbox.hit(&ray, 0., 10.,));
-        assert!(!bbox.hit(&ray, 0.,0.5));
+        assert!(!bbox.hit(&ray, 0., 0.5));
 
         let ray = Ray::new(Point::default(), UnitVec::new(1., 2., 0.));
         assert!(!bbox.hit(&ray, 0., 10.,));
 
-        let ray = Ray::new(Point::new(0.,1.,0.,), UnitVec::new(1., 0., 0.));
+        let ray = Ray::new(Point::new(0., 1., 0.), UnitVec::new(1., 0., 0.));
         assert!(bbox.hit(&ray, 0., 10.,));
     }
 }

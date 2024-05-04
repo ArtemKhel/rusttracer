@@ -1,4 +1,4 @@
-use crate::{hit::Hit, point::Point, ray::Ray, unit_vec::UnitVec, Dot, Intersect, Vec3, AABB};
+use crate::geometry::{hit::Hit, point::Point, ray::Ray, unit_vec::UnitVec, Dot, Intersect, Vec3, AABB};
 
 #[derive(Default, Debug, Clone, Copy)]
 pub struct Sphere {

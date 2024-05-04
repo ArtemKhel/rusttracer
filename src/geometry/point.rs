@@ -1,6 +1,6 @@
 use std::ops::{Add, Sub};
 
-use crate::{unit_vec::UnitVec, vec::Vec3};
+use crate::geometry::{unit_vec::UnitVec, vec::Vec3};
 
 #[derive(Default, Debug, Clone, Copy, PartialOrd, PartialEq)]
 pub struct Point {

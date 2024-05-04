@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use crate::{point::Point, ray::Ray, unit_vec::UnitVec, vec::Vec3, Dot};
+use crate::geometry::{Dot, Point, Ray, UnitVec};
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Hit {
