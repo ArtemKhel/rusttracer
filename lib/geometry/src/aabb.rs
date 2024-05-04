@@ -1,15 +1,10 @@
+use std::cmp::max;
 use std::mem::swap;
 
 use crate::{Point, Ray};
 
-pub struct Interval {
-    min: f32,
-    max: f32,
-}
-
 #[derive(Default, Debug, PartialOrd, PartialEq)]
 pub struct AABB {
-    // bound: Bound
     min: Point,
     max: Point,
 }
@@ -29,9 +24,9 @@ impl AABB {
         AABB { min, max }
     }
 
-    pub fn hit(&self, ray: &Ray, interval: Interval) -> bool {
-        let mut t_min = interval.min;
-        let mut t_max = interval.max;
+    pub fn hit(&self, ray: &Ray, min: f32, max: f32) -> bool {
+        let mut t_min = min;
+        let mut t_max = max;
         for axis in 0..3 {
             let inv_dir = ray.dir[axis].recip();
             let mut t0 = (self.min.radius_vector[axis] - ray.origin.radius_vector[axis]) * inv_dir;
@@ -39,8 +34,8 @@ impl AABB {
             if inv_dir < 0. {
                 swap(&mut t0, &mut t1)
             }
-            t_min = if t0 > t_min { t0 } else { t_min };
-            t_max = if t0 < t_max { t1 } else { t_max };
+            t_min = f32::max(t0, t_min);
+            t_max = f32::min(t1, t_max);
             if t_min >= t_max {
                 return false;
             }
@@ -62,14 +57,13 @@ mod tests {
         };
 
         let ray = Ray::new(Point::default(), UnitVec::new(1., 0., 0.));
-        let interval = Interval { min: 0.0, max: 10.0 };
-        assert!(bbox.hit(&ray, interval));
-
-        let interval = Interval { min: 0.0, max: 0.5 };
-        assert!(!bbox.hit(&ray, interval));
+        assert!(bbox.hit(&ray, 0., 10.,));
+        assert!(!bbox.hit(&ray, 0.,0.5));
 
         let ray = Ray::new(Point::default(), UnitVec::new(1., 2., 0.));
-        let interval = Interval { min: 0.0, max: 10.0 };
-        assert!(!bbox.hit(&ray, interval));
+        assert!(!bbox.hit(&ray, 0., 10.,));
+
+        let ray = Ray::new(Point::new(0.,1.,0.,), UnitVec::new(1., 0., 0.));
+        assert!(bbox.hit(&ray, 0., 10.,));
     }
 }
