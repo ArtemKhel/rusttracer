@@ -6,35 +6,35 @@ use rusttracer::{
     geometry::{Point, Sphere, Vec3},
     material::{dielectric::Dielectric, lambertian::Lambertian, metal::Metal, Material},
     rendering::{AAType, AAType::RegularGrid, RayTracer, Render, Resolution},
-    scene::{Camera, CameraConfig, Object, Scene},
+    scene::{Camera, CameraConfig, Primitive, Scene},
 };
 
 fn main() {
     // TODO:
     let materials = vec![];
 
-    let mut world: Vec<Object> = vec![
-        Object {
+    let mut world: Vec<Primitive> = vec![
+        Primitive {
             shape: Box::new(Sphere::new(Point::new(-4., 1.0, 0.), 1.0)),
             material: Box::new(Lambertian {
                 albedo: Rgb([0.4, 0.2, 0.1]),
             }),
         },
-        Object {
+        Primitive {
             shape: Box::new(Sphere::new(Point::new(0., 1.0, 0.), 0.9)),
             material: Box::new(Metal {
                 albedo: Rgb([0.7, 0.6, 0.6]),
                 fuzz: 0.1,
             }),
         },
-        Object {
+        Primitive {
             shape: Box::new(Sphere::new(Point::new(4., 1.0, 0.), 0.8)),
             material: Box::new(Dielectric {
                 refraction_index: 1.5,
                 attenuation: Rgb([0.95, 0.95, 0.95]),
             }),
         },
-        Object {
+        Primitive {
             shape: Box::new(Sphere::new(Point::new(0., -1000., 0.), 1000.)),
             material: Box::new(Lambertian {
                 albedo: Rgb([0.2, 0.2, 0.2]),
@@ -64,7 +64,7 @@ fn main() {
                         refraction_index: 1.5,
                     })
                 };
-                world.push(Object {
+                world.push(Primitive {
                     shape: Box::new(Sphere::new(center, center.radius_vector.y)),
                     material: sphere_material,
                 });
@@ -104,5 +104,5 @@ fn main() {
     let image = raytracer.render();
 
     let image: RgbImage = image.convert();
-    image.save("./images/image.png").unwrap()
+    image.save("./images/_image.png").unwrap()
 }

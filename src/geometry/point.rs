@@ -1,6 +1,6 @@
-use std::ops::{Add, Sub};
+use std::ops::{Add, Index, Sub};
 
-use crate::geometry::{unit_vec::UnitVec, vec::Vec3};
+use crate::geometry::{unit_vec::UnitVec, utils::Axis, vec::Vec3};
 
 #[derive(Default, Debug, Clone, Copy, PartialOrd, PartialEq)]
 pub struct Point {
@@ -21,6 +21,11 @@ impl Point {
     pub fn distance_to(self, other: Point) -> f32 { (self - other).len() }
 }
 
+impl Index<Axis> for Point {
+    type Output = f32;
+
+    fn index(&self, index: Axis) -> &Self::Output { &self.radius_vector[index] }
+}
 impl Sub for Point {
     type Output = Vec3;
 

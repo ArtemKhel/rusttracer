@@ -1,13 +1,13 @@
 use crate::{
-    geometry::Ray,
+    geometry::{Intersectable, Hit, Ray, BVH},
     material::Material,
-    scene::{camera::Camera, intersection::Intersection, object::Object},
+    scene::{camera::Camera, intersection::Intersection, primitive::Primitive},
 };
 
 pub struct Scene {
     pub camera: Camera,
-    pub objects: Vec<Object>,
-    // pub objects: ObjectList
+    pub objects: Vec<Primitive>,
+    // pub objects: BVH<Primitive>,
     pub materials: Vec<Box<dyn Material>>,
     // lights:
 }

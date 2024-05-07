@@ -1,8 +1,13 @@
 #![allow(unused)]
 
-use std::ops::{Add, Mul, Neg};
+use std::{
+    ops::{Add, Mul, Neg},
+    os::fd::IntoRawFd,
+};
+use std::fmt::Debug;
 
 pub use aabb::AABB;
+pub use bvh::BVH;
 pub use hit::Hit;
 pub use point::Point;
 pub use ray::Ray;
@@ -33,11 +38,16 @@ pub trait Cross<T> {
     fn cross(&self, rhs: T) -> Vec3;
 }
 
-pub trait Intersect {
+pub trait Intersectable {
     fn hit(&self, ray: &Ray) -> Option<Hit>;
-
-    fn bounding_box(&self) -> AABB;
 }
+
+pub trait Bounded {
+    fn bound(&self) -> AABB;
+}
+
+pub trait BoundedIntersectable: Bounded + Intersectable + Debug{}
+impl<T> BoundedIntersectable for T where T: Bounded + Intersectable + Debug {}
 
 #[cfg(test)]
 mod tests {

@@ -3,7 +3,6 @@ mod raytracer;
 
 pub use antialiasing::{AAType, AntiAliasing};
 use image::{ImageBuffer, Pixel, Rgb};
-use rayon::iter::ParallelIterator;
 pub use raytracer::RayTracer;
 
 pub struct Resolution {

@@ -1,6 +1,25 @@
-use rand::{random, Rng};
+use rand::{distributions::Standard, prelude::Distribution, random, Rng};
+use strum_macros::EnumIter;
 
 use crate::geometry::{unit_vec::UnitVec, vec::Vec3, Dot};
+
+#[derive(Copy, Clone, EnumIter)]
+pub enum Axis {
+    X,
+    Y,
+    Z,
+}
+
+impl Distribution<Axis> for Standard {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Axis {
+        match random::<u32>() % 3 {
+            0 => Axis::X,
+            1 => Axis::Y,
+            2 => Axis::Z,
+            _ => unreachable!(),
+        }
+    }
+}
 
 pub fn random_unit() -> UnitVec {
     loop {
@@ -10,6 +29,7 @@ pub fn random_unit() -> UnitVec {
         }
     }
 }
+
 pub fn random_on_hemisphere(normal: &UnitVec) -> UnitVec {
     let random = random_unit();
     if normal.dot(random) >= 0. {
@@ -18,6 +38,7 @@ pub fn random_on_hemisphere(normal: &UnitVec) -> UnitVec {
         -random
     }
 }
+
 pub fn random_in_unit_disk() -> Vec3 {
     loop {
         let rnd: Vec3 = random();

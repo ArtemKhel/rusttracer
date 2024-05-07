@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use image::Rgb;
 
 use crate::{geometry::Ray, scene::Intersection};
@@ -11,6 +12,6 @@ pub struct Scatter {
     pub attenuation: Rgb<f32>,
 }
 
-pub trait Material {
+pub trait Material:Debug {
     fn scatter(&self, ray: &Ray, intersection: &Intersection) -> Option<Scatter>;
 }

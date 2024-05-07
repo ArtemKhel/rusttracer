@@ -1,11 +1,11 @@
 pub use camera::*;
 pub use intersection::Intersection;
-pub use object::*;
+pub use primitive::*;
 pub use scene::*;
 
 mod scene;
 
-mod object;
+mod primitive;
 
 mod camera;
 mod intersection;

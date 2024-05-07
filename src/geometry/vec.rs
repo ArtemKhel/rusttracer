@@ -6,7 +6,7 @@ use rand::{
     Rng,
 };
 
-use crate::geometry::{unit_vec::UnitVec, Cross, Dot};
+use crate::geometry::{unit_vec::UnitVec, utils::Axis, Cross, Dot};
 
 // TODO: macros?
 #[derive(Debug, Clone, Copy, PartialOrd, PartialEq)]
@@ -27,15 +27,14 @@ impl Distribution<Vec3> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Vec3 { Vec3::new(rng.gen(), rng.gen(), rng.gen()) }
 }
 
-impl Index<usize> for Vec3 {
+impl Index<Axis> for Vec3 {
     type Output = f32;
 
-    fn index(&self, index: usize) -> &Self::Output {
+    fn index(&self, index: Axis) -> &Self::Output {
         match index {
-            0 => &self.x,
-            1 => &self.y,
-            2 => &self.z,
-            _ => panic!(),
+            Axis::X => &self.x,
+            Axis::Y => &self.y,
+            Axis::Z => &self.z,
         }
     }
 }

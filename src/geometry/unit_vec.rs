@@ -3,7 +3,7 @@ use std::{
     ops::{Index, Mul, Neg},
 };
 
-use crate::geometry::{vec::Vec3, Dot};
+use crate::geometry::{utils::Axis, vec::Vec3, Dot};
 
 #[derive(Debug, Clone, Copy, PartialOrd, PartialEq)]
 pub struct UnitVec {
@@ -25,10 +25,10 @@ impl UnitVec {
     }
 }
 
-impl Index<usize> for UnitVec {
+impl Index<Axis> for UnitVec {
     type Output = f32;
 
-    fn index(&self, index: usize) -> &Self::Output { &self.vec[index] }
+    fn index(&self, index: Axis) -> &Self::Output { &self.vec[index] }
 }
 
 impl Neg for UnitVec {

@@ -1,4 +1,4 @@
-use crate::geometry::{hit::Hit, point::Point, ray::Ray, unit_vec::UnitVec, Dot, Intersect, Vec3, AABB};
+use crate::geometry::{hit::Hit, point::Point, ray::Ray, unit_vec::UnitVec, Bounded, Dot, Intersectable, Vec3, AABB};
 
 #[derive(Default, Debug, Clone, Copy)]
 pub struct Sphere {
@@ -12,7 +12,7 @@ impl Sphere {
     pub fn normal(&self, point: Point) -> UnitVec { self.center.unit_vector_to(point) }
 }
 
-impl Intersect for Sphere {
+impl Intersectable for Sphere {
     fn hit(&self, ray: &Ray) -> Option<Hit> {
         let o = self.center.vector_to(ray.origin);
         let h = ray.dir.dot(o);
@@ -41,12 +41,15 @@ impl Intersect for Sphere {
             Hit::new(point, self.normal(point), root)
         })
     }
+}
 
-    fn bounding_box(&self) -> AABB {
+impl Bounded for Sphere {
+    fn bound(&self) -> AABB {
         let vec = Vec3::new(self.radius, self.radius, self.radius);
         AABB::from_points(self.center - vec, self.center + vec)
     }
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -54,7 +57,7 @@ mod tests {
     #[test]
     fn test_aabb() {
         let sphere = Sphere::new(Point::default(), 1.0);
-        let aabb = sphere.bounding_box();
+        let aabb = sphere.bound();
         let expected = AABB::from_points(Point::new(1., 1., 1.), Point::new(-1., -1., -1.));
 
         assert_eq!(aabb, expected)

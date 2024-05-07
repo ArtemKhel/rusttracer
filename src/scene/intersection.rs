@@ -1,11 +1,11 @@
 use std::cmp::Ordering;
 
-use crate::{geometry::Hit, scene::Object};
+use crate::{geometry::Hit, scene::Primitive};
 
-#[derive(Clone, Copy)]
+// #[derive(Clone, Copy)]
 pub struct Intersection<'a> {
     pub hit: Hit,
-    pub object: &'a Object,
+    pub object: &'a Primitive,
 }
 
 impl<'a> Eq for Intersection<'a> {}

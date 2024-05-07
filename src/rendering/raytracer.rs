@@ -1,7 +1,7 @@
 use std::time::Instant;
 
 use image::{ImageBuffer, Pixel, Rgb};
-use rayon::iter::ParallelIterator;
+use rayon::prelude::*;
 
 use crate::{
     geometry::Ray,
