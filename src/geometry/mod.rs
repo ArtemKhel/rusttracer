@@ -1,12 +1,12 @@
 #![allow(unused)]
 
 use std::{
+    fmt::Debug,
     ops::{Add, Mul, Neg},
     os::fd::IntoRawFd,
 };
-use std::fmt::Debug;
 
-pub use aabb::AABB;
+pub use aabb::Aabb;
 pub use bvh::BVH;
 pub use hit::Hit;
 pub use point::Point;
@@ -43,10 +43,10 @@ pub trait Intersectable {
 }
 
 pub trait Bounded {
-    fn bound(&self) -> AABB;
+    fn bound(&self) -> Aabb;
 }
 
-pub trait BoundedIntersectable: Bounded + Intersectable + Debug{}
+pub trait BoundedIntersectable: Bounded + Intersectable + Debug {}
 impl<T> BoundedIntersectable for T where T: Bounded + Intersectable + Debug {}
 
 #[cfg(test)]

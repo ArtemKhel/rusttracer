@@ -1,4 +1,5 @@
 use std::fmt::Debug;
+
 use image::Rgb;
 
 use crate::{geometry::Ray, scene::Intersection};
@@ -12,12 +13,8 @@ pub struct Scatter {
     pub attenuation: Rgb<f32>,
 }
 
-pub trait Material:Debug {
-    fn scattered(&self, ray: &Ray, intersection: &Intersection) -> Option<Scatter>{
-        None
-    }
+pub trait Material: Debug {
+    fn scattered(&self, ray: &Ray, intersection: &Intersection) -> Option<Scatter> { None }
 
-    fn emitted(&self) -> Option<Rgb<f32>>{
-        None
-    }
+    fn emitted(&self) -> Option<Rgb<f32>> { None }
 }

@@ -1,8 +1,7 @@
 use crate::{
-    geometry::{Bounded, BoundedIntersectable, Intersectable, AABB},
+    geometry::{Aabb, Bounded, BoundedIntersectable, Hit, Intersectable, Ray},
     material::Material,
 };
-use crate::geometry::{Hit, Ray};
 
 #[derive(Debug)]
 pub struct Primitive {
@@ -11,10 +10,8 @@ pub struct Primitive {
 }
 
 impl Bounded for Primitive {
-    fn bound(&self) -> AABB { self.shape.bound() }
+    fn bound(&self) -> Aabb { self.shape.bound() }
 }
-impl Intersectable for Primitive{
-    fn hit(&self, ray: &Ray) -> Option<Hit> {
-        self.shape.hit(ray)
-    }
+impl Intersectable for Primitive {
+    fn hit(&self, ray: &Ray) -> Option<Hit> { self.shape.hit(ray) }
 }

@@ -1,6 +1,6 @@
 use std::ops::{Add, Index, Sub};
 
-use crate::geometry::{unit_vec::UnitVec, utils::Axis, vec::Vec3};
+use crate::geometry::{unit_vec::UnitVec, utils::Axis, vec::Vec3, Aabb};
 
 #[derive(Default, Debug, Clone, Copy, PartialOrd, PartialEq)]
 pub struct Point {
@@ -19,6 +19,22 @@ impl Point {
     pub fn vector_to(self, target: Point) -> Vec3 { target - self }
 
     pub fn distance_to(self, other: Point) -> f32 { (self - other).len() }
+
+    pub fn min_coords(lhs: Point, rhs: Point) -> Point {
+        Point::new(
+            lhs.radius_vector.x.min(rhs.radius_vector.x),
+            lhs.radius_vector.y.min(rhs.radius_vector.y),
+            lhs.radius_vector.z.min(rhs.radius_vector.z),
+        )
+    }
+
+    pub fn max_coords(lhs: Point, rhs: Point) -> Point {
+        Point::new(
+            lhs.radius_vector.x.max(rhs.radius_vector.x),
+            lhs.radius_vector.y.max(rhs.radius_vector.y),
+            lhs.radius_vector.z.max(rhs.radius_vector.z),
+        )
+    }
 }
 
 impl Index<Axis> for Point {
@@ -26,6 +42,7 @@ impl Index<Axis> for Point {
 
     fn index(&self, index: Axis) -> &Self::Output { &self.radius_vector[index] }
 }
+
 impl Sub for Point {
     type Output = Vec3;
 
@@ -41,6 +58,7 @@ impl Add<Vec3> for Point {
         }
     }
 }
+
 impl Sub<Vec3> for Point {
     type Output = Point;
 

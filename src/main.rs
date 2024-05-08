@@ -4,11 +4,10 @@ use image::{buffer::ConvertBuffer, Rgb, RgbImage};
 use rand::random;
 use rusttracer::{
     geometry::{Point, Sphere, Vec3},
-    material::{dielectric::Dielectric, lambertian::Lambertian, metal::Metal, Material},
+    material::{dielectric::Dielectric, diffuse_light::DiffuseLight, lambertian::Lambertian, metal::Metal, Material},
     rendering::{AAType, AAType::RegularGrid, RayTracer, Render, Resolution},
     scene::{Camera, CameraConfig, Primitive, Scene},
 };
-use rusttracer::material::diffuse_light::DiffuseLight;
 
 fn main() {
     // TODO:
@@ -44,7 +43,7 @@ fn main() {
         Primitive {
             shape: Box::new(Sphere::new(Point::new(10., 20.0, 10.), 10.0)),
             material: Box::new(DiffuseLight {
-                color: Rgb([ 1., 1., 1. ]),
+                color: Rgb([1., 1., 1.]),
             }),
         },
     ];

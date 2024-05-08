@@ -3,7 +3,7 @@ use strum_macros::EnumIter;
 
 use crate::geometry::{unit_vec::UnitVec, vec::Vec3, Dot};
 
-#[derive(Copy, Clone, EnumIter)]
+#[derive(Copy, Clone, EnumIter, Debug)]
 pub enum Axis {
     X,
     Y,

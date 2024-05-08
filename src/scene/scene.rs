@@ -1,5 +1,5 @@
 use crate::{
-    geometry::{Intersectable, Hit, Ray, BVH},
+    geometry::{Hit, Intersectable, Ray, BVH},
     material::Material,
     scene::{camera::Camera, intersection::Intersection, primitive::Primitive},
 };

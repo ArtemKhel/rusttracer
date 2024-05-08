@@ -73,15 +73,15 @@ impl RayTracer {
             return if let Some(scatter) = scatter_direction {
                 let color = self.ray_color(&scatter.ray, reflection_depth + 1);
                 scatter.attenuation.map2(&color, |x, y| x * y)
-            } else if let Some(emitted) = emitted{
+            } else if let Some(emitted) = emitted {
                 emitted
-            } else{
-                Rgb([0.,0.,0.])
+            } else {
+                Rgb([0., 0., 0.])
             };
         }
         // let a = 0.5 * (ray.dir.vec.y + 1.0);
         // utils::lerp(a)
-        Rgb([0.,0.,0.])
+        Rgb([0., 0., 0.])
         // Rgb([0.05,0.05,0.05])
     }
 }

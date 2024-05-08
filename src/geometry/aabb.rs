@@ -1,28 +1,38 @@
-use std::{cmp::max, mem::swap, ops::Add};
+use std::{mem::swap, ops::Add};
 
 use strum::IntoEnumIterator;
 
 use crate::geometry::{utils::Axis, Point, Ray};
 
-#[derive(Copy, Clone, Default, Debug, PartialOrd, PartialEq)]
-pub struct AABB {
+#[derive(Copy, Clone, Debug, PartialOrd, PartialEq)]
+pub struct Aabb {
     pub min: Point,
     pub max: Point,
 }
 
-impl AABB {
+impl Aabb {
+    pub fn center(&self) -> Point {
+        Point {
+            radius_vector: (self.max.radius_vector + self.min.radius_vector) * 0.5,
+        }
+    }
+
+    pub fn max_dimension(&self) -> Axis {
+        let diag = self.max - self.min;
+        if diag.x >= diag.y && diag.x >= diag.z {
+            Axis::X
+        } else if diag.y >= diag.z {
+            Axis::Y
+        } else {
+            Axis::Z
+        }
+    }
+
     pub fn from_points(p1: Point, p2: Point) -> Self {
-        let min = Point::new(
-            p1.radius_vector.x.min(p2.radius_vector.x),
-            p1.radius_vector.y.min(p2.radius_vector.y),
-            p1.radius_vector.z.min(p2.radius_vector.z),
-        );
-        let max = Point::new(
-            p1.radius_vector.x.max(p2.radius_vector.x),
-            p1.radius_vector.y.max(p2.radius_vector.y),
-            p1.radius_vector.z.max(p2.radius_vector.z),
-        );
-        AABB { min, max }
+        Aabb {
+            min: Point::min_coords(p1, p2),
+            max: Point::max_coords(p1, p2),
+        }
     }
 
     pub fn hit(&self, ray: &Ray, min: f32, max: f32) -> bool {
@@ -45,21 +55,34 @@ impl AABB {
     }
 }
 
-impl Add for AABB {
-    type Output = AABB;
+impl Add for Aabb {
+    type Output = Aabb;
 
     fn add(self, rhs: Self) -> Self::Output {
-        let min = Point::new(
-            self.min.radius_vector.x.min(rhs.min.radius_vector.x),
-            self.min.radius_vector.y.min(rhs.min.radius_vector.y),
-            self.min.radius_vector.z.min(rhs.min.radius_vector.z),
-        );
-        let max = Point::new(
-            self.max.radius_vector.x.max(rhs.max.radius_vector.x),
-            self.max.radius_vector.y.max(rhs.max.radius_vector.y),
-            self.max.radius_vector.z.max(rhs.max.radius_vector.z),
-        );
-        AABB { min, max }
+        let min = Point::min_coords(self.min, rhs.min);
+        let max = Point::max_coords(self.max, rhs.max);
+        Aabb { min, max }
+    }
+}
+
+impl Add<Point> for Aabb {
+    type Output = Aabb;
+
+    fn add(self, rhs: Point) -> Self::Output {
+        let min = Point::min_coords(self.min, rhs);
+        let max = Point::max_coords(self.max, rhs);
+        Aabb { min, max }
+    }
+}
+
+impl Default for Aabb {
+    fn default() -> Self {
+        let max = f32::MAX;
+        let min = f32::MIN;
+        Aabb {
+            min: Point::new(max, max, max),
+            max: Point::new(min, min, min),
+        }
     }
 }
 
@@ -70,19 +93,19 @@ mod tests {
 
     #[test]
     fn test_aabb() {
-        let bbox = AABB {
+        let bbox = Aabb {
             min: Point::new(1., -1., -1.),
             max: Point::new(2., 1., 1.),
         };
 
         let ray = Ray::new(Point::default(), UnitVec::new(1., 0., 0.));
-        assert!(bbox.hit(&ray, 0., 10.,));
+        assert!(bbox.hit(&ray, 0., 10.));
         assert!(!bbox.hit(&ray, 0., 0.5));
 
         let ray = Ray::new(Point::default(), UnitVec::new(1., 2., 0.));
-        assert!(!bbox.hit(&ray, 0., 10.,));
+        assert!(!bbox.hit(&ray, 0., 10.));
 
         let ray = Ray::new(Point::new(0., 1., 0.), UnitVec::new(1., 0., 0.));
-        assert!(bbox.hit(&ray, 0., 10.,));
+        assert!(bbox.hit(&ray, 0., 10.));
     }
 }
