@@ -8,7 +8,7 @@ use derive_new::new;
 use itertools::partition;
 
 use crate::{
-    geometry::{Aabb, Bounded, BoundedIntersectable, Point, utils::Axis},
+    geometry::{utils::Axis, Aabb, Bounded, BoundedIntersectable, Point},
     scene::Primitive,
 };
 
@@ -22,18 +22,18 @@ where
     nodes: BVHLinearNode,
 }
 
-#[derive(Debug,new)]
+#[derive(Debug, new)]
 enum BVHLinearNode {
-    Interior{
+    Interior {
         bounds: Aabb,
         second_child_offset: usize,
         axis: Axis,
     },
-    Leaf{
+    Leaf {
         bounds: Aabb,
         primitives_offset: usize,
-        n_primitives: usize
-    }
+        n_primitives: usize,
+    },
 }
 
 #[derive(Debug)]
@@ -67,9 +67,7 @@ impl<T> BVH<T>
 where
     T: Bounded + Debug, // TODO: tmp
 {
-    fn flatten(){
-
-    }
+    fn flatten() {}
 
     pub fn new(primitives: Vec<Rc<T>>, max_in_node: usize) -> BVHBuildNode {
         // TODO: allocators
@@ -172,7 +170,7 @@ where
         for prim_info in primitives_info {
             ordered_primitives.push(primitives[prim_info.index].clone())
         }
-        return BVHBuildNode::new_leaf(bounds, first_offset, primitives_info.len());
+        BVHBuildNode::new_leaf(bounds, first_offset, primitives_info.len())
     }
 }
 
@@ -180,13 +178,12 @@ where
 mod tests {
     use image::Rgb;
 
+    use super::*;
     use crate::{
         geometry::{Point, Sphere},
         material::lambertian::Lambertian,
         scene::Primitive,
     };
-
-    use super::*;
 
     #[test]
     fn test_bvh() {
@@ -240,9 +237,9 @@ mod tests {
                 }),
             },
         ]
-            .into_iter()
-            .map(|x| Rc::new(x))
-            .collect();
+        .into_iter()
+        .map(Rc::new)
+        .collect();
 
         let bvh = BVH::new(world, 1);
         dbg!(&bvh);

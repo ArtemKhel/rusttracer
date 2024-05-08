@@ -15,7 +15,7 @@ impl<'a> PartialEq<Self> for Intersection<'a> {
 }
 
 impl<'a> PartialOrd<Self> for Intersection<'a> {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> { self.hit.t.partial_cmp(&other.hit.t) }
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> { Some(self.hit.cmp(&other.hit)) }
 }
 
 impl<'a> Ord for Intersection<'a> {

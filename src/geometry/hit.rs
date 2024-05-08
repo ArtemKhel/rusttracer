@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 
 use crate::geometry::{Dot, Point, Ray, UnitVec};
 
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Hit {
     pub point: Point,
     pub normal: UnitVec,
@@ -17,6 +17,9 @@ impl Hit {
 
 impl Eq for Hit {}
 
+impl PartialOrd for Hit {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> { Some(self.cmp(other)) }
+}
 impl Ord for Hit {
     fn cmp(&self, other: &Self) -> Ordering { self.t.partial_cmp(&other.t).unwrap() }
 }

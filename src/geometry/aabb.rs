@@ -51,7 +51,7 @@ impl Aabb {
                 return false;
             }
         }
-        return true;
+        true
     }
 }
 

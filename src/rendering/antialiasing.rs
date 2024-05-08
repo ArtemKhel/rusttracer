@@ -27,7 +27,7 @@ impl From<AAType> for AntiAliasing {
                 AntiAliasing {
                     offsets: Vec::from_iter(
                         (0..n)
-                            .cartesian_product((0..n))
+                            .cartesian_product(0..n)
                             .map(|(x, y)| [x as f32 * offset + half, y as f32 * offset + half]),
                     ),
                 }
