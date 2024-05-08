@@ -68,15 +68,20 @@ impl RayTracer {
         if let Some(intersection) = closest_hit {
             // TODO: Note the third option: we could scatter with some fixed probability p and have attenuation be albedo
 
-            let scatter_direction = intersection.object.material.scatter(ray, &intersection);
+            let emitted = intersection.object.material.emitted();
+            let scatter_direction = intersection.object.material.scattered(ray, &intersection);
             return if let Some(scatter) = scatter_direction {
                 let color = self.ray_color(&scatter.ray, reflection_depth + 1);
                 scatter.attenuation.map2(&color, |x, y| x * y)
-            } else {
-                Rgb([0., 0., 0.])
+            } else if let Some(emitted) = emitted{
+                emitted
+            } else{
+                Rgb([0.,0.,0.])
             };
         }
-        let a = 0.5 * (ray.dir.vec.y + 1.0);
-        utils::lerp(a)
+        // let a = 0.5 * (ray.dir.vec.y + 1.0);
+        // utils::lerp(a)
+        Rgb([0.,0.,0.])
+        // Rgb([0.05,0.05,0.05])
     }
 }

@@ -8,6 +8,7 @@ use rusttracer::{
     rendering::{AAType, AAType::RegularGrid, RayTracer, Render, Resolution},
     scene::{Camera, CameraConfig, Primitive, Scene},
 };
+use rusttracer::material::diffuse_light::DiffuseLight;
 
 fn main() {
     // TODO:
@@ -38,6 +39,12 @@ fn main() {
             shape: Box::new(Sphere::new(Point::new(0., -1000., 0.), 1000.)),
             material: Box::new(Lambertian {
                 albedo: Rgb([0.2, 0.2, 0.2]),
+            }),
+        },
+        Primitive {
+            shape: Box::new(Sphere::new(Point::new(10., 20.0, 10.), 10.0)),
+            material: Box::new(DiffuseLight {
+                color: Rgb([ 1., 1., 1. ]),
             }),
         },
     ];
@@ -96,9 +103,9 @@ fn main() {
             // width: 1280,
             // height: 720,
         },
-        antialiasing: AAType::None.into(),
-        // antialiasing: RegularGrid(2).into(),
-        max_reflections: 5,
+        // antialiasing: AAType::None.into(),
+        antialiasing: RegularGrid(3).into(),
+        max_reflections: 4,
     };
 
     let image = raytracer.render();

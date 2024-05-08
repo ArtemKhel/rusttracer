@@ -13,5 +13,11 @@ pub struct Scatter {
 }
 
 pub trait Material:Debug {
-    fn scatter(&self, ray: &Ray, intersection: &Intersection) -> Option<Scatter>;
+    fn scattered(&self, ray: &Ray, intersection: &Intersection) -> Option<Scatter>{
+        None
+    }
+
+    fn emitted(&self) -> Option<Rgb<f32>>{
+        None
+    }
 }

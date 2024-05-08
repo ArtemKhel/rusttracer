@@ -12,7 +12,7 @@ pub struct Lambertian {
 }
 
 impl Material for Lambertian {
-    fn scatter(&self, ray: &Ray, intersection: &Intersection) -> Option<Scatter> {
+    fn scattered(&self, ray: &Ray, intersection: &Intersection) -> Option<Scatter> {
         let scattered_direction = (intersection.hit.normal.vec + random_unit().vec).to_unit();
         let ray = Ray::new(
             intersection.hit.point + intersection.hit.normal * 0.01,

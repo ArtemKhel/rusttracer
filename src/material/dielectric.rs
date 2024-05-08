@@ -21,7 +21,7 @@ impl Dielectric {
 }
 
 impl Material for Dielectric {
-    fn scatter(&self, ray: &Ray, intersection: &Intersection) -> Option<Scatter> {
+    fn scattered(&self, ray: &Ray, intersection: &Intersection) -> Option<Scatter> {
         let on_front = intersection.hit.on_front_side(ray);
         let refract_coef = if on_front {
             1.0 / self.refraction_index
