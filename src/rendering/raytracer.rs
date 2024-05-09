@@ -5,7 +5,7 @@ use rayon::prelude::*;
 
 use crate::{
     geometry::Ray,
-    rendering::{antialiasing::AntiAliasing, PixelCoord, Render, Resolution},
+    rendering::{antialiasing::AntiAliasing, PixelCoord, Renderer, Resolution},
     scene::Scene,
     utils,
     utils::linear_to_gamma,
@@ -23,7 +23,7 @@ unsafe impl Sync for RayTracer {}
 
 unsafe impl Send for RayTracer {}
 
-impl Render for RayTracer {
+impl Renderer for RayTracer {
     fn render(&self) -> ImageBuffer<Rgb<f32>, Vec<f32>> {
         let mut image = ImageBuffer::new(self.resolution.width, self.resolution.height);
 

@@ -10,7 +10,7 @@ pub struct Resolution {
     pub height: u32,
 }
 
-pub trait Render {
+pub trait Renderer {
     fn render(&self) -> ImageBuffer<Rgb<f32>, Vec<f32>>;
 }
 

@@ -7,7 +7,6 @@ use std::{
 };
 
 pub use aabb::Aabb;
-pub use bvh::BVH;
 pub use hit::Hit;
 pub use point::Point;
 pub use ray::Ray;
@@ -26,7 +25,6 @@ mod sphere;
 mod unit_vec;
 
 mod aabb;
-mod bvh;
 pub mod utils;
 mod vec;
 

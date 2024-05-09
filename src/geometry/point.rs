@@ -1,4 +1,7 @@
-use std::ops::{Add, Index, Sub};
+use std::{
+    fmt::{Debug, Formatter},
+    ops::{Add, Index, Sub},
+};
 
 use crate::geometry::{unit_vec::UnitVec, utils::Axis, vec::Vec3, Aabb};
 

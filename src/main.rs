@@ -1,11 +1,14 @@
 #![allow(unused)]
 
+use std::rc::Rc;
+
 use image::{buffer::ConvertBuffer, Rgb, RgbImage};
 use rand::random;
 use rusttracer::{
+    aggregates::BVH,
     geometry::{Point, Sphere, Vec3},
     material::{dielectric::Dielectric, diffuse_light::DiffuseLight, lambertian::Lambertian, metal::Metal, Material},
-    rendering::{AAType, AAType::RegularGrid, RayTracer, Render, Resolution},
+    rendering::{AAType, AAType::RegularGrid, RayTracer, Renderer, Resolution},
     scene::{Camera, CameraConfig, Primitive, Scene},
 };
 
@@ -78,6 +81,8 @@ fn main() {
         }
     }
 
+    let world = BVH::new(world.into_iter().map(Rc::new).collect(), 1);
+
     let camera = Camera::from(CameraConfig {
         position: Point::new(13., 2., 4.),
         look_at: Point::new(0., 0., 0.),
@@ -97,10 +102,10 @@ fn main() {
     let raytracer = RayTracer {
         scene,
         resolution: Resolution {
-            width: 480,
-            height: 270,
-            // width: 1280,
-            // height: 720,
+            // width: 480,
+            // height: 270,
+            width: 1280,
+            height: 720,
         },
         // antialiasing: AAType::None.into(),
         antialiasing: RegularGrid(3).into(),
