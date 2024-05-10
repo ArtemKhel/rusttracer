@@ -6,17 +6,14 @@ use image::{buffer::ConvertBuffer, Rgb, RgbImage};
 use rand::random;
 use rusttracer::{
     aggregates::BVH,
-    geometry::{Point, Sphere, Vec3},
+    geometry::{Point, Quad, Sphere, Vec3},
     material::{dielectric::Dielectric, diffuse_light::DiffuseLight, lambertian::Lambertian, metal::Metal, Material},
-    rendering::{AAType, AAType::RegularGrid, RayTracer, Renderer, Resolution},
+    rendering::{AAType::RegularGrid, RayTracer, Renderer, Resolution},
     scene::{Camera, CameraConfig, Primitive, Scene},
 };
 
-fn main() {
-    // TODO:
-    let materials = vec![];
-
-    let mut world: Vec<Primitive> = vec![
+fn spheres() -> Scene {
+    let mut world = vec![
         Primitive {
             shape: Box::new(Sphere::new(Point::new(-4., 1.0, 0.), 1.0)),
             material: Box::new(Lambertian {
@@ -50,6 +47,7 @@ fn main() {
             }),
         },
     ];
+
     for a in -7..7 {
         for b in -7..7 {
             let choose_mat = random::<f32>();
@@ -83,6 +81,8 @@ fn main() {
 
     let world = BVH::new(world.into_iter().map(Rc::new).collect(), 1);
 
+    let materials = vec![];
+
     let camera = Camera::from(CameraConfig {
         position: Point::new(13., 2., 4.),
         look_at: Point::new(0., 0., 0.),
@@ -99,17 +99,121 @@ fn main() {
         materials,
     };
 
+    scene
+}
+
+fn cornell_box() -> Scene {
+    let materials: Vec<Box<dyn Material>> = vec![Box::new(Lambertian {
+        albedo: Rgb([1.0, 1.0, 1.0]),
+    })];
+
+    let world = vec![
+        Primitive {
+            shape: Box::new(Quad::new(
+                Point::new(555., 0., 0.),
+                Vec3::new(0., 555., 0.),
+                Vec3::new(0., 0., 555.),
+            )),
+            material: Box::new(Lambertian {
+                albedo: Rgb([0.12, 0.45, 0.15]),
+            }),
+        },
+        Primitive {
+            shape: Box::new(Quad::new(
+                Point::new(0., 0., 0.),
+                Vec3::new(0., 555., 0.),
+                Vec3::new(0., 0., 555.),
+            )),
+            material: Box::new(Lambertian {
+                albedo: Rgb([0.65, 0.05, 0.05]),
+            }),
+        },
+        Primitive {
+            shape: Box::new(Quad::new(
+                Point::new(405., 554., 405.),
+                Vec3::new(-255., 0., 0.),
+                Vec3::new(0., 0., -255.),
+            )),
+            material: Box::new(DiffuseLight {
+                color: Rgb([15., 15., 15.]),
+            }),
+        },
+        Primitive {
+            shape: Box::new(Quad::new(
+                Point::new(0., 0., 0.),
+                Vec3::new(555., 0., 0.),
+                Vec3::new(0., 0., 555.),
+            )),
+            material: Box::new(Lambertian {
+                albedo: Rgb([0.73, 0.73, 0.73]),
+            }),
+        },
+        Primitive {
+            shape: Box::new(Quad::new(
+                Point::new(555., 555., 555.),
+                Vec3::new(-555., 0., 0.),
+                Vec3::new(0., 0., -555.),
+            )),
+            material: Box::new(Lambertian {
+                albedo: Rgb([0.73, 0.73, 0.73]),
+            }),
+        },
+        Primitive {
+            shape: Box::new(Quad::new(
+                Point::new(0., 0., 555.),
+                Vec3::new(555., 0., 0.),
+                Vec3::new(0., 555., 0.),
+            )),
+            material: Box::new(Lambertian {
+                albedo: Rgb([0.73, 0.73, 0.73]),
+            }),
+        },
+    ];
+
+    for x in world.iter() {
+        dbg!(x);
+    }
+
+    let world = BVH::new(world.into_iter().map(Rc::new).collect(), 1);
+
+    let camera = Camera::from(CameraConfig {
+        position: Point::new(278., 278., -800.),
+        look_at: Point::new(278., 278., 0.),
+        up: Vec3::new(0., 1., 0.),
+        aspect_ratio: 1.0,
+        vertical_fov: 40.0,
+        defocus_angle: 0.0,
+        focus_dist: 50.0,
+    });
+
+    let scene = Scene {
+        camera,
+        objects: world,
+        materials,
+    };
+
+    scene
+}
+
+fn main() {
+    // TODO:
+
+    // let scene = spheres();
+    let scene = cornell_box();
+
     let raytracer = RayTracer {
         scene,
         resolution: Resolution {
-            // width: 480,
-            // height: 270,
-            width: 1280,
-            height: 720,
+            width: 640,
+            height: 640,
+            // height: 360,
+
+            // width: 1280,
+            // height: 720,
         },
         // antialiasing: AAType::None.into(),
-        antialiasing: RegularGrid(3).into(),
-        max_reflections: 4,
+        antialiasing: RegularGrid(7).into(),
+        max_reflections: 5,
     };
 
     let image = raytracer.render();

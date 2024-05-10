@@ -1,11 +1,13 @@
 use std::{
     fmt::{Debug, Formatter},
-    ops::{Add, Index, Sub},
+    ops::{Add, Index, IndexMut, Sub},
 };
+
+use serde::{Deserialize, Serialize};
 
 use crate::geometry::{unit_vec::UnitVec, utils::Axis, vec::Vec3, Aabb};
 
-#[derive(Default, Debug, Clone, Copy, PartialOrd, PartialEq)]
+#[derive(Default, Debug, Clone, Copy, PartialOrd, PartialEq, Serialize, Deserialize)]
 pub struct Point {
     pub radius_vector: Vec3,
 }
@@ -44,6 +46,10 @@ impl Index<Axis> for Point {
     type Output = f32;
 
     fn index(&self, index: Axis) -> &Self::Output { &self.radius_vector[index] }
+}
+
+impl IndexMut<Axis> for Point {
+    fn index_mut(&mut self, index: Axis) -> &mut Self::Output { &mut self.radius_vector[index] }
 }
 
 impl Sub for Point {

@@ -118,6 +118,34 @@ impl BVH {
             return Self::build_leaf(primitives, primitives_info, ordered_primitives, bounds);
         }
 
+        let (left, right) = Self::partition(primitives_info, centroid_bounds, axis, split_method);
+
+        // TODO: parallel
+        let children = [
+            Box::new(Self::recursive_build(
+                primitives,
+                left,
+                ordered_primitives,
+                total_nodes,
+                SplitMethod::Middle,
+            )),
+            Box::new(Self::recursive_build(
+                primitives,
+                right,
+                ordered_primitives,
+                total_nodes,
+                SplitMethod::Middle,
+            )),
+        ];
+        BVHBuildNode::new_interior(bounds, children, axis)
+    }
+
+    fn partition(
+        primitives_info: &mut [BVHPrimitiveInfo],
+        centroid_bounds: Aabb,
+        axis: Axis,
+        split_method: SplitMethod,
+    ) -> (&mut [BVHPrimitiveInfo], &mut [BVHPrimitiveInfo]) {
         let mut mid = primitives_info.len() / 2;
         match split_method {
             SplitMethod::Middle => {
@@ -137,25 +165,7 @@ impl BVH {
                 todo!()
             }
         }
-        let (left, right) = primitives_info.split_at_mut(mid);
-        // TODO: parallel
-        let children = [
-            Box::new(Self::recursive_build(
-                primitives,
-                left,
-                ordered_primitives,
-                total_nodes,
-                SplitMethod::Middle,
-            )),
-            Box::new(Self::recursive_build(
-                primitives,
-                right,
-                ordered_primitives,
-                total_nodes,
-                SplitMethod::Middle,
-            )),
-        ];
-        BVHBuildNode::new_interior(bounds, children, axis)
+        primitives_info.split_at_mut(mid)
     }
 
     fn build_leaf(
@@ -218,16 +228,15 @@ impl BVH {
     }
 }
 
-impl Bounded for BVH {
-    fn bound(&self) -> Aabb {
-        match self.nodes.first() {
-            None => Aabb::default(),
-            Some(BVHLinearNode::Leaf { bounds, .. }) | Some(BVHLinearNode::Interior { bounds, .. }) => *bounds,
-        }
-    }
-}
+// impl Bounded for BVH {
+//     fn bound(&self) -> Aabb {
+//         match self.nodes.first() {
+//             None => Aabb::default(),
+//             Some(BVHLinearNode::Leaf { bounds, .. }) | Some(BVHLinearNode::Interior { bounds, .. }) => *bounds,
+//         }
+//     }
+// }
 
-// impl<T> Intersectable for BVH<T>
 impl BVH {
     pub fn hit(&self, ray: &Ray) -> Option<Intersection> {
         if self.nodes.is_empty() {
@@ -317,30 +326,6 @@ mod tests {
                     albedo: Rgb([0.4, 0.2, 0.1]),
                 }),
             },
-            // Primitive {
-            //     shape: Box::new(Sphere::new(Point::new(0., 0., 4.), 1.0)),
-            //     material: Box::new(Lambertian {
-            //         albedo: Rgb([0.4, 0.2, 0.1]),
-            //     }),
-            // },
-            // Primitive {
-            //     shape: Box::new(Sphere::new(Point::new(4., 0., 4.), 1.0)),
-            //     material: Box::new(Lambertian {
-            //         albedo: Rgb([0.4, 0.2, 0.1]),
-            //     }),
-            // },
-            // Primitive {
-            //     shape: Box::new(Sphere::new(Point::new(0., 4., 4.), 1.0)),
-            //     material: Box::new(Lambertian {
-            //         albedo: Rgb([0.4, 0.2, 0.1]),
-            //     }),
-            // },
-            // Primitive {
-            //     shape: Box::new(Sphere::new(Point::new(4., 4., 4.), 1.0)),
-            //     material: Box::new(Lambertian {
-            //         albedo: Rgb([0.4, 0.2, 0.1]),
-            //     }),
-            // },
         ]
         .into_iter()
         .map(Rc::new)
@@ -349,6 +334,5 @@ mod tests {
         let bvh = BVH::new(world, 1);
         bvh.hit(&Ray::new(Point::default(), Vec3::new(1., 0., 0.).to_unit()));
         dbg!(&bvh);
-        panic!()
     }
 }

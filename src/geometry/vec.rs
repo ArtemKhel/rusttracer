@@ -1,15 +1,16 @@
-use std::ops::{Add, Div, Index, Mul, Neg, Sub};
+use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
 
 use rand::{
     self,
     distributions::{Distribution, Standard},
     Rng,
 };
+use serde::{Deserialize, Serialize};
 
 use crate::geometry::{unit_vec::UnitVec, utils::Axis, Cross, Dot};
 
 // TODO: macros?
-#[derive(Debug, Clone, Copy, PartialOrd, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Serialize, Deserialize)]
 pub struct Vec3 {
     pub x: f32,
     pub y: f32,
@@ -39,6 +40,16 @@ impl Index<Axis> for Vec3 {
     }
 }
 
+impl IndexMut<Axis> for Vec3 {
+    fn index_mut(&mut self, index: Axis) -> &mut Self::Output {
+        match index {
+            Axis::X => &mut self.x,
+            Axis::Y => &mut self.y,
+            Axis::Z => &mut self.z,
+        }
+    }
+}
+
 impl Div<f32> for Vec3 {
     type Output = Self;
 
@@ -52,6 +63,12 @@ impl Add for Vec3 {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output { Vec3::new(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z) }
+}
+
+impl Add<UnitVec> for Vec3 {
+    type Output = Vec3;
+
+    fn add(self, rhs: UnitVec) -> Self::Output { self + rhs.vec }
 }
 
 impl Neg for Vec3 {

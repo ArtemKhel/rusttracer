@@ -27,9 +27,7 @@ impl Renderer for RayTracer {
     fn render(&self) -> ImageBuffer<Rgb<f32>, Vec<f32>> {
         let mut image = ImageBuffer::new(self.resolution.width, self.resolution.height);
 
-        // let mut rng = SmallRng::from_thread_rng();
-
-        let start = Instant::now();
+        let bar = indicatif::ProgressBar::new(self.resolution.height as _);
         image.par_enumerate_pixels_mut().for_each(|(x, y, pixel)| {
             let mut color = Rgb([0., 0., 0.]);
 
@@ -38,14 +36,14 @@ impl Renderer for RayTracer {
                 let ray = self.scene.camera.create_ray(coord);
                 color.apply2(&self.ray_color(&ray, 0), |x, y| x + y);
             }
-            *pixel = linear_to_gamma(color.map(|x| x / self.antialiasing.offsets.len() as f32))
+            *pixel = linear_to_gamma(color.map(|x| x / self.antialiasing.offsets.len() as f32));
+
+            if x == 0 {
+                bar.inc(1);
+            }
         });
-        let finish = Instant::now();
-        println!("Render time: {:?}", finish - start);
-        // let bar = indicatif::ProgressBar::new(self.config.width as u64);
-        // bar.inc(1);
-        // bar.finish();
-        // println!("{:?}", bar.elapsed());
+        bar.finish();
+        println!("Render time: {:?}", bar.elapsed());
 
         image
     }
@@ -81,7 +79,7 @@ impl RayTracer {
         }
         // let a = 0.5 * (ray.dir.vec.y + 1.0);
         // utils::lerp(a)
-        Rgb([0., 0., 0.])
-        // Rgb([0.05,0.05,0.05])
+        // Rgb([0., 0., 0.])
+        Rgb([0.1, 0.1, 0.1])
     }
 }

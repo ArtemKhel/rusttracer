@@ -4,6 +4,8 @@ use strum::IntoEnumIterator;
 
 use crate::geometry::{utils::Axis, Point, Ray};
 
+const PADDING: f32 = 0.000_1;
+
 #[derive(Copy, Clone, Debug, PartialOrd, PartialEq)]
 pub struct Aabb {
     pub min: Point,
@@ -29,9 +31,20 @@ impl Aabb {
     }
 
     pub fn from_points(p1: Point, p2: Point) -> Self {
-        Aabb {
+        let mut aabb = Aabb {
             min: Point::min_coords(p1, p2),
             max: Point::max_coords(p1, p2),
+        };
+        Self::pad(&mut aabb);
+        aabb
+    }
+
+    fn pad(aabb: &mut Aabb) {
+        for axis in Axis::iter() {
+            if aabb.max[axis] - aabb.min[axis] < PADDING {
+                aabb.min[axis] -= PADDING / 2.;
+                aabb.max[axis] += PADDING / 2.;
+            }
         }
     }
 
@@ -47,7 +60,7 @@ impl Aabb {
             }
             t_min = f32::max(t0, t_min);
             t_max = f32::min(t1, t_max);
-            if t_min >= t_max {
+            if t_min > t_max {
                 return false;
             }
         }

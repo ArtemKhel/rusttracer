@@ -1,6 +1,6 @@
 use std::{
     cmp::min,
-    ops::{Index, Mul, Neg},
+    ops::{Add, Index, Mul, Neg},
 };
 
 use crate::geometry::{utils::Axis, vec::Vec3, Dot};
@@ -35,6 +35,18 @@ impl Neg for UnitVec {
     type Output = Self;
 
     fn neg(self) -> Self::Output { UnitVec { vec: -self.vec } }
+}
+
+impl Add for UnitVec {
+    type Output = Vec3;
+
+    fn add(self, rhs: Self) -> Self::Output { self.vec + rhs.vec }
+}
+
+impl Add<Vec3> for UnitVec {
+    type Output = Vec3;
+
+    fn add(self, rhs: Vec3) -> Self::Output { rhs + self }
 }
 
 impl Mul<f32> for UnitVec {

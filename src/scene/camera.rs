@@ -1,15 +1,18 @@
+use serde::{Deserialize, Serialize};
+
 use crate::{
     geometry::{utils::random_in_unit_disk, Cross, Point, Ray, Vec3},
     rendering::PixelCoord,
     utils::degrees_to_radians,
 };
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Screen {
     center: Point,
     basis: [Vec3; 2],
 }
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CameraConfig {
     pub position: Point,
     pub look_at: Point,
@@ -20,7 +23,7 @@ pub struct CameraConfig {
     pub focus_dist: f32,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Camera {
     pub position: Point,
     pub screen: Screen,
