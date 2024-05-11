@@ -218,6 +218,9 @@ fn main() {
             // width: 1280,
             // height: 1280,
 
+            // width: 1920,
+            // height: 1920,
+
             // width: 640,
             // height: 360,
 
@@ -225,8 +228,8 @@ fn main() {
             // height: 720,
         },
         // antialiasing: AAType::None.into(),
-        antialiasing: RegularGrid(3).into(),
-        max_reflections: 5,
+        antialiasing: RegularGrid(20).into(),
+        max_reflections: 7,
     };
 
     let image = raytracer.render();
