@@ -59,7 +59,7 @@ impl Sub for Point {
 }
 
 impl Add<Vec3> for Point {
-    type Output = Point;
+    type Output = Self;
 
     fn add(self, rhs: Vec3) -> Self::Output {
         Point {
@@ -69,7 +69,7 @@ impl Add<Vec3> for Point {
 }
 
 impl Sub<Vec3> for Point {
-    type Output = Point;
+    type Output = Self;
 
     fn sub(self, rhs: Vec3) -> Self::Output {
         Point {

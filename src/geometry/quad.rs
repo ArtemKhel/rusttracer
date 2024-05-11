@@ -1,4 +1,6 @@
-use crate::geometry::{Aabb, Bounded, Cross, Dot, Hit, Intersectable, Point, Ray, UnitVec, Vec3};
+use crate::geometry::{
+    unit_vec::local_normal, utils::Axis, Aabb, Bounded, Cross, Dot, Hit, Intersectable, Point, Ray, UnitVec, Vec3,
+};
 
 #[derive(Debug)]
 pub struct Quad {
@@ -12,10 +14,10 @@ pub struct Quad {
 
 impl Quad {
     pub fn new(a: Point, ab: Vec3, ac: Vec3) -> Self {
-        let n = -ab.cross(ac);
+        let n = ab.cross(ac);
         let normal = n.to_unit();
         let d = normal.dot(a.radius_vector);
-        let w = n / n.dot(n);
+        let w = -n / n.dot(n);
         Quad {
             a,
             ab,
@@ -26,17 +28,33 @@ impl Quad {
         }
     }
 
-    pub fn quad_box() -> Vec<Quad> { todo!() }
+    pub fn quad_box(a: Point, b: Point) -> Vec<Quad> {
+        let mut sides = Vec::with_capacity(6);
+
+        let (a, b) = (Point::min_coords(a, b), Point::max_coords(a, b));
+        let diag = b - a;
+        let px = Vec3::new(diag[Axis::X], 0., 0.);
+        let py = Vec3::new(0., diag[Axis::Y], 0.);
+        let pz = Vec3::new(0., 0., diag[Axis::Z]);
+
+        sides.push(Quad::new(a, px, py));
+        sides.push(Quad::new(a, px, pz));
+        sides.push(Quad::new(a, py, py));
+        sides.push(Quad::new(b, -px, -py));
+        sides.push(Quad::new(b, -px, -pz));
+        sides.push(Quad::new(b, -py, -py));
+
+        sides
+    }
 }
 
 impl Intersectable for Quad {
     fn hit(&self, ray: &Ray) -> Option<Hit> {
         // let denom = ray.dir.dot(self.normal);
-        // let normal = if self.normal.dot(ray.dir) < 0. {self.normal} else {-self.normal};
         let denom = self.normal.dot(ray.dir);
-        // if f32::abs(denom) < 1e-06{
-        //     return None
-        // }
+        if f32::abs(denom) < 1e-05 {
+            return None;
+        }
 
         let t = (self.d - self.normal.dot(ray.origin.radius_vector)) / denom;
         if t < 0. {
@@ -51,7 +69,7 @@ impl Intersectable for Quad {
         if 0. <= alpha && alpha <= 1. && 0. <= beta && beta <= 1. {
             Some(Hit {
                 point: hit_point,
-                normal: self.normal,
+                normal: local_normal(self.normal, ray),
                 t,
             })
         } else {

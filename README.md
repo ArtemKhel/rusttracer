@@ -1,4 +1,5 @@
 ### Ray Tracing in One Weekend in Rust
 
-![ ](./images/spheres.png)
+![ ](./images/cornell.png)
 ![ ](./images/spheres2.png)
+![ ](./images/spheres.png)

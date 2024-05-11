@@ -107,7 +107,7 @@ fn cornell_box() -> Scene {
         albedo: Rgb([1.0, 1.0, 1.0]),
     })];
 
-    let world = vec![
+    let mut world = vec![
         Primitive {
             shape: Box::new(Quad::new(
                 Point::new(555., 0., 0.),
@@ -135,7 +135,7 @@ fn cornell_box() -> Scene {
                 Vec3::new(0., 0., -255.),
             )),
             material: Box::new(DiffuseLight {
-                color: Rgb([15., 15., 15.]),
+                color: Rgb([5., 5., 5.]),
             }),
         },
         Primitive {
@@ -168,10 +168,25 @@ fn cornell_box() -> Scene {
                 albedo: Rgb([0.73, 0.73, 0.73]),
             }),
         },
+        Primitive {
+            shape: Box::new(Sphere::new(Point::new(212.5, 240., 147.5), 75.)),
+            material: Box::new(Dielectric {
+                attenuation: Rgb([1., 1., 1.]),
+                refraction_index: 1.5,
+            }),
+        },
     ];
 
-    for x in world.iter() {
-        dbg!(x);
+    for side in Quad::quad_box(Point::new(130., 0., 65.), Point::new(295., 165., 230.))
+        .into_iter()
+        .chain(Quad::quad_box(Point::new(265., 0., 295.), Point::new(430., 330., 460.)).into_iter())
+    {
+        world.push(Primitive {
+            shape: Box::new(side),
+            material: Box::new(Lambertian {
+                albedo: Rgb([0.73, 0.73, 0.73]),
+            }),
+        })
     }
 
     let world = BVH::new(world.into_iter().map(Rc::new).collect(), 1);
@@ -196,8 +211,6 @@ fn cornell_box() -> Scene {
 }
 
 fn main() {
-    // TODO:
-
     // let scene = spheres();
     let scene = cornell_box();
 
@@ -206,13 +219,17 @@ fn main() {
         resolution: Resolution {
             width: 640,
             height: 640,
+            // width: 1280,
+            // height: 1280,
+
+            // width: 640,
             // height: 360,
 
             // width: 1280,
             // height: 720,
         },
         // antialiasing: AAType::None.into(),
-        antialiasing: RegularGrid(7).into(),
+        antialiasing: RegularGrid(3).into(),
         max_reflections: 5,
     };
 

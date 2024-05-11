@@ -3,7 +3,7 @@ use std::{
     ops::{Add, Index, Mul, Neg},
 };
 
-use crate::geometry::{utils::Axis, vec::Vec3, Dot};
+use crate::geometry::{utils::Axis, vec::Vec3, Dot, Ray};
 
 #[derive(Debug, Clone, Copy, PartialOrd, PartialEq)]
 pub struct UnitVec {
@@ -22,6 +22,14 @@ impl UnitVec {
         let perpend = refraction_coef_ratio * (self.vec + normal * cos_theta * sign);
         let parallel = normal * -f32::sqrt(f32::abs(1. - perpend.dot(perpend)));
         (perpend + parallel).to_unit()
+    }
+}
+
+pub fn local_normal(normal: UnitVec, ray: &Ray) -> UnitVec {
+    if normal.dot(ray.dir) < 0. {
+        normal
+    } else {
+        -normal
     }
 }
 

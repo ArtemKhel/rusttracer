@@ -24,8 +24,15 @@ impl Vec3 {
 
     pub fn len(&self) -> f32 { f32::sqrt(self.dot(*self)) }
 }
+
 impl Distribution<Vec3> for Standard {
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Vec3 { Vec3::new(rng.gen(), rng.gen(), rng.gen()) }
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Vec3 {
+        Vec3::new(
+            rng.gen_range(-1.0..1.0),
+            rng.gen_range(-1.0..1.0),
+            rng.gen_range(-1.0..1.0),
+        )
+    }
 }
 
 impl Index<Axis> for Vec3 {

@@ -1,13 +1,13 @@
-use std::time::Instant;
+use std::intrinsics::breakpoint;
 
 use image::{ImageBuffer, Pixel, Rgb};
 use rayon::prelude::*;
 
 use crate::{
+    breakpoint,
     geometry::Ray,
     rendering::{antialiasing::AntiAliasing, PixelCoord, Renderer, Resolution},
     scene::Scene,
-    utils,
     utils::linear_to_gamma,
 };
 
@@ -29,6 +29,7 @@ impl Renderer for RayTracer {
 
         let bar = indicatif::ProgressBar::new(self.resolution.height as _);
         image.par_enumerate_pixels_mut().for_each(|(x, y, pixel)| {
+            // breakpoint!(x==320 && y == 100);
             let mut color = Rgb([0., 0., 0.]);
 
             for offset in self.antialiasing.offsets.iter() {
@@ -79,7 +80,7 @@ impl RayTracer {
         }
         // let a = 0.5 * (ray.dir.vec.y + 1.0);
         // utils::lerp(a)
-        // Rgb([0., 0., 0.])
-        Rgb([0.1, 0.1, 0.1])
+        Rgb([0., 0., 0.])
+        // Rgb([0.1, 0.1, 0.1])
     }
 }

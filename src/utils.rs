@@ -1,12 +1,6 @@
-use std::f32::consts::PI;
+use std::{f32::consts::PI, intrinsics::breakpoint};
 
 use image::{Pixel, Rgb};
-use rand::{
-    distributions::{Distribution, Standard},
-    Rng,
-};
-
-use crate::geometry::Vec3;
 
 pub(crate) fn lerp(/*a: Rgb<u8>, b: Rgb<u8>,*/ t: f32) -> Rgb<f32> {
     let a = Rgb([1.0, 1.0, 1.0]);
@@ -17,6 +11,22 @@ pub(crate) fn lerp(/*a: Rgb<u8>, b: Rgb<u8>,*/ t: f32) -> Rgb<f32> {
         (1. - t) * a.0[2] + t * b.0[2],
     ])
 }
+
 pub(crate) fn linear_to_gamma(linear: Rgb<f32>) -> Rgb<f32> { linear.map(|x| if x > 0. { x.sqrt() } else { x }) }
 
 pub fn degrees_to_radians(degrees: f32) -> f32 { PI * degrees / 180.0 }
+
+#[macro_export]
+macro_rules! breakpoint {
+    () => {
+        unsafe {
+            breakpoint();
+            ()
+        }
+    };
+    ($expr:expr) => {
+        if $expr {
+            breakpoint!()
+        }
+    };
+}
