@@ -93,13 +93,11 @@ fn spheres() -> Scene {
         focus_dist: 10.0,
     });
 
-    let scene = Scene {
+    Scene {
         camera,
         objects: world,
         materials,
-    };
-
-    scene
+    }
 }
 
 fn cornell_box() -> Scene {
@@ -201,13 +199,11 @@ fn cornell_box() -> Scene {
         focus_dist: 50.0,
     });
 
-    let scene = Scene {
+    Scene {
         camera,
         objects: world,
         materials,
-    };
-
-    scene
+    }
 }
 
 fn main() {

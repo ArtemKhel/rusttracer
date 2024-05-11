@@ -66,7 +66,7 @@ impl Intersectable for Quad {
         let alpha = self.w.dot(planar_hit_point.cross(self.ab));
         let beta = self.w.dot(self.ac.cross(planar_hit_point));
 
-        if 0. <= alpha && alpha <= 1. && 0. <= beta && beta <= 1. {
+        if (0.0..=1.0).contains(&alpha) && (0.0..=1.0).contains(&beta) {
             Some(Hit {
                 point: hit_point,
                 normal: local_normal(self.normal, ray),
