@@ -18,10 +18,13 @@ serde = { version = "1.0.201", features = ["derive"] }
 serde_json = "1.0.117"
 strum = "0.26.2"
 strum_macros = "0.26.2"
+log = "0.4.21"
+env_logger = "0.11.3"
 
 [profile.dev]
 opt-level = 0
 
 [profile.release]
 opt-level = 3
-lto = "fat"
+#lto = "fat"
+lto = "thin"

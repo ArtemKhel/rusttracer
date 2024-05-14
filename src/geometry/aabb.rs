@@ -1,8 +1,11 @@
-use std::{mem::swap, ops::Add};
+use std::{
+    mem::swap,
+    ops::{Add, AddAssign},
+};
 
 use strum::IntoEnumIterator;
 
-use crate::geometry::{utils::Axis, Point, Ray};
+use crate::geometry::{utils::Axis, Point, Ray, Vec3};
 
 const PADDING: f32 = 0.000_1;
 
@@ -66,6 +69,22 @@ impl Aabb {
         }
         true
     }
+
+    pub fn offset(&self, point: Point) -> Vec3 {
+        let mut offset = point - self.min;
+        for axis in Axis::iter() {
+            let delta = (self.max[axis] - self.min[axis]);
+            offset[axis] /= delta;
+            // offset[axis] /= (self.max[axis] - self.min[axis]); //.clamp(0., 1.);
+            debug_assert!((0.0..=1.0).contains(&offset[axis]));
+        }
+        offset
+    }
+
+    pub fn surface_area(&self) -> f32 {
+        let diag = self.max - self.min;
+        (diag.x * diag.y + diag.x * diag.z + diag.y * diag.z) * 2.0
+    }
 }
 
 impl Add for Aabb {
@@ -75,6 +94,13 @@ impl Add for Aabb {
         let min = Point::min_coords(self.min, rhs.min);
         let max = Point::max_coords(self.max, rhs.max);
         Aabb { min, max }
+    }
+}
+
+impl AddAssign for Aabb {
+    fn add_assign(&mut self, rhs: Self) {
+        self.min = Point::min_coords(self.min, rhs.min);
+        self.max = Point::max_coords(self.max, rhs.max);
     }
 }
 

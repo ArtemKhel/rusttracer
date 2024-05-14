@@ -1,4 +1,7 @@
-use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
+use std::{
+    fmt::{Debug, Display, Formatter},
+    ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub},
+};
 
 use rand::{
     self,
@@ -10,7 +13,7 @@ use serde::{Deserialize, Serialize};
 use crate::geometry::{unit_vec::UnitVec, utils::Axis, Cross, Dot};
 
 // TODO: macros?
-#[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, PartialOrd, PartialEq, Serialize, Deserialize)]
 pub struct Vec3 {
     pub x: f32,
     pub y: f32,
@@ -118,6 +121,16 @@ impl Dot<Vec3> for Vec3 {
 
 impl Dot<UnitVec> for Vec3 {
     fn dot(&self, rhs: UnitVec) -> f32 { self.dot(rhs.vec) }
+}
+
+impl Debug for Vec3 {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result { write!(f, "Vec({}, {}, {})", self.x, self.y, self.z) }
+}
+
+impl Debug for UnitVec {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "UnitVec({}, {}, {})", self.vec.x, self.vec.y, self.vec.z)
+    }
 }
 
 impl Default for Vec3 {

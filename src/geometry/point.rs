@@ -1,5 +1,5 @@
 use std::{
-    fmt::{Debug, Formatter},
+    fmt::{Debug, Display, Formatter},
     ops::{Add, Index, IndexMut, Sub},
 };
 
@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::geometry::{unit_vec::UnitVec, utils::Axis, vec::Vec3, Aabb};
 
-#[derive(Default, Debug, Clone, Copy, PartialOrd, PartialEq, Serialize, Deserialize)]
+#[derive(Default, Clone, Copy, PartialOrd, PartialEq, Serialize, Deserialize)]
 pub struct Point {
     pub radius_vector: Vec3,
 }
@@ -75,5 +75,15 @@ impl Sub<Vec3> for Point {
         Point {
             radius_vector: self.radius_vector - rhs,
         }
+    }
+}
+
+impl Debug for Point {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Point({}, {}, {})",
+            self.radius_vector.x, self.radius_vector.y, self.radius_vector.z
+        )
     }
 }

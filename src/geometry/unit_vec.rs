@@ -5,7 +5,7 @@ use std::{
 
 use crate::geometry::{utils::Axis, vec::Vec3, Dot, Ray};
 
-#[derive(Debug, Clone, Copy, PartialOrd, PartialEq)]
+#[derive(Clone, Copy, PartialOrd, PartialEq)]
 pub struct UnitVec {
     pub vec: Vec3,
 }

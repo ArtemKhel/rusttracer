@@ -43,7 +43,7 @@ fn spheres() -> Scene {
         Primitive {
             shape: Box::new(Sphere::new(Point::new(10., 20.0, 10.), 10.0)),
             material: Box::new(DiffuseLight {
-                color: Rgb([1., 1., 1.]),
+                color: Rgb([3., 3., 3.]),
             }),
         },
     ];
@@ -79,7 +79,7 @@ fn spheres() -> Scene {
         }
     }
 
-    let world = BVH::new(world.into_iter().map(Rc::new).collect(), 1);
+    let world = BVH::new(world.into_iter().map(Rc::new).collect(), 4);
 
     let materials = vec![];
 
@@ -207,14 +207,16 @@ fn cornell_box() -> Scene {
 }
 
 fn main() {
-    // let scene = spheres();
-    let scene = cornell_box();
+    env_logger::init();
+    let scene = spheres();
+    // let scene = cornell_box();
 
     let raytracer = RayTracer {
         scene,
         resolution: Resolution {
-            width: 640,
-            height: 640,
+            // width: 640,
+            // height: 640,
+
             // width: 1280,
             // height: 1280,
 
@@ -223,13 +225,12 @@ fn main() {
 
             // width: 640,
             // height: 360,
-
-            // width: 1280,
-            // height: 720,
+            width: 1280,
+            height: 720,
         },
         // antialiasing: AAType::None.into(),
-        antialiasing: RegularGrid(20).into(),
-        max_reflections: 7,
+        antialiasing: RegularGrid(5).into(),
+        max_reflections: 5,
     };
 
     let image = raytracer.render();

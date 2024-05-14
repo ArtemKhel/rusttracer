@@ -1,15 +1,17 @@
 use std::{
     cmp::max,
     fmt::Debug,
-    ops::{Deref, DerefMut},
+    ops::{AddAssign, Deref, DerefMut},
     rc::Rc,
 };
 
 use derive_new::new;
-use itertools::partition;
+use itertools::{partition, Itertools};
+use log::debug;
+use rayon::join;
 
 use crate::{
-    geometry::{utils::Axis, Aabb, Bounded, BoundedIntersectable, Hit, Intersectable, Point, Ray},
+    geometry::{utils::Axis, Aabb, Bounded, BoundedIntersectable, Intersectable, Point, Ray},
     scene::{Intersection, Primitive},
 };
 
@@ -17,7 +19,6 @@ use crate::{
 pub struct BVH {
     primitives: Vec<Rc<Primitive>>,
     nodes: Vec<BVHLinearNode>,
-    // max_in_node: usize,
     height: usize,
 }
 
@@ -46,7 +47,8 @@ struct BVHPrimitiveInfo {
 enum BVHBuildNode {
     Interior {
         bounds: Aabb,
-        children: [Box<BVHBuildNode>; 2],
+        children: (Box<BVHBuildNode>, Box<BVHBuildNode>),
+        // children: [Box<BVHBuildNode>; 2],
         axis: Axis,
     },
     Leaf {
@@ -56,14 +58,21 @@ enum BVHBuildNode {
     },
 }
 
+#[derive(Clone, Copy, Debug)]
 enum SplitMethod {
     Middle,
     EqCounts,
     SAH,
 }
 
+#[derive(Copy, Clone, Debug, Default)]
+struct BVHSplitBucket {
+    count: usize,
+    bounds: Aabb,
+}
+
 impl BVH {
-    pub fn new(primitives: Vec<Rc<Primitive>>, max_in_node: usize) -> BVH {
+    pub fn new(primitives: Vec<Rc<Primitive>>, mut max_in_node: usize) -> BVH {
         // TODO: allocators
         let bounds = primitives.iter().fold(Aabb::default(), |acc, p| acc + p.bound());
 
@@ -79,15 +88,18 @@ impl BVH {
 
         let mut ordered_primitives: Vec<Rc<Primitive>> = Vec::with_capacity(primitives.len());
         let mut total_nodes = 0_usize; // TODO: atomic (+parallel)
+        max_in_node = max_in_node.min(255);
         let root = Self::recursive_build(
             &primitives,
             &mut primitives_info,
             &mut ordered_primitives,
             &mut total_nodes,
-            SplitMethod::Middle,
+            SplitMethod::SAH,
+            max_in_node,
         );
 
         let height = Self::height(&root);
+        dbg!(height);
         let root = Self::flatten(root, total_nodes);
 
         BVH {
@@ -103,6 +115,7 @@ impl BVH {
         ordered_primitives: &mut Vec<Rc<Primitive>>,
         total_nodes: &mut usize,
         split_method: SplitMethod,
+        max_in_node: usize,
     ) -> BVHBuildNode {
         *total_nodes += 1;
 
@@ -118,26 +131,31 @@ impl BVH {
             return Self::build_leaf(primitives, primitives_info, ordered_primitives, bounds);
         }
 
-        let (left, right) = Self::partition(primitives_info, centroid_bounds, axis, split_method);
-
-        // TODO: parallel
-        let children = [
-            Box::new(Self::recursive_build(
-                primitives,
-                left,
-                ordered_primitives,
-                total_nodes,
-                SplitMethod::Middle,
-            )),
-            Box::new(Self::recursive_build(
-                primitives,
-                right,
-                ordered_primitives,
-                total_nodes,
-                SplitMethod::Middle,
-            )),
-        ];
-        BVHBuildNode::new_interior(bounds, children, axis)
+        if let Some((left, right)) = Self::partition(primitives_info, centroid_bounds, axis, split_method, max_in_node)
+        {
+            // TODO: rayon::join
+            let children = (
+                Box::new(Self::recursive_build(
+                    primitives,
+                    left,
+                    ordered_primitives,
+                    total_nodes,
+                    split_method,
+                    max_in_node,
+                )),
+                Box::new(Self::recursive_build(
+                    primitives,
+                    right,
+                    ordered_primitives,
+                    total_nodes,
+                    split_method,
+                    max_in_node,
+                )),
+            );
+            BVHBuildNode::new_interior(bounds, children, axis)
+        } else {
+            return Self::build_leaf(primitives, primitives_info, ordered_primitives, bounds);
+        }
     }
 
     fn partition(
@@ -145,13 +163,13 @@ impl BVH {
         centroid_bounds: Aabb,
         axis: Axis,
         split_method: SplitMethod,
-    ) -> (&mut [BVHPrimitiveInfo], &mut [BVHPrimitiveInfo]) {
+        max_in_node: usize,
+    ) -> Option<(&mut [BVHPrimitiveInfo], &mut [BVHPrimitiveInfo])> {
         let mut mid = primitives_info.len() / 2;
         match split_method {
             SplitMethod::Middle => {
                 let axis_mid = (centroid_bounds.min[axis] + centroid_bounds.max[axis]) / 2.;
-                let split_index = partition(primitives_info.iter_mut(), |pi| pi.center[axis] < axis_mid);
-                mid = split_index;
+                mid = partition(primitives_info.iter_mut(), |pi| pi.center[axis] < axis_mid);
                 // fallback to EqCounts
                 if mid == 0 || mid == primitives_info.len() {
                     primitives_info.select_nth_unstable_by(mid, |p1, p2| p1.center[axis].total_cmp(&p2.center[axis]));
@@ -162,10 +180,59 @@ impl BVH {
                 primitives_info.select_nth_unstable_by(mid, |p1, p2| p1.center[axis].total_cmp(&p2.center[axis]));
             }
             SplitMethod::SAH => {
-                todo!()
+                if primitives_info.len() <= 2 {
+                    return Self::partition(
+                        primitives_info,
+                        centroid_bounds,
+                        axis,
+                        SplitMethod::EqCounts,
+                        max_in_node,
+                    );
+                }
+                const N_BUCKETS: usize = 12;
+                let mut buckets = [BVHSplitBucket::default(); N_BUCKETS];
+                for prim in primitives_info.iter() {
+                    let b =
+                        ((centroid_bounds.offset(prim.center)[axis] * N_BUCKETS as f32) as usize).min(N_BUCKETS - 1);
+                    buckets[b].count += 1;
+                    buckets[b].bounds += prim.bounds;
+                }
+
+                const N_SPLITS: usize = N_BUCKETS - 1;
+                let mut costs = [0.0; N_SPLITS];
+                let mut count_below = 0.0;
+                let mut bound_below = Aabb::default();
+                for i in 0..N_SPLITS {
+                    bound_below += buckets[i].bounds;
+                    count_below += 1.0;
+                    costs[i] += count_below * bound_below.surface_area();
+                }
+
+                let mut count_above = 0.0;
+                let mut bounds_above = Aabb::default();
+                for i in (1..=N_SPLITS).rev() {
+                    bounds_above += buckets[i].bounds;
+                    count_above += 1.0;
+                    costs[i - 1] += count_above * bounds_above.surface_area();
+                }
+
+                let min_cost_split_index = costs.iter().position_min_by(|x, y| x.total_cmp(y)).unwrap();
+                let leaf_cost = primitives_info.len() as f32;
+                let min_cost = 0.5 + costs[min_cost_split_index] / centroid_bounds.surface_area();
+
+                if primitives_info.len() > max_in_node || min_cost < leaf_cost {
+                    mid = partition(primitives_info.iter_mut(), |prim| {
+                        let b = ((centroid_bounds.offset(prim.center)[axis] * N_BUCKETS as f32) as usize)
+                            .min(N_BUCKETS - 1);
+                        b <= min_cost_split_index
+                    })
+                } else {
+                    return None;
+                }
             }
         }
-        primitives_info.split_at_mut(mid)
+        debug!("Split at {mid} out of {} using {split_method:?}", primitives_info.len());
+        Some(primitives_info.split_at_mut(mid))
     }
 
     fn build_leaf(
@@ -184,7 +251,7 @@ impl BVH {
     fn height(root: &BVHBuildNode) -> usize {
         match root {
             BVHBuildNode::Interior { children, .. } => {
-                max(Self::height(children[0].as_ref()), Self::height(children[1].as_ref())) + 1
+                max(Self::height(children.0.as_ref()), Self::height(children.1.as_ref())) + 1
             }
             BVHBuildNode::Leaf { .. } => 1,
         }
@@ -200,7 +267,7 @@ impl BVH {
                         second_child_offset: 0,
                         axis: *axis,
                     });
-                    rec(children[0].as_ref(), lin_root);
+                    rec(children.0.as_ref(), lin_root);
                     let offset = lin_root.len();
                     match lin_root.get_mut(idx) {
                         Some(BVHLinearNode::Interior {
@@ -208,7 +275,7 @@ impl BVH {
                         }) => *second_child_offset = offset,
                         _ => unreachable!(),
                     };
-                    rec(children[1].as_ref(), lin_root);
+                    rec(children.1.as_ref(), lin_root);
                 }
                 BVHBuildNode::Leaf {
                     bounds,
