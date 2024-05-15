@@ -2,9 +2,9 @@ use std::{f32::consts::PI, intrinsics::breakpoint};
 
 use image::{Pixel, Rgb};
 
-pub(crate) fn lerp(/*a: Rgb<u8>, b: Rgb<u8>,*/ t: f32) -> Rgb<f32> {
-    let a = Rgb([1.0, 1.0, 1.0]);
-    let b = Rgb([0.5, 0.7, 1.0]);
+pub fn lerp(a: Rgb<f32>, b: Rgb<f32>, t: f32) -> Rgb<f32> {
+    // let a = Rgb([1.0, 1.0, 1.0]);
+    // let b = Rgb([0.5, 0.7, 1.0]);
     Rgb([
         (1. - t) * a.0[0] + t * b.0[0],
         (1. - t) * a.0[1] + t * b.0[1],

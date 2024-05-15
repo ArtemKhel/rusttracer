@@ -73,9 +73,8 @@ impl Aabb {
     pub fn offset(&self, point: Point) -> Vec3 {
         let mut offset = point - self.min;
         for axis in Axis::iter() {
-            let delta = (self.max[axis] - self.min[axis]);
+            let delta = (self.max[axis] - self.min[axis]).max(0.001);
             offset[axis] /= delta;
-            // offset[axis] /= (self.max[axis] - self.min[axis]); //.clamp(0., 1.);
             debug_assert!((0.0..=1.0).contains(&offset[axis]));
         }
         offset

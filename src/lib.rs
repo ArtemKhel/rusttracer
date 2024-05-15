@@ -3,7 +3,7 @@
 #![feature(core_intrinsics)]
 pub mod material;
 pub mod scene;
-pub(crate) mod utils;
+pub mod utils;
 
 pub mod rendering;
 

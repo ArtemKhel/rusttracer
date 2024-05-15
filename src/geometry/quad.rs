@@ -39,10 +39,10 @@ impl Quad {
 
         sides.push(Quad::new(a, px, py));
         sides.push(Quad::new(a, px, pz));
-        sides.push(Quad::new(a, py, py));
+        sides.push(Quad::new(a, py, pz));
         sides.push(Quad::new(b, -px, -py));
         sides.push(Quad::new(b, -px, -pz));
-        sides.push(Quad::new(b, -py, -py));
+        sides.push(Quad::new(b, -py, -pz));
 
         sides
     }
