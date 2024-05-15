@@ -99,7 +99,7 @@ impl BVH {
         );
 
         let height = Self::height(&root);
-        dbg!(height);
+        debug!("BVH height: {height}");
         let root = Self::flatten(root, total_nodes);
 
         BVH {

@@ -80,7 +80,7 @@ impl RayTracer {
         }
         // let a = 0.5 * (ray.dir.vec.y + 1.0);
         // utils::lerp(a)
-        Rgb([0., 0., 0.])
-        // Rgb([0.1, 0.1, 0.1])
+        // Rgb([0., 0., 0.])
+        Rgb([0.1, 0.1, 0.1])
     }
 }

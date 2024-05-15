@@ -4,13 +4,16 @@ use std::rc::Rc;
 
 use image::{buffer::ConvertBuffer, Rgb, RgbImage};
 use rand::random;
+
 use rusttracer::{
     aggregates::BVH,
     geometry::{Point, Quad, Sphere, Vec3},
-    material::{dielectric::Dielectric, diffuse_light::DiffuseLight, lambertian::Lambertian, metal::Metal, Material},
+    material::{dielectric::Dielectric, diffuse_light::DiffuseLight, lambertian::Lambertian, Material, metal::Metal},
     rendering::{AAType::RegularGrid, RayTracer, Renderer, Resolution},
     scene::{Camera, CameraConfig, Primitive, Scene},
 };
+use rusttracer::geometry::{Bounded, Triangle, UnitVec};
+use rusttracer::utils::lerp;
 
 fn spheres() -> Scene {
     let mut world = vec![
@@ -206,10 +209,137 @@ fn cornell_box() -> Scene {
     }
 }
 
+fn cubes() -> Scene {
+    fn gen_cubes(world: &mut Vec<Primitive>, count: usize, start: Point, size: f32, offset: f32, start_color: Rgb<f32>, end_color: Rgb<f32>) {
+        let diag = Vec3::ones() * size;
+        let offset = Vec3::new((size + offset) / 2., size + offset, (size + offset) / 2.);
+        for i in 0..count {
+            let start = start + offset * i as f32;
+            let sides = Quad::quad_box(start, start + diag);
+
+            let col = lerp(start_color, end_color, (i as f32 / count as f32));
+            for side in sides {
+                world.push(
+                    Primitive { shape: Box::new(side), material: Box::new(Lambertian { albedo: col }) }
+                )
+            }
+        }
+    }
+
+    let mut world = vec![];
+    let size = 4.0;
+    let offset = 0.5;
+    let x = offset * 2.0 + 1.5 * size;
+    let off = Vec3::new(x, 0., -x);
+    let x2 = offset + size;
+    let z2 = -size / 2. - offset;
+    let off2 = Vec3::new(x2, z2, z2);
+    let off22 = Vec3::new(-x2, z2, -z2);
+    gen_cubes(&mut world, 5, Point::new(0., 0., 0.), 4., 0.5, Rgb([0.06, 0.2, 0.07]), Rgb([0.2, 0.9, 0.3]));
+    gen_cubes(&mut world, 5, Point::new(0., 0., 0.) + off, 4., 0.5, Rgb([0.2, 0.02, 0.02]), Rgb([0.9, 0.2, 0.2]));
+    gen_cubes(&mut world, 5, Point::new(0., 0., 0.) - off, 4., 0.5, Rgb([0.2, 0.02, 0.02]), Rgb([0.9, 0.2, 0.2]));
+
+    gen_cubes(&mut world, 5, Point::new(0., 0., 0.) - off2, 4., 0.5, Rgb([0.02, 0.02, 0.2]), Rgb([0.2, 0.2, 0.9]));
+    gen_cubes(&mut world, 5, Point::new(0., 0., 0.) - off22, 4., 0.5, Rgb([0.02, 0.02, 0.2]), Rgb([0.2, 0.2, 0.9]));
+
+    world.push(
+        Primitive {
+            shape: Box::new(Quad::new(Point::new(-100., 200., -100.), Vec3::new(200., 0., 0.), Vec3::new(0., 0., 200.))),
+            material: Box::new(DiffuseLight { color: Rgb([10., 10., 10.]) }),
+        });
+
+    let world = BVH::new(world.into_iter().map(Rc::new).collect(), 4);
+
+    let materials = vec![];
+
+    let camera = Camera::from(CameraConfig {
+        position: Point::new(-20., 15., -5.),
+        look_at: Point::new(3., 10., 3.),
+        up: Vec3::new(0., 1., 0.),
+        aspect_ratio: 16.0 / 9.0,
+        vertical_fov: 40.0,
+        defocus_angle: 0.5,
+        focus_dist: 10.0,
+    });
+
+    Scene {
+        camera,
+        objects: world,
+        materials,
+    }
+}
+
+
+fn test() -> Scene {
+    let obj = obj::Obj::load("./data/teapot.obj").unwrap();
+    let vertices: Vec<Point> = obj.data.position.iter().map(|x| { Point::new(x[0], x[1], x[2])}).collect();
+    let normals = obj.data.normal;
+    let group = obj.data.objects.first().unwrap().groups.first().unwrap();
+
+    let mut triangles :Vec<Triangle>= vec![];
+    for x in group.polys.iter(){
+        let a = x.0[0].0;
+        let b = x.0[1].0;
+        let c = x.0[2].0;
+
+        triangles.push(Triangle::new(  vertices[a],  vertices[b] - vertices[a],  vertices[c] - vertices[a]));
+        // let na = normals[x.0[0].2.unwrap()];
+        // let nb = normals[x.0[1].2.unwrap()];
+        // let nc = normals[x.0[2].2.unwrap()];
+        // triangles.push(Triangle::new_with_normals(  vertices[a],  vertices[b] - vertices[a],  vertices[c] - vertices[a],
+        //     [
+        //         UnitVec::new(na[0], na[1], na[2]),
+        //         UnitVec::new(nb[0], nb[1], nb[2]),
+        //         UnitVec::new(nc[0], nc[1], nc[2]),
+        //     ]
+        // ))
+    }
+
+    let mut world = vec![
+        Primitive {
+            shape: Box::new(Sphere::new(Point::new(5., 20.0, 10.), 10.0)),
+            material: Box::new(DiffuseLight {
+                color: Rgb([5., 5., 5.]),
+            }),
+        },
+        Primitive {
+            shape: Box::new(Sphere::new(Point::new(0., -1001., 0.), 1000.)),
+            material: Box::new(Lambertian {
+                albedo: Rgb([0.5, 0.5, 0.5]),
+            }),
+        },
+    ];
+    let material = Box::new(Metal { albedo: Rgb([0.8, 0.5, 0.2]) , fuzz: 0.75});
+    for t in triangles {
+        world.push(Primitive{shape:Box::new(t), material:material.clone()})
+    }
+
+    let world = BVH::new(world.into_iter().map(Rc::new).collect(), 1);
+
+    let materials = vec![];
+
+    let camera = Camera::from(CameraConfig {
+        position: Point::new(2., 5., 5.),
+        look_at: Point::new(0.5, 1., 0.),
+        up: Vec3::new(0., 1., 0.),
+        aspect_ratio: 16.0 / 9.0,
+        vertical_fov: 40.0,
+        defocus_angle: 0.05,
+        focus_dist: 10.0,
+    });
+
+    Scene {
+        camera,
+        objects: world,
+        materials,
+    }
+}
 fn main() {
     env_logger::init();
-    let scene = spheres();
+    // let scene = spheres();
     // let scene = cornell_box();
+    // let scene = cubes();
+    let scene = test();
 
     let raytracer = RayTracer {
         scene,
@@ -223,13 +353,17 @@ fn main() {
             // width: 1920,
             // height: 1920,
 
-            // width: 640,
-            // height: 360,
-            width: 1280,
-            height: 720,
+            width: 640,
+            height: 360,
+
+            // width: 1280,
+            // height: 720,
+
+            // width: 1920,
+            // height: 1080,
         },
         // antialiasing: AAType::None.into(),
-        antialiasing: RegularGrid(5).into(),
+        antialiasing: RegularGrid(3).into(),
         max_reflections: 5,
     };
 

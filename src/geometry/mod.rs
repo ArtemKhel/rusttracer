@@ -14,6 +14,7 @@ pub use ray::Ray;
 pub use sphere::Sphere;
 pub use unit_vec::UnitVec;
 pub use vec::Vec3;
+pub use mesh::Triangle;
 
 mod aabb;
 mod hit;
@@ -24,6 +25,7 @@ mod sphere;
 mod unit_vec;
 pub mod utils;
 mod vec;
+mod mesh;
 
 pub trait Dot<T> {
     fn dot(&self, rhs: T) -> f32;
