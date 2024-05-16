@@ -4,16 +4,14 @@ use std::rc::Rc;
 
 use image::{buffer::ConvertBuffer, Rgb, RgbImage};
 use rand::random;
-
 use rusttracer::{
     aggregates::BVH,
-    geometry::{Point, Quad, Sphere, Vec3},
-    material::{dielectric::Dielectric, diffuse_light::DiffuseLight, lambertian::Lambertian, Material, metal::Metal},
+    geometry::{Bounded, Point, Quad, Sphere, Triangle, UnitVec, Vec3},
+    material::{dielectric::Dielectric, diffuse_light::DiffuseLight, lambertian::Lambertian, metal::Metal, Material},
     rendering::{AAType::RegularGrid, RayTracer, Renderer, Resolution},
     scene::{Camera, CameraConfig, Primitive, Scene},
+    utils::lerp,
 };
-use rusttracer::geometry::{Bounded, Triangle, UnitVec};
-use rusttracer::utils::lerp;
 
 fn spheres() -> Scene {
     let mut world = vec![
@@ -100,6 +98,7 @@ fn spheres() -> Scene {
         camera,
         objects: world,
         materials,
+        background_color: Rgb([0.1, 0.1, 0.1]),
     }
 }
 
@@ -206,11 +205,20 @@ fn cornell_box() -> Scene {
         camera,
         objects: world,
         materials,
+        background_color: Rgb([0.0, 0.0, 0.0]),
     }
 }
 
 fn cubes() -> Scene {
-    fn gen_cubes(world: &mut Vec<Primitive>, count: usize, start: Point, size: f32, offset: f32, start_color: Rgb<f32>, end_color: Rgb<f32>) {
+    fn gen_cubes(
+        world: &mut Vec<Primitive>,
+        count: usize,
+        start: Point,
+        size: f32,
+        offset: f32,
+        start_color: Rgb<f32>,
+        end_color: Rgb<f32>,
+    ) {
         let diag = Vec3::ones() * size;
         let offset = Vec3::new((size + offset) / 2., size + offset, (size + offset) / 2.);
         for i in 0..count {
@@ -219,9 +227,10 @@ fn cubes() -> Scene {
 
             let col = lerp(start_color, end_color, (i as f32 / count as f32));
             for side in sides {
-                world.push(
-                    Primitive { shape: Box::new(side), material: Box::new(Lambertian { albedo: col }) }
-                )
+                world.push(Primitive {
+                    shape: Box::new(side),
+                    material: Box::new(Lambertian { albedo: col }),
+                })
             }
         }
     }
@@ -235,18 +244,63 @@ fn cubes() -> Scene {
     let z2 = -size / 2. - offset;
     let off2 = Vec3::new(x2, z2, z2);
     let off22 = Vec3::new(-x2, z2, -z2);
-    gen_cubes(&mut world, 5, Point::new(0., 0., 0.), 4., 0.5, Rgb([0.06, 0.2, 0.07]), Rgb([0.2, 0.9, 0.3]));
-    gen_cubes(&mut world, 5, Point::new(0., 0., 0.) + off, 4., 0.5, Rgb([0.2, 0.02, 0.02]), Rgb([0.9, 0.2, 0.2]));
-    gen_cubes(&mut world, 5, Point::new(0., 0., 0.) - off, 4., 0.5, Rgb([0.2, 0.02, 0.02]), Rgb([0.9, 0.2, 0.2]));
+    gen_cubes(
+        &mut world,
+        5,
+        Point::new(0., 0., 0.),
+        4.,
+        0.5,
+        Rgb([0.06, 0.2, 0.07]),
+        Rgb([0.2, 0.9, 0.3]),
+    );
+    gen_cubes(
+        &mut world,
+        5,
+        Point::new(0., 0., 0.) + off,
+        4.,
+        0.5,
+        Rgb([0.2, 0.02, 0.02]),
+        Rgb([0.9, 0.2, 0.2]),
+    );
+    gen_cubes(
+        &mut world,
+        5,
+        Point::new(0., 0., 0.) - off,
+        4.,
+        0.5,
+        Rgb([0.2, 0.02, 0.02]),
+        Rgb([0.9, 0.2, 0.2]),
+    );
 
-    gen_cubes(&mut world, 5, Point::new(0., 0., 0.) - off2, 4., 0.5, Rgb([0.02, 0.02, 0.2]), Rgb([0.2, 0.2, 0.9]));
-    gen_cubes(&mut world, 5, Point::new(0., 0., 0.) - off22, 4., 0.5, Rgb([0.02, 0.02, 0.2]), Rgb([0.2, 0.2, 0.9]));
+    gen_cubes(
+        &mut world,
+        5,
+        Point::new(0., 0., 0.) - off2,
+        4.,
+        0.5,
+        Rgb([0.02, 0.02, 0.2]),
+        Rgb([0.2, 0.2, 0.9]),
+    );
+    gen_cubes(
+        &mut world,
+        5,
+        Point::new(0., 0., 0.) - off22,
+        4.,
+        0.5,
+        Rgb([0.02, 0.02, 0.2]),
+        Rgb([0.2, 0.2, 0.9]),
+    );
 
-    world.push(
-        Primitive {
-            shape: Box::new(Quad::new(Point::new(-100., 200., -100.), Vec3::new(200., 0., 0.), Vec3::new(0., 0., 200.))),
-            material: Box::new(DiffuseLight { color: Rgb([10., 10., 10.]) }),
-        });
+    world.push(Primitive {
+        shape: Box::new(Quad::new(
+            Point::new(-100., 200., -100.),
+            Vec3::new(200., 0., 0.),
+            Vec3::new(0., 0., 200.),
+        )),
+        material: Box::new(DiffuseLight {
+            color: Rgb([10., 10., 10.]),
+        }),
+    });
 
     let world = BVH::new(world.into_iter().map(Rc::new).collect(), 4);
 
@@ -266,23 +320,27 @@ fn cubes() -> Scene {
         camera,
         objects: world,
         materials,
+        background_color: Rgb([0.1, 0.1, 0.1]),
     }
 }
 
-
-fn test() -> Scene {
+fn teapot() -> Scene {
     let obj = obj::Obj::load("./data/teapot.obj").unwrap();
-    let vertices: Vec<Point> = obj.data.position.iter().map(|x| { Point::new(x[0], x[1], x[2])}).collect();
+    let vertices: Vec<Point> = obj.data.position.iter().map(|x| Point::new(x[0], x[1], x[2])).collect();
     let normals = obj.data.normal;
     let group = obj.data.objects.first().unwrap().groups.first().unwrap();
 
-    let mut triangles :Vec<Triangle>= vec![];
-    for x in group.polys.iter(){
+    let mut triangles: Vec<Triangle> = vec![];
+    for x in group.polys.iter() {
         let a = x.0[0].0;
         let b = x.0[1].0;
         let c = x.0[2].0;
 
-        triangles.push(Triangle::new(  vertices[a],  vertices[b] - vertices[a],  vertices[c] - vertices[a]));
+        triangles.push(Triangle::new(
+            vertices[a],
+            vertices[b] - vertices[a],
+            vertices[c] - vertices[a],
+        ));
         // let na = normals[x.0[0].2.unwrap()];
         // let nb = normals[x.0[1].2.unwrap()];
         // let nc = normals[x.0[2].2.unwrap()];
@@ -309,9 +367,15 @@ fn test() -> Scene {
             }),
         },
     ];
-    let material = Box::new(Metal { albedo: Rgb([0.8, 0.5, 0.2]) , fuzz: 0.75});
+    let material = Box::new(Metal {
+        albedo: Rgb([0.8, 0.5, 0.2]),
+        fuzz: 0.75,
+    });
     for t in triangles {
-        world.push(Primitive{shape:Box::new(t), material:material.clone()})
+        world.push(Primitive {
+            shape: Box::new(t),
+            material: material.clone(),
+        })
     }
 
     let world = BVH::new(world.into_iter().map(Rc::new).collect(), 1);
@@ -332,6 +396,7 @@ fn test() -> Scene {
         camera,
         objects: world,
         materials,
+        background_color: Rgb([0.1, 0.1, 0.1]),
     }
 }
 fn main() {
@@ -339,7 +404,7 @@ fn main() {
     // let scene = spheres();
     // let scene = cornell_box();
     // let scene = cubes();
-    let scene = test();
+    let scene = teapot();
 
     let raytracer = RayTracer {
         scene,
@@ -352,10 +417,8 @@ fn main() {
 
             // width: 1920,
             // height: 1920,
-
             width: 640,
             height: 360,
-
             // width: 1280,
             // height: 720,
 

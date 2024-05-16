@@ -154,7 +154,7 @@ impl BVH {
             );
             BVHBuildNode::new_interior(bounds, children, axis)
         } else {
-            return Self::build_leaf(primitives, primitives_info, ordered_primitives, bounds);
+            Self::build_leaf(primitives, primitives_info, ordered_primitives, bounds)
         }
     }
 
@@ -231,7 +231,7 @@ impl BVH {
                 }
             }
         }
-        debug!("Split at {mid} out of {} using {split_method:?}", primitives_info.len());
+        // debug!("Split at {mid} out of {} using {split_method:?}", primitives_info.len());
         Some(primitives_info.split_at_mut(mid))
     }
 

@@ -8,7 +8,7 @@ pub struct Triangle {
     ab: Vec3,
     ac: Vec3,
     normal: UnitVec,
-    normals : [UnitVec;3],
+    normals: [UnitVec; 3],
     d: f32,
     w: Vec3,
 }
@@ -29,7 +29,8 @@ impl Triangle {
             w,
         }
     }
-    pub fn new_with_normals(a: Point, ab: Vec3, ac: Vec3, normals:[UnitVec;3]) -> Self {
+
+    pub fn new_with_normals(a: Point, ab: Vec3, ac: Vec3, normals: [UnitVec; 3]) -> Self {
         let n = ab.cross(ac);
         let normal = n.to_unit();
         let d = normal.dot(a.radius_vector);
@@ -66,7 +67,7 @@ impl Intersectable for Triangle {
 
         if (0.0..=1.0).contains(&alpha) && (0.0..=1.0).contains(&beta) && alpha + beta <= 1.0 {
             let an = 1.0 - alpha - beta;
-            let n = ((self.normals[0] * an + self.normals[1] * alpha + self.normals[2] * beta)).to_unit();
+            let n = (self.normals[0] * an + self.normals[1] * alpha + self.normals[2] * beta).to_unit();
             Some(Hit {
                 point: hit_point,
                 normal: local_normal(n, ray),
@@ -84,15 +85,13 @@ impl Bounded for Triangle {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use log::debug;
-    use super::*;
     use obj;
 
-    #[test]
-    fn test() {
+    use super::*;
 
-    }
+    #[test]
+    fn test() {}
 }

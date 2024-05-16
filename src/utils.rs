@@ -14,7 +14,7 @@ pub fn lerp(a: Rgb<f32>, b: Rgb<f32>, t: f32) -> Rgb<f32> {
 
 pub(crate) fn linear_to_gamma(linear: Rgb<f32>) -> Rgb<f32> { linear.map(|x| if x > 0. { x.sqrt() } else { x }) }
 
-pub fn degrees_to_radians(degrees: f32) -> f32 { PI * degrees / 180.0 }
+pub(crate) fn degrees_to_radians(degrees: f32) -> f32 { PI * degrees / 180.0 }
 
 #[macro_export]
 macro_rules! breakpoint {

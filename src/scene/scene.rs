@@ -1,3 +1,5 @@
+use image::Rgb;
+
 use crate::{
     aggregates::BVH,
     geometry::{Hit, Intersectable, Ray},
@@ -11,6 +13,7 @@ pub struct Scene {
     pub objects: BVH,
     pub materials: Vec<Box<dyn Material>>,
     // lights:
+    pub background_color: Rgb<f32>,
 }
 impl Scene {
     pub fn cast_ray(&self, ray: &Ray) -> Option<Intersection> {

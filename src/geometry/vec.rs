@@ -27,7 +27,7 @@ impl Vec3 {
 
     pub fn len(&self) -> f32 { f32::sqrt(self.dot(*self)) }
 
-    pub fn ones() -> Vec3 {Vec3::new(1.,1.,1.)}
+    pub fn ones() -> Vec3 { Vec3::new(1., 1., 1.) }
 }
 
 impl Distribution<Vec3> for Standard {

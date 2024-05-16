@@ -8,16 +8,17 @@ use std::{
 
 pub use aabb::Aabb;
 pub use hit::Hit;
+pub use mesh::Triangle;
 pub use point::Point;
 pub use quad::Quad;
 pub use ray::Ray;
 pub use sphere::Sphere;
 pub use unit_vec::UnitVec;
 pub use vec::Vec3;
-pub use mesh::Triangle;
 
 mod aabb;
 mod hit;
+mod mesh;
 mod point;
 mod quad;
 mod ray;
@@ -25,7 +26,6 @@ mod sphere;
 mod unit_vec;
 pub mod utils;
 mod vec;
-mod mesh;
 
 pub trait Dot<T> {
     fn dot(&self, rhs: T) -> f32;

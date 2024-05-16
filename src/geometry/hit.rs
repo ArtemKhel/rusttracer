@@ -1,8 +1,10 @@
 use std::cmp::Ordering;
 
+use derive_new::new;
+
 use crate::geometry::{Dot, Point, Ray, UnitVec};
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, new)]
 pub struct Hit {
     pub point: Point,
     pub normal: UnitVec,
@@ -10,8 +12,6 @@ pub struct Hit {
 }
 
 impl Hit {
-    pub fn new(point: Point, normal: UnitVec, t: f32) -> Hit { Hit { point, normal, t } }
-
     pub fn on_front_side(&self, ray: &Ray) -> bool { self.normal.dot(ray.dir) < 0. }
 }
 
