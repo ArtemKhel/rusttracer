@@ -12,11 +12,5 @@ pub struct DiffuseLight {
 }
 
 impl Material for DiffuseLight {
-    fn emitted(&self) -> Option<Rgb<f32>> {
-        // if intersection.hit.on_front_side(ray){
-        //     None
-        // } else {
-        Some(self.color)
-        // }
-    }
+    fn emitted(&self) -> Option<Rgb<f32>> { Some(self.color) }
 }

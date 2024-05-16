@@ -21,7 +21,8 @@ serde_json = "1.0.117"
 strum = "0.26.2"
 strum_macros = "0.26.2"
 obj = "0.10.2"
-#obj-rs = "0.7.1"
+# tobj = "4.0.2"
+# obj-rs = "0.7.1"
 
 [profile.dev]
 opt-level = 0

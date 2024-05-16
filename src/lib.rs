@@ -2,6 +2,7 @@
 #![allow(internal_features)]
 #![feature(core_intrinsics)]
 pub mod material;
+pub mod mediums;
 pub mod scene;
 pub mod utils;
 

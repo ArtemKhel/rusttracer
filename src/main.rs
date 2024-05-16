@@ -2,16 +2,22 @@
 
 use std::rc::Rc;
 
+use env_logger::fmt::style::AnsiColor::White;
 use image::{buffer::ConvertBuffer, Rgb, RgbImage};
 use rand::random;
 use rusttracer::{
     aggregates::BVH,
     geometry::{Bounded, Point, Quad, Sphere, Triangle, UnitVec, Vec3},
-    material::{dielectric::Dielectric, diffuse_light::DiffuseLight, lambertian::Lambertian, metal::Metal, Material},
+    material::{
+        dielectric::Dielectric, diffuse_light::DiffuseLight, isotropic::Isotropic, lambertian::Lambertian,
+        metal::Metal, Material,
+    },
+    mediums::Medium,
     rendering::{AAType::RegularGrid, RayTracer, Renderer, Resolution},
-    scene::{Camera, CameraConfig, Primitive, Scene},
+    scene::{Camera, CameraConfig, Composite, Primitive, Scene},
     utils::lerp,
 };
+use serde::de::value::IsizeDeserializer;
 
 fn spheres() -> Scene {
     let mut world = vec![
@@ -177,10 +183,7 @@ fn cornell_box() -> Scene {
         },
     ];
 
-    for side in Quad::quad_box(Point::new(130., 0., 65.), Point::new(295., 165., 230.))
-        .into_iter()
-        .chain(Quad::quad_box(Point::new(265., 0., 295.), Point::new(430., 330., 460.)).into_iter())
-    {
+    for side in Quad::quad_box(Point::new(130., 0., 65.), Point::new(295., 165., 230.)).into_iter() {
         world.push(Primitive {
             shape: Box::new(side),
             material: Box::new(Lambertian {
@@ -188,6 +191,16 @@ fn cornell_box() -> Scene {
             }),
         })
     }
+    let box2 = Quad::quad_box(Point::new(265., 0.1, 295.), Point::new(430., 330., 460.))
+        .into_iter()
+        .map(|x| Box::new(x) as _)
+        .collect();
+    world.push(Primitive {
+        shape: Box::new(Medium::new(Box::new(Composite { objects: box2 }), 0.01)),
+        material: Box::new(Isotropic {
+            color: Rgb([0.3, 0.3, 0.3]),
+        }),
+    });
 
     let world = BVH::new(world.into_iter().map(Rc::new).collect(), 1);
 
@@ -402,23 +415,25 @@ fn teapot() -> Scene {
 fn main() {
     env_logger::init();
     // let scene = spheres();
-    // let scene = cornell_box();
+    let scene = cornell_box();
     // let scene = cubes();
-    let scene = teapot();
+    // let scene = teapot();
 
     let raytracer = RayTracer {
         scene,
         resolution: Resolution {
-            // width: 640,
-            // height: 640,
+            width: 640,
+            height: 640,
 
             // width: 1280,
             // height: 1280,
 
             // width: 1920,
             // height: 1920,
-            width: 640,
-            height: 360,
+
+            // width: 640,
+            // height: 360,
+
             // width: 1280,
             // height: 720,
 
