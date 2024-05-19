@@ -1,0 +1,15 @@
+[package]
+name = "math"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+derive-new = {workspace = true}
+env_logger = {workspace = true}
+log = {workspace = true}
+rand = {workspace = true}
+obj = {workspace = true}
+gen_ops = "0.4.0"
+num-traits = "0.2.19"
+strum = "0.26.2"
+strum_macros = "0.26.2"

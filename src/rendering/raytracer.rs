@@ -5,10 +5,10 @@ use rayon::prelude::*;
 
 use crate::{
     breakpoint,
-    geometry::Ray,
     rendering::{antialiasing::AntiAliasing, PixelCoord, Renderer, Resolution},
     scene::Scene,
     utils::linear_to_gamma,
+    Ray,
 };
 
 pub struct RayTracer {

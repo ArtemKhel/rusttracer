@@ -8,11 +8,12 @@ use std::{
 use derive_new::new;
 use itertools::{partition, Itertools};
 use log::debug;
+use math::{utils::Axis, Bounded, Intersectable};
 use rayon::join;
 
 use crate::{
-    geometry::{utils::Axis, Aabb, Bounded, BoundedIntersectable, Intersectable, Point, Ray},
     scene::{Intersection, Primitive},
+    Aabb, Point, Ray,
 };
 
 #[derive(Debug)]
@@ -358,37 +359,34 @@ impl BVH {
 #[cfg(test)]
 mod tests {
     use image::Rgb;
+    use math::{point3, vec3, Sphere};
 
     use super::*;
-    use crate::{
-        geometry::{Point, Sphere, Vec3},
-        material::lambertian::Lambertian,
-        scene::Primitive,
-    };
+    use crate::{material::lambertian::Lambertian, scene::Primitive, Point, Vec3};
 
     #[test]
     fn test_bvh() {
         let mut world: Vec<Rc<Primitive>> = vec![
             Primitive {
-                shape: Box::new(Sphere::new(Point::new(0., 0., 0.), 1.0)),
+                shape: Box::new(Sphere::new(point3!(0., 0., 0.), 1.0)),
                 material: Box::new(Lambertian {
                     albedo: Rgb([0.4, 0.2, 0.1]),
                 }),
             },
             Primitive {
-                shape: Box::new(Sphere::new(Point::new(4., 0., 0.), 1.0)),
+                shape: Box::new(Sphere::new(point3!(4., 0., 0.), 1.0)),
                 material: Box::new(Lambertian {
                     albedo: Rgb([0.4, 0.2, 0.1]),
                 }),
             },
             Primitive {
-                shape: Box::new(Sphere::new(Point::new(0., 4., 0.), 1.0)),
+                shape: Box::new(Sphere::new(point3!(0., 4., 0.), 1.0)),
                 material: Box::new(Lambertian {
                     albedo: Rgb([0.4, 0.2, 0.1]),
                 }),
             },
             Primitive {
-                shape: Box::new(Sphere::new(Point::new(4., 4., 0.), 1.0)),
+                shape: Box::new(Sphere::new(point3!(4., 4., 0.), 1.0)),
                 material: Box::new(Lambertian {
                     albedo: Rgb([0.4, 0.2, 0.1]),
                 }),
@@ -399,7 +397,7 @@ mod tests {
         .collect();
 
         let bvh = BVH::new(world, 1);
-        bvh.hit(&Ray::new(Point::default(), Vec3::new(1., 0., 0.).to_unit()));
+        bvh.hit(&Ray::new(Point::default(), vec3!(1., 0., 0.).to_unit()));
         dbg!(&bvh);
     }
 }

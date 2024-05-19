@@ -1,9 +1,9 @@
 use image::Rgb;
 
 use crate::{
-    geometry::Ray,
     material::{Material, Scatter},
     scene::Intersection,
+    Ray,
 };
 
 #[derive(Debug, Clone, Copy)]

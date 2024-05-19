@@ -1,7 +1,7 @@
 use rand::{distributions::Standard, prelude::Distribution, random, Rng};
 use strum_macros::EnumIter;
 
-use crate::geometry::{unit_vec::UnitVec, vec::Vec3, Dot};
+use crate::{Dot, UnitVec3, UnitVec3f, Vec3f};
 
 #[derive(Copy, Clone, EnumIter, Debug)]
 pub enum Axis {
@@ -21,28 +21,28 @@ impl Distribution<Axis> for Standard {
     }
 }
 
-pub fn random_unit() -> UnitVec {
+pub fn random_unit() -> UnitVec3f {
     loop {
-        let rnd: Vec3 = random();
+        let rnd: Vec3f = random();
         if rnd.len() <= 1. {
             break rnd.to_unit();
         }
     }
 }
 
-pub fn random_on_hemisphere(normal: &UnitVec) -> UnitVec {
+pub fn random_on_hemisphere(normal: &UnitVec3f) -> UnitVec3f {
     let random = random_unit();
-    if normal.dot(random) >= 0. {
+    if normal.dot(&random) >= 0. {
         random
     } else {
         -random
     }
 }
 
-pub fn random_in_unit_disk() -> Vec3 {
+pub fn random_in_unit_disk() -> Vec3f {
     loop {
-        let rnd: Vec3 = random();
-        if rnd.len() <= 1. {
+        let rnd: Vec3f = random();
+        if rnd.len_squared() <= 1. {
             break rnd;
         }
     }

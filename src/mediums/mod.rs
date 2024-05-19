@@ -1,17 +1,18 @@
 use image::Rgb;
 use log::debug;
+use math::{unit3_unchecked, Bounded, BoundedIntersectable, Intersectable, *};
 use rand::random;
 
-use crate::geometry::{Aabb, Bounded, BoundedIntersectable, Hit, Intersectable, Ray, UnitVec};
+use crate::{Aabb, Hit, Ray, UnitVec, F};
 
 #[derive(Debug)]
 pub struct Medium {
-    shape: Box<dyn BoundedIntersectable>,
+    shape: Box<dyn BoundedIntersectable<F>>,
     inv_density: f32,
 }
 
 impl Medium {
-    pub fn new(shape: Box<dyn BoundedIntersectable>, density: f32) -> Self {
+    pub fn new(shape: Box<dyn BoundedIntersectable<F>>, density: f32) -> Self {
         Medium {
             shape,
             inv_density: -1. / density,
@@ -19,7 +20,7 @@ impl Medium {
     }
 }
 
-impl Intersectable for Medium {
+impl Intersectable<F> for Medium {
     fn hit(&self, ray: &Ray) -> Option<Hit> {
         // TODO: assuming convex shape and ray starting outside a medium
         match self.shape.hit(ray) {
@@ -34,7 +35,7 @@ impl Intersectable for Medium {
                         return Some(Hit {
                             t: hit_t,
                             point: ray.at(hit_t),
-                            normal: UnitVec::new(1., 0., 0.),
+                            normal: unit3_unchecked!(1., 0., 0.),
                         });
                     }
                 }
@@ -44,6 +45,6 @@ impl Intersectable for Medium {
     }
 }
 
-impl Bounded for Medium {
+impl Bounded<F> for Medium {
     fn bound(&self) -> Aabb { self.shape.bound() }
 }

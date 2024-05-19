@@ -1,9 +1,10 @@
 use image::Rgb;
+use math::utils::random_unit;
 
 use crate::{
-    geometry::{utils::random_unit, Ray},
     material::{Material, Scatter},
     scene::Intersection,
+    Ray,
 };
 
 #[derive(Debug, Clone, Copy)]

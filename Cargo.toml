@@ -4,25 +4,39 @@ version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[workspace]
+members = [
+    ".",
+    "libs/math",
+]
 
-[dependencies]
-#cgmath = "0.18.0"
-#minifb = "0.25.0"
+[workspace.dependencies]
 derive-new = "0.6.0"
 env_logger = "0.11.3"
-image = { version = "0.25.1", features = ["rayon"] }
-indicatif = "0.17.8"
-itertools = "0.12.1"
 log = "0.4.21"
 rand = { version = "0.9.0-alpha.1", features = ["small_rng"] }
-rayon = "1.10.0"
-serde = { version = "1.0.201", features = ["derive"] }
-serde_json = "1.0.117"
-strum = "0.26.2"
-strum_macros = "0.26.2"
 obj = "0.10.2"
 # tobj = "4.0.2"
 # obj-rs = "0.7.1"
+
+
+[dependencies]
+math = { path = "./libs/math" }
+log = { workspace = true }
+env_logger = { workspace = true }
+rand = { workspace = true }
+derive-new = { workspace = true }
+obj = { workspace = true }
+# TODO:
+#minifb = "0.25.0"
+#nalgebra = { version = "0.32.5", features = ["rand", "serde"] }
+#nalgebra-glm = { version = "0.18.0", features = ["serde-serialize"] }
+image = { version = "0.25.1", features = ["rayon"] }
+indicatif = "0.17.8"
+itertools = "0.12.1"
+rayon = "1.10.0"
+serde = { version = "1.0.201", features = ["derive"] }
+serde_json = "1.0.117"
 
 [profile.dev]
 opt-level = 0
@@ -30,4 +44,4 @@ opt-level = 0
 [profile.release]
 opt-level = 3
 #lto = "fat"
-lto = "thin"
+#lto = "thin"

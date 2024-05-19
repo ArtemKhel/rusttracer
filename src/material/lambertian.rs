@@ -1,9 +1,10 @@
 use image::Rgb;
+use math::utils::random_unit;
 
 use crate::{
-    geometry::{utils::random_unit, Ray},
     material::{Material, Scatter},
     scene::Intersection,
+    Ray,
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -13,9 +14,9 @@ pub struct Lambertian {
 
 impl Material for Lambertian {
     fn scattered(&self, ray: &Ray, intersection: &Intersection) -> Option<Scatter> {
-        let scattered_direction = (intersection.hit.normal + random_unit()).to_unit();
+        let scattered_direction = (*intersection.hit.normal + *random_unit()).to_unit();
         let ray = Ray::new(
-            intersection.hit.point + intersection.hit.normal * 0.01,
+            intersection.hit.point + *intersection.hit.normal * 0.01,
             scattered_direction,
         );
         Some(Scatter {

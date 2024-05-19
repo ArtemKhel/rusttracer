@@ -2,9 +2,9 @@ use image::Rgb;
 
 use crate::{
     aggregates::BVH,
-    geometry::{Hit, Intersectable, Ray},
     material::Material,
-    scene::{camera::Camera, intersection::Intersection, primitive::Primitive},
+    scene::{Camera, Intersection},
+    Ray,
 };
 
 pub struct Scene {

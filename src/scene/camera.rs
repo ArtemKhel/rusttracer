@@ -1,18 +1,17 @@
+use std::ops::Mul;
+
+use math::{point3, utils::random_in_unit_disk, vec3, Cross, *};
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    geometry::{utils::random_in_unit_disk, Cross, Point, Ray, Vec3},
-    rendering::PixelCoord,
-    utils::degrees_to_radians,
-};
+use crate::{rendering::PixelCoord, utils::degrees_to_radians, Point, Ray, Vec3};
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Default)]
 pub struct Screen {
     center: Point,
     basis: [Vec3; 2],
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct CameraConfig {
     pub position: Point,
     pub look_at: Point,
@@ -23,7 +22,7 @@ pub struct CameraConfig {
     pub focus_dist: f32,
 }
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Default)]
 pub struct Camera {
     pub position: Point,
     pub screen: Screen,
@@ -50,10 +49,10 @@ impl From<CameraConfig> for Camera {
 
         // Basis
         let backward = (config.position - config.look_at).to_unit();
-        let right = config.up.cross(backward.vec).to_unit();
-        let up = backward.vec.cross(right.vec).to_unit();
+        let right = config.up.cross(*backward).to_unit();
+        let up = backward.cross(*right).to_unit();
 
-        let center = config.position - backward * config.focus_dist;
+        let center = config.position + -backward.mul(config.focus_dist);
 
         let defocus_radius = config.focus_dist * degrees_to_radians(config.defocus_angle / 2.).tan();
 
@@ -62,7 +61,7 @@ impl From<CameraConfig> for Camera {
             defocus_radius,
             screen: Screen {
                 center,
-                basis: [right * half_width, -up * half_height], // TODO: types
+                basis: [*right * half_width, -*up * half_height], // TODO: types
             },
         }
     }
@@ -72,8 +71,8 @@ impl Default for CameraConfig {
     fn default() -> Self {
         CameraConfig {
             position: Point::default(),
-            look_at: Point::new(0., 0., -1.),
-            up: Vec3::new(0., 1., 0.),
+            look_at: point3!(0., 0., -1.),
+            up: vec3!(0., 1., 0.),
             aspect_ratio: 16.0 / 9.0,
             vertical_fov: 90.0,
             defocus_angle: 0.5,

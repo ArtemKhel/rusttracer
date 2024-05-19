@@ -1,9 +1,10 @@
 use image::Rgb;
+use math::{reflect, utils::random_unit};
 
 use crate::{
-    geometry::{utils::random_unit, Ray},
     material::{Material, Scatter},
     scene::Intersection,
+    Ray,
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -14,9 +15,9 @@ pub struct Metal {
 
 impl Material for Metal {
     fn scattered(&self, ray: &Ray, intersection: &Intersection) -> Option<Scatter> {
-        let reflected_direction = (ray.dir.reflect(intersection.hit.normal) + random_unit() * self.fuzz).to_unit();
+        let reflected_direction = (*reflect(&ray.dir, &intersection.hit.normal) + *random_unit() * self.fuzz).to_unit();
         let ray = Ray::new(
-            intersection.hit.point + intersection.hit.normal * 0.01,
+            intersection.hit.point + *intersection.hit.normal * 0.01,
             reflected_direction,
         );
         Some(Scatter {

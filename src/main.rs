@@ -1,13 +1,13 @@
 #![allow(unused)]
 
-use std::rc::Rc;
+use std::{ops::Mul, rc::Rc};
 
 use env_logger::fmt::style::AnsiColor::White;
 use image::{buffer::ConvertBuffer, Rgb, RgbImage};
+use math::{point3, vec3, Point3, Quad, Sphere};
 use rand::random;
 use rusttracer::{
     aggregates::BVH,
-    geometry::{Bounded, Point, Quad, Sphere, Triangle, UnitVec, Vec3},
     material::{
         dielectric::Dielectric, diffuse_light::DiffuseLight, isotropic::Isotropic, lambertian::Lambertian,
         metal::Metal, Material,
@@ -16,39 +16,40 @@ use rusttracer::{
     rendering::{AAType::RegularGrid, RayTracer, Renderer, Resolution},
     scene::{Camera, CameraConfig, Composite, Primitive, Scene},
     utils::lerp,
+    Point, Triangle, Vec3,
 };
 use serde::de::value::IsizeDeserializer;
 
 fn spheres() -> Scene {
     let mut world = vec![
         Primitive {
-            shape: Box::new(Sphere::new(Point::new(-4., 1.0, 0.), 1.0)),
+            shape: Box::new(Sphere::new(point3!(-4., 1.0, 0.), 1.0)),
             material: Box::new(Lambertian {
                 albedo: Rgb([0.4, 0.2, 0.1]),
             }),
         },
         Primitive {
-            shape: Box::new(Sphere::new(Point::new(0., 1.0, 0.), 0.9)),
+            shape: Box::new(Sphere::new(point3!(0., 1.0, 0.), 0.9)),
             material: Box::new(Metal {
                 albedo: Rgb([0.7, 0.6, 0.6]),
                 fuzz: 0.1,
             }),
         },
         Primitive {
-            shape: Box::new(Sphere::new(Point::new(4., 1.0, 0.), 0.8)),
+            shape: Box::new(Sphere::new(point3!(4., 1.0, 0.), 0.8)),
             material: Box::new(Dielectric {
                 refraction_index: 1.5,
                 attenuation: Rgb([0.95, 0.95, 0.95]),
             }),
         },
         Primitive {
-            shape: Box::new(Sphere::new(Point::new(0., -1000., 0.), 1000.)),
+            shape: Box::new(Sphere::new(point3!(0., -1000., 0.), 1000.)),
             material: Box::new(Lambertian {
                 albedo: Rgb([0.2, 0.2, 0.2]),
             }),
         },
         Primitive {
-            shape: Box::new(Sphere::new(Point::new(10., 20.0, 10.), 10.0)),
+            shape: Box::new(Sphere::new(point3!(10., 20.0, 10.), 10.0)),
             material: Box::new(DiffuseLight {
                 color: Rgb([3., 3., 3.]),
             }),
@@ -58,13 +59,13 @@ fn spheres() -> Scene {
     for a in -7..7 {
         for b in -7..7 {
             let choose_mat = random::<f32>();
-            let center = Point::new(
+            let center = point3!(
                 a as f32 + 0.9 * random::<f32>(),
                 (random::<f32>() + 3.) / 16.,
-                b as f32 + 0.9 * random::<f32>(),
+                b as f32 + 0.9 * random::<f32>()
             );
 
-            if (center - Point::new(4., 0.2, 0.)).len() > 0.9 {
+            if (center - point3!(4., 0.2, 0.)).len() > 0.9 {
                 let sphere_material: Box<dyn Material> = if (choose_mat < 0.5) {
                     Box::new(Lambertian { albedo: Rgb(random()) })
                 } else if (choose_mat < 0.8) {
@@ -79,7 +80,7 @@ fn spheres() -> Scene {
                     })
                 };
                 world.push(Primitive {
-                    shape: Box::new(Sphere::new(center, center.radius_vector.y)),
+                    shape: Box::new(Sphere::new(center, center.coords.y)),
                     material: sphere_material,
                 });
             }
@@ -91,9 +92,9 @@ fn spheres() -> Scene {
     let materials = vec![];
 
     let camera = Camera::from(CameraConfig {
-        position: Point::new(13., 2., 4.),
-        look_at: Point::new(0., 0., 0.),
-        up: Vec3::new(0., 1., 0.),
+        position: point3!(13., 2., 4.),
+        look_at: point3!(0., 0., 0.),
+        up: vec3!(0., 1., 0.),
         aspect_ratio: 16.0 / 9.0,
         vertical_fov: 20.0,
         defocus_angle: 0.5,
@@ -116,39 +117,41 @@ fn cornell_box() -> Scene {
     let mut world = vec![
         Primitive {
             shape: Box::new(Quad::new(
-                Point::new(555., 0., 0.),
-                Vec3::new(0., 555., 0.),
-                Vec3::new(0., 0., 555.),
+                point3!(555., 0., 0.),
+                vec3!(0., 555., 0.),
+                vec3!(0., 0., 555.),
             )),
             material: Box::new(Lambertian {
                 albedo: Rgb([0.12, 0.45, 0.15]),
             }),
         },
         Primitive {
-            shape: Box::new(Quad::new(
-                Point::new(0., 0., 0.),
-                Vec3::new(0., 555., 0.),
-                Vec3::new(0., 0., 555.),
-            )),
+            shape: Box::new(Quad::new(point3!(0., 0., 0.), vec3!(0., 555., 0.), vec3!(0., 0., 555.))),
             material: Box::new(Lambertian {
                 albedo: Rgb([0.65, 0.05, 0.05]),
             }),
         },
         Primitive {
             shape: Box::new(Quad::new(
-                Point::new(405., 554., 405.),
-                Vec3::new(-255., 0., 0.),
-                Vec3::new(0., 0., -255.),
+                point3!(405., 554., 405.),
+                vec3!(-255., 0., 0.),
+                vec3!(0., 0., -255.),
             )),
             material: Box::new(DiffuseLight {
                 color: Rgb([5., 5., 5.]),
             }),
         },
         Primitive {
+            shape: Box::new(Quad::new(point3!(0., 0., 0.), vec3!(555., 0., 0.), vec3!(0., 0., 555.))),
+            material: Box::new(Lambertian {
+                albedo: Rgb([0.73, 0.73, 0.73]),
+            }),
+        },
+        Primitive {
             shape: Box::new(Quad::new(
-                Point::new(0., 0., 0.),
-                Vec3::new(555., 0., 0.),
-                Vec3::new(0., 0., 555.),
+                point3!(555., 555., 555.),
+                vec3!(-555., 0., 0.),
+                vec3!(0., 0., -555.),
             )),
             material: Box::new(Lambertian {
                 albedo: Rgb([0.73, 0.73, 0.73]),
@@ -156,26 +159,16 @@ fn cornell_box() -> Scene {
         },
         Primitive {
             shape: Box::new(Quad::new(
-                Point::new(555., 555., 555.),
-                Vec3::new(-555., 0., 0.),
-                Vec3::new(0., 0., -555.),
+                point3!(0., 0., 555.),
+                vec3!(555., 0., 0.),
+                vec3!(0., 555., 0.),
             )),
             material: Box::new(Lambertian {
                 albedo: Rgb([0.73, 0.73, 0.73]),
             }),
         },
         Primitive {
-            shape: Box::new(Quad::new(
-                Point::new(0., 0., 555.),
-                Vec3::new(555., 0., 0.),
-                Vec3::new(0., 555., 0.),
-            )),
-            material: Box::new(Lambertian {
-                albedo: Rgb([0.73, 0.73, 0.73]),
-            }),
-        },
-        Primitive {
-            shape: Box::new(Sphere::new(Point::new(212.5, 240., 147.5), 75.)),
+            shape: Box::new(Sphere::new(point3!(212.5, 240., 147.5), 75.)),
             material: Box::new(Dielectric {
                 attenuation: Rgb([1., 1., 1.]),
                 refraction_index: 1.5,
@@ -183,7 +176,7 @@ fn cornell_box() -> Scene {
         },
     ];
 
-    for side in Quad::quad_box(Point::new(130., 0., 65.), Point::new(295., 165., 230.)).into_iter() {
+    for side in Quad::quad_box(point3!(130., 0., 65.), point3!(295., 165., 230.)).into_iter() {
         world.push(Primitive {
             shape: Box::new(side),
             material: Box::new(Lambertian {
@@ -191,7 +184,7 @@ fn cornell_box() -> Scene {
             }),
         })
     }
-    let box2 = Quad::quad_box(Point::new(265., 0.1, 295.), Point::new(430., 330., 460.))
+    let box2 = Quad::quad_box(point3!(265., 0.1, 295.), point3!(430., 330., 460.))
         .into_iter()
         .map(|x| Box::new(x) as _)
         .collect();
@@ -205,9 +198,9 @@ fn cornell_box() -> Scene {
     let world = BVH::new(world.into_iter().map(Rc::new).collect(), 1);
 
     let camera = Camera::from(CameraConfig {
-        position: Point::new(278., 278., -800.),
-        look_at: Point::new(278., 278., 0.),
-        up: Vec3::new(0., 1., 0.),
+        position: point3!(278., 278., -800.),
+        look_at: point3!(278., 278., 0.),
+        up: vec3!(0., 1., 0.),
         aspect_ratio: 1.0,
         vertical_fov: 40.0,
         defocus_angle: 0.0,
@@ -233,7 +226,7 @@ fn cubes() -> Scene {
         end_color: Rgb<f32>,
     ) {
         let diag = Vec3::ones() * size;
-        let offset = Vec3::new((size + offset) / 2., size + offset, (size + offset) / 2.);
+        let offset = vec3!((size + offset) / 2., size + offset, (size + offset) / 2.);
         for i in 0..count {
             let start = start + offset * i as f32;
             let sides = Quad::quad_box(start, start + diag);
@@ -252,15 +245,15 @@ fn cubes() -> Scene {
     let size = 4.0;
     let offset = 0.5;
     let x = offset * 2.0 + 1.5 * size;
-    let off = Vec3::new(x, 0., -x);
+    let off = vec3!(x, 0., -x);
     let x2 = offset + size;
     let z2 = -size / 2. - offset;
-    let off2 = Vec3::new(x2, z2, z2);
-    let off22 = Vec3::new(-x2, z2, -z2);
+    let off2 = vec3!(x2, z2, z2);
+    let off22 = vec3!(-x2, z2, -z2);
     gen_cubes(
         &mut world,
         5,
-        Point::new(0., 0., 0.),
+        point3!(0., 0., 0.),
         4.,
         0.5,
         Rgb([0.06, 0.2, 0.07]),
@@ -269,7 +262,7 @@ fn cubes() -> Scene {
     gen_cubes(
         &mut world,
         5,
-        Point::new(0., 0., 0.) + off,
+        point3!(0., 0., 0.) + off,
         4.,
         0.5,
         Rgb([0.2, 0.02, 0.02]),
@@ -278,7 +271,7 @@ fn cubes() -> Scene {
     gen_cubes(
         &mut world,
         5,
-        Point::new(0., 0., 0.) - off,
+        point3!(0., 0., 0.) + -off,
         4.,
         0.5,
         Rgb([0.2, 0.02, 0.02]),
@@ -288,7 +281,7 @@ fn cubes() -> Scene {
     gen_cubes(
         &mut world,
         5,
-        Point::new(0., 0., 0.) - off2,
+        point3!(0., 0., 0.) + -off2,
         4.,
         0.5,
         Rgb([0.02, 0.02, 0.2]),
@@ -297,7 +290,7 @@ fn cubes() -> Scene {
     gen_cubes(
         &mut world,
         5,
-        Point::new(0., 0., 0.) - off22,
+        point3!(0., 0., 0.) + -off22,
         4.,
         0.5,
         Rgb([0.02, 0.02, 0.2]),
@@ -306,9 +299,9 @@ fn cubes() -> Scene {
 
     world.push(Primitive {
         shape: Box::new(Quad::new(
-            Point::new(-100., 200., -100.),
-            Vec3::new(200., 0., 0.),
-            Vec3::new(0., 0., 200.),
+            point3!(-100., 200., -100.),
+            vec3!(200., 0., 0.),
+            vec3!(0., 0., 200.),
         )),
         material: Box::new(DiffuseLight {
             color: Rgb([10., 10., 10.]),
@@ -320,9 +313,9 @@ fn cubes() -> Scene {
     let materials = vec![];
 
     let camera = Camera::from(CameraConfig {
-        position: Point::new(-20., 15., -5.),
-        look_at: Point::new(3., 10., 3.),
-        up: Vec3::new(0., 1., 0.),
+        position: point3!(-20., 15., -5.),
+        look_at: point3!(3., 10., 3.),
+        up: vec3!(0., 1., 0.),
         aspect_ratio: 16.0 / 9.0,
         vertical_fov: 40.0,
         defocus_angle: 0.5,
@@ -339,7 +332,7 @@ fn cubes() -> Scene {
 
 fn teapot() -> Scene {
     let obj = obj::Obj::load("./data/teapot.obj").unwrap();
-    let vertices: Vec<Point> = obj.data.position.iter().map(|x| Point::new(x[0], x[1], x[2])).collect();
+    let vertices: Vec<Point> = obj.data.position.iter().map(|x| point3!(x[0], x[1], x[2])).collect();
     let normals = obj.data.normal;
     let group = obj.data.objects.first().unwrap().groups.first().unwrap();
 
@@ -368,13 +361,13 @@ fn teapot() -> Scene {
 
     let mut world = vec![
         Primitive {
-            shape: Box::new(Sphere::new(Point::new(5., 20.0, 10.), 10.0)),
+            shape: Box::new(Sphere::new(point3!(5., 20.0, 10.), 10.0)),
             material: Box::new(DiffuseLight {
                 color: Rgb([5., 5., 5.]),
             }),
         },
         Primitive {
-            shape: Box::new(Sphere::new(Point::new(0., -1001., 0.), 1000.)),
+            shape: Box::new(Sphere::new(point3!(0., -1001., 0.), 1000.)),
             material: Box::new(Lambertian {
                 albedo: Rgb([0.5, 0.5, 0.5]),
             }),
@@ -396,9 +389,9 @@ fn teapot() -> Scene {
     let materials = vec![];
 
     let camera = Camera::from(CameraConfig {
-        position: Point::new(2., 5., 5.),
-        look_at: Point::new(0.5, 1., 0.),
-        up: Vec3::new(0., 1., 0.),
+        position: point3!(2., 5., 5.),
+        look_at: point3!(0.5, 1., 0.),
+        up: vec3!(0., 1., 0.),
         aspect_ratio: 16.0 / 9.0,
         vertical_fov: 40.0,
         defocus_angle: 0.05,
@@ -424,7 +417,6 @@ fn main() {
         resolution: Resolution {
             width: 640,
             height: 640,
-
             // width: 1280,
             // height: 1280,
 
