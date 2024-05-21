@@ -89,7 +89,6 @@ impl<T: Number> Matrix4<T> {
                     Y => Matrix3 { x: t.x.drop(j), y: t.z.drop(j), z: t.w.drop(j) },
                     Z => Matrix3 { x: t.x.drop(j), y: t.y.drop(j), z: t.w.drop(j) },
                     W => Matrix3 { x: t.x.drop(j), y: t.y.drop(j), z: t.z.drop(j) },
-                    _ => panic!("out of range"),
                 };
                 let sign = if (i as usize + j as usize) & 1 == 1 {
                     -T::one()
@@ -99,7 +98,6 @@ impl<T: Number> Matrix4<T> {
                 mat.determinant() * sign * inv_det
             };
 
-            #[cfg_attr(rustfmt, rustfmt_skip)]
             use Axis4::*;
             #[rustfmt::skip]
             Some(Matrix4::from_elements(
@@ -112,14 +110,6 @@ impl<T: Number> Matrix4<T> {
     }
 }
 
-// impl<T> Index<usize> for Matrix4<T> {
-//     type Output = [T];
-//
-//     fn index(&self, index: usize) -> &Self::Output { &self.mat[index] }
-// }
-// impl<T> IndexMut<usize> for Matrix4<T> {
-//     fn index_mut(&mut self, index: usize) -> &mut Self::Output { &mut self.mat[index] }
-// }
 impl<T: Number> Mul<T> for Matrix4<T> {
     type Output = Matrix4<T>;
 

@@ -3,8 +3,10 @@ use std::{ops::Deref, process::exit};
 use num_traits::Pow;
 
 use crate::{
-    aabb::Aabb, cross, dot, local_normal, utils::Axis3, vec3, Bounded, Cross, Dot, Hit, Intersectable, Number, Point3,
-    Ray, Triangle, UnitVec3, Vec3,
+    aabb::Aabb,
+    cross, dot,
+    utils::{local_normal, Axis3},
+    vec3, Bounded, Cross, Dot, Hit, Intersectable, Normed, Number, Point3, Ray, Triangle, Unit, Vec3,
 };
 
 #[derive(Debug)]
@@ -12,7 +14,7 @@ pub struct Quad<T: Number> {
     a: Point3<T>,
     ab: Vec3<T>,
     ac: Vec3<T>,
-    normal: UnitVec3<T>,
+    normal: Unit<Vec3<T>>,
     d: T,
     w: Vec3<T>,
 }
@@ -76,7 +78,7 @@ impl<T: Number> Intersectable<T> for Quad<T> {
         if (T::zero()..=T::one()).contains(&alpha) && (T::zero()..=T::one()).contains(&beta) {
             Some(Hit {
                 point: hit_point,
-                normal: local_normal(self.normal, ray),
+                normal: local_normal(*self.normal, ray).to_normal().to_unit(),
                 t,
             })
         } else {

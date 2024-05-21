@@ -4,43 +4,64 @@
 
 use std::{
     fmt::Debug,
-    iter::zip,
     ops::{Add, Deref, Mul, Neg},
     os::fd::IntoRawFd,
 };
 
 pub use aabb::Aabb;
 use approx::AbsDiffEq;
-use derive_where::derive_where;
 pub use hit::Hit;
 pub use matrix::*;
 pub use mesh::Triangle;
+pub use normal::Normal3;
 use num_traits::{Float, Num, NumAssignOps, Pow, Signed};
 pub use point::{Point3, Point3f};
 pub use quad::Quad;
 pub use ray::Ray;
 pub use sphere::Sphere;
-pub use unit_vec::{local_normal, reflect, refract, UnitVec3, UnitVec3f};
-pub use unit_vec4::*;
+pub use unit::Unit;
 pub use vec::{Vec3, Vec3f};
 pub use vec4::Vec4;
 
 mod aabb;
 mod hit;
+mod matrix;
+mod matrix4;
 mod mesh;
+mod normal;
 mod point;
 mod quad;
 mod ray;
 mod sphere;
-mod unit_vec;
-pub mod utils;
-
-mod matrix;
-mod matrix4;
 mod transform;
-mod unit_vec4;
+mod unit;
+pub mod utils;
 mod vec;
 mod vec4;
+
+pub trait Number: Debug + Float + NumAssignOps + Pow<f32, Output = Self> {}
+impl<T> Number for T where T: Debug + Float + NumAssignOps + Pow<f32, Output = Self> {}
+
+pub trait Normed {
+    type Output;
+    fn to_unit(self) -> Unit<Self>
+    where Self: Sized;
+    fn len(&self) -> Self::Output;
+    fn len_squared(&self) -> Self::Output;
+}
+impl<Ref, Base, Out> Normed for Ref
+where
+    Ref: Deref<Target = Base> + From<Base>,
+    Base: Normed<Output = Out> + Copy,
+{
+    type Output = Out;
+
+    fn to_unit(self) -> Unit<Self> { self.deref().to_unit().lift() }
+
+    fn len(&self) -> Self::Output { self.deref().len() }
+
+    fn len_squared(&self) -> Self::Output { self.deref().len_squared() }
+}
 
 pub trait Dot<RHS> {
     type Output;
@@ -56,10 +77,6 @@ where
 
     fn dot(&self, rhs: &U) -> Self::Output { self.dot(rhs) }
 }
-// impl<T:Number> Dot<[T;3]> for [T;3]{
-//     type Output = T;
-//     fn dot(&self, rhs: &[T;3]) -> Self::Output {zip(self, rhs).reduce(|acc:T,(&x,&y)| acc + x*y)}
-// }
 
 pub fn dot<T: Dot<U>, U>(lhs: &T, rhs: &U) -> T::Output { lhs.dot(rhs) }
 
@@ -70,10 +87,6 @@ pub trait Cross<RHS = Self> {
 
 pub fn cross<T: Cross>(lhs: T, rhs: T) -> T::Output { lhs.cross(rhs) }
 
-pub trait Number: Debug + Float + NumAssignOps + Pow<f32, Output = Self> {}
-
-impl<T> Number for T where T: Debug + Float + NumAssignOps + Pow<f32, Output = Self> {}
-
 pub trait Intersectable<T: Number> {
     fn hit(&self, ray: &Ray<T>) -> Option<Hit<T>>;
 }
@@ -83,4 +96,5 @@ pub trait Bounded<T: Number> {
 }
 
 pub trait BoundedIntersectable<T: Number>: Bounded<T> + Intersectable<T> + Debug {}
+
 impl<Shape, T: Number> BoundedIntersectable<T> for Shape where Shape: Bounded<T> + Intersectable<T> + Debug {}

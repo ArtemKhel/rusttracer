@@ -5,9 +5,7 @@ use std::{
 
 use num_traits::Pow;
 
-use crate::{
-    aabb::Aabb, dot, vec3, Bounded, BoundedIntersectable, Dot, Hit, Intersectable, Number, Point3, Ray, UnitVec3, Vec3,
-};
+use crate::{aabb::Aabb, dot, unit::Unit, vec3, Bounded, BoundedIntersectable, Dot, Hit, Intersectable, Normed, Number, Point3, Ray, Vec3, Normal3};
 
 #[derive(Default, Debug, Clone, Copy)]
 pub struct Sphere<T: Number> {
@@ -17,7 +15,7 @@ pub struct Sphere<T: Number> {
 impl<T: Number> Sphere<T> {
     pub fn new(center: Point3<T>, radius: T) -> Sphere<T> { Sphere { center, radius } }
 
-    pub fn normal(&self, point: Point3<T>) -> UnitVec3<T> { (point - self.center).to_unit() }
+    pub fn normal(&self, point: Point3<T>) -> Unit<Normal3<T>> { (point - self.center).to_normal().to_unit() }
 }
 
 impl<T: Number> Intersectable<T> for Sphere<T> {

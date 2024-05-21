@@ -13,11 +13,12 @@ use rand::{
 };
 
 use crate::{
+    unit::Unit,
     utils::{Axis3, Axis4},
-    vec3, Cross, Dot, Matrix3, Number, Point3, UnitVec4, Vec3,
+    vec3, Cross, Dot, Matrix3, Number, Point3, Vec3,
 };
 
-#[derive(Debug, Default, Clone, Copy, PartialEq, PartialOrd, new)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, new)]
 pub struct Vec4<T> {
     pub x: T,
     pub y: T,
@@ -48,12 +49,6 @@ macro_rules! vec4 {
 }
 
 impl<T: Number> Vec4<T> {
-    pub fn to_unit(self) -> UnitVec4<T> { self.into() }
-
-    pub fn len(&self) -> T { T::pow(self.dot(self), 0.5) }
-
-    pub fn len_squared(&self) -> T { self.dot(self) }
-
     pub fn ones() -> Vec4<T> { vec4!(T::one()) }
 
     pub fn from_axis(axis: Axis4, value: T) -> Vec4<T> {
@@ -192,34 +187,11 @@ gen_ops!(
     where T:Number
 );
 
-// impl<T: Number> Cross<Vec4<T>> for Vec4<T>
-// where T: Copy
-// {
-//     type Output = Vec4<T>;
-//
-//     fn cross(&self, rhs: Vec4<T>) -> Self::Output {
-//         vec4!(
-//             self.y * rhs.z - self.z * rhs.y,
-//             self.z * rhs.x - self.x * rhs.z,
-//             self.x * rhs.y - self.y * rhs.x,
-//         )
-//     }
-// }
-
 impl<T: Number> Dot<Vec4<T>> for Vec4<T> {
     type Output = T;
 
     fn dot(&self, rhs: &Vec4<T>) -> Self::Output { self.x * rhs.x + self.y * rhs.y + self.z * rhs.z + self.w * rhs.w }
 }
-
-// impl<T: Number> Dot<[T;3]> for Vec4<T> {
-//     type Output = T;
-//
-//     fn dot(&self, rhs: &[T;3]) -> Self::Output { self.x * rhs[0] + self.y * rhs[1] + self.z * rhs[2] }
-// }
-// impl<T:Copy> Into<[T;3]> for Vec4<T>{
-//     fn into(self) -> [T;3] { [self.x,self.y,self.z] }
-// }
 
 impl<T: Number> Zero for Vec4<T>
 where T: Copy
@@ -236,4 +208,7 @@ impl<T: Number> From<Vec3<T>> for Vec4<T> {
 }
 impl<T: Number> From<Point3<T>> for Vec4<T> {
     fn from(v: Point3<T>) -> Self { vec4!(v.coords.x, v.coords.y, v.coords.z, T::one()) }
+}
+impl<Ref:Deref<Target=Vec3<T>>,T: Number> From<Ref> for Vec4<T> {
+    fn from(value: Ref) -> Self { Self::from(*value) }
 }

@@ -1,7 +1,8 @@
 use num_traits::Pow;
 
 use crate::{
-    aabb::Aabb, local_normal, Bounded, Cross, Dot, Hit, Intersectable, Number, Point3, Ray, Sphere, UnitVec3, Vec3,
+    aabb::Aabb, utils::local_normal, Bounded, Cross, Dot, Hit, Intersectable, Normed, Number, Point3, Ray, Sphere, Unit,
+    Vec3,
 };
 
 #[derive(Debug)]
@@ -9,8 +10,8 @@ pub struct Triangle<T: Number> {
     a: Point3<T>,
     ab: Vec3<T>,
     ac: Vec3<T>,
-    normal: UnitVec3<T>,
-    normals: [UnitVec3<T>; 3],
+    normal: Unit<Vec3<T>>,
+    normals: [Unit<Vec3<T>>; 3],
     d: T,
     w: Vec3<T>,
 }
@@ -34,7 +35,7 @@ impl<T: Number> Triangle<T> {
         }
     }
 
-    pub fn new_with_normals(a: Point3<T>, ab: Vec3<T>, ac: Vec3<T>, normals: [UnitVec3<T>; 3]) -> Self {
+    pub fn new_with_normals(a: Point3<T>, ab: Vec3<T>, ac: Vec3<T>, normals: [Unit<Vec3<T>>; 3]) -> Self {
         let n = ab.cross(ac);
         let normal = n.to_unit();
         let d = normal.dot(&a.coords);
@@ -72,10 +73,10 @@ impl<T: Number> Intersectable<T> for Triangle<T> {
         if (T::zero()..=T::one()).contains(&alpha) && (T::zero()..=T::one()).contains(&beta) && alpha + beta <= T::one()
         {
             let an = T::one() - alpha - beta;
-            let n = (*self.normals[0] * an + *self.normals[1] * alpha + *self.normals[2] * beta).to_unit();
+            let normal = (*self.normals[0] * an + *self.normals[1] * alpha + *self.normals[2] * beta);
             Some(Hit {
                 point: hit_point,
-                normal: local_normal(n, ray),
+                normal: local_normal(normal, ray).to_normal().to_unit(),
                 t,
             })
         } else {

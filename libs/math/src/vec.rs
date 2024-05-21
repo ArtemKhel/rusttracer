@@ -6,25 +6,18 @@ use std::{
 use approx::AbsDiffEq;
 use derive_more::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use derive_new::new;
-use gen_ops::gen_ops;
 use num_traits::{Float, Num, One, Pow, Signed, Zero};
 use rand::{
     self,
-    distributions::{uniform::SampleUniform, Distribution, Standard},
+    distributions::{Distribution, Standard, uniform::SampleUniform},
     Rng,
 };
 
-use crate::{
-    transform::{Transform, Transformable},
-    unit_vec::UnitVec3,
-    utils::Axis3,
-    Cross, Dot, Number, Vec4,
-};
+use crate::{Cross, Dot, Normal3, Normed, Number, transform::{Transform, Transformable}, unit::Unit, utils::Axis3, vec3, Vec4};
 
 #[rustfmt::skip]
-#[derive(Debug, Default, Clone, Copy, PartialEq, PartialOrd,
-    new, Add, Sub, Mul, Div, Neg, AddAssign, SubAssign, MulAssign, DivAssign
-)]
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
+#[derive(new, Add, Sub, Mul, Div, Neg, AddAssign, SubAssign, MulAssign, DivAssign)]
 pub struct Vec3<T> {
     pub x: T,
     pub y: T,
@@ -42,15 +35,16 @@ macro_rules! vec3 {
         Vec3 { x: $x, y: $x, z: $x }
     };
 }
+#[macro_export]
+macro_rules! unit_vec3 {
+    ($x:expr, $y:expr, $z:expr) => {
+        Vec3 { x: $x, y: $y, z: $z }.to_unit()
+    };
+}
 
 impl<T: Number> Vec3<T> {
-    pub fn to_unit(self) -> UnitVec3<T> { self.into() }
-
-    pub fn len(&self) -> T { T::pow(self.dot(self), 0.5) }
-
-    pub fn len_squared(&self) -> T { self.dot(self) }
-
     pub fn ones() -> Vec3<T> { vec3!(T::one()) }
+    pub fn to_normal(self) -> Normal3<T> { Normal3 { value: self } }
 
     pub fn from_axis(axis: Axis3, value: T) -> Vec3<T> {
         match axis {
@@ -67,6 +61,16 @@ impl<T: Number> Vec3<T> {
             Axis3::Z => vec3!(T::zero(), T::zero(), self.z),
         }
     }
+}
+
+impl<T: Number> Normed for Vec3<T> {
+    type Output = T;
+
+    fn to_unit(self) -> Unit<Self> { self.into() }
+
+    fn len(&self) -> T { T::pow(self.dot(self), 0.5) }
+
+    fn len_squared(&self) -> T { self.dot(self) }
 }
 
 impl<T: Number + SampleUniform> Distribution<Vec3<T>> for Standard {
@@ -139,7 +143,7 @@ impl<T: Number> Zero for Vec3<T> {
     fn is_zero(&self) -> bool { self.x == T::zero() && self.y == T::zero() && self.z == T::zero() }
 }
 
-impl<T: Float + AbsDiffEq<Epsilon = T>> AbsDiffEq for Vec3<T> {
+impl<T: Float + AbsDiffEq<Epsilon=T>> AbsDiffEq for Vec3<T> {
     type Epsilon = T;
 
     fn default_epsilon() -> Self::Epsilon { T::epsilon() }
@@ -217,7 +221,7 @@ impl<T: Number> Transformable<T> for Vec3<T> {
 //
 //     where T:Number
 // );
-// 
+//
 // gen_ops!(
 //     <T>;
 //     types Vec3<T> => Vec3<T>;
@@ -228,11 +232,11 @@ impl<T: Number> Transformable<T> for Vec3<T> {
 //     where T:Number
 // );
 
-
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::dot;
+
+    use super::*;
 
     #[test]
     fn test() {

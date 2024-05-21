@@ -9,10 +9,10 @@ use num_traits::{float::FloatCore, Float, One};
 use crate::{
     transform::{Transform, Transformable},
     utils::Axis3,
-    Dot, Number, Vec3, Vec4,
+    Aabb, Bounded, Dot, Number, Vec3, Vec4,
 };
 
-#[derive(Debug, Default, Clone, Copy, PartialEq, PartialOrd, new, Deref, Div, Mul)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, new,  Div, Mul)] // Deref
 pub struct Point3<T> {
     pub coords: Vec3<T>,
 }
@@ -120,6 +120,10 @@ impl<T: Float + AbsDiffEq<Epsilon = T>> AbsDiffEq for Point3<T> {
     }
 }
 
+impl<T: Number> Bounded<T> for Point3<T> {
+    fn bound(&self) -> Aabb<T> { Aabb { min: *self, max: *self } }
+}
+
 impl<T: Number> Transformable<T> for Point3<T> {
     fn transform(&self, trans: &Transform<T>) -> Self {
         let point = Vec4::from(*self);
@@ -151,15 +155,15 @@ impl<T: Number> Transformable<T> for Point3<T> {
 // gen_ops!(
 //     <T>;
 //     types Point3<T>, T => Point3<T>;
-// 
+//
 //     for * call |a: &Point3<T>, b: &T| {
 //         point3!(a.coords * *b)
 //     };
-// 
+//
 //     for / call |a: &Point3<T>, b: &T| {
 //         point3!(a.coords / *b)
 //     };
-// 
+//
 //     where T:Number
 // );
 

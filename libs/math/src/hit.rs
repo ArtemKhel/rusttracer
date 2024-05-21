@@ -2,12 +2,12 @@ use std::cmp::Ordering;
 
 use derive_new::new;
 
-use crate::{Dot, Number, Point3, Ray, UnitVec3, Vec3};
+use crate::{unit::Unit, Dot, Normal3, Number, Point3, Ray, Vec3};
 
 #[derive(Debug, Clone, Copy, PartialEq, new)]
 pub struct Hit<T: Number> {
     pub point: Point3<T>,
-    pub normal: UnitVec3<T>,
+    pub normal: Unit<Normal3<T>>,
     pub t: T,
 }
 
@@ -27,12 +27,12 @@ impl<T: Number> Ord for Hit<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{point3, unit3};
+    use crate::{normal3, point3, unit3, unit_normal3, vec3};
 
     #[test]
     fn test() {
-        let hit = Hit::new(point3!(0., 0., 0.), unit3!(1., 0., 0.), 2.);
-        let hit2 = Hit::new(point3!(1., 0., 0.), unit3!(1., 2., 0.), 1.);
+        let hit = Hit::new(point3!(0., 0., 0.), unit_normal3!(1., 0., 0.), 2.);
+        let hit2 = Hit::new(point3!(1., 0., 0.), unit_normal3!(1., 2., 0.), 1.);
 
         assert!(hit > hit2);
     }
