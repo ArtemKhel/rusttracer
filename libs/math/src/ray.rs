@@ -4,12 +4,14 @@ use derive_new::new;
 use num_traits::Pow;
 
 use crate::{point::Point3, unit_vec::UnitVec3, Number};
+use crate::transform::{Transform, Transformable};
 
 #[derive(Copy, Clone, Debug, PartialOrd, PartialEq, new)]
 pub struct Ray<T: Number> {
     pub origin: Point3<T>,
     // TODO: use vec3 and normalize if needed?
     pub dir: UnitVec3<T>,
+    // pub medium: Option<M>
 }
 
 #[macro_export]
@@ -26,4 +28,18 @@ impl<T: Number> Ray<T> {
     pub fn at(&self, t: T) -> Point3<T> { self.origin + *self.dir * t }
 
     pub fn from_to(origin: Point3<T>, end: Point3<T>) -> Ray<T> { ray!(origin, (end - origin).to_unit()) }
+}
+
+impl<T:Number> Transformable<T> for Ray<T>{
+    fn transform(&self, trans: &Transform<T>) -> Self {
+        let origin = trans.apply_to(self.origin);
+        let dir = trans.apply_to(self.dir);
+        ray!(origin, dir)
+    }
+
+    fn inv_transform(&self, trans: &Transform<T>) -> Self {
+        let origin = trans.apply_inv_to(self.origin);
+        let dir = trans.apply_inv_to(self.dir);
+        ray!(origin, dir)
+    }
 }

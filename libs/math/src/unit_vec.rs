@@ -8,7 +8,7 @@ use num_traits::{real::Real, Pow};
 use crate::{dot, Dot, Number, Ray, Vec3};
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, PartialOrd)]
-pub struct UnitVec3<T: Number> {
+pub struct UnitVec3<T> {
     vec: Vec3<T>,
 }
 
@@ -77,7 +77,7 @@ mod tests {
     use num_traits::Inv;
 
     use super::*;
-    use crate::{cross, dot, utils::Axis, vec3, Cross, Vec3f};
+    use crate::{cross, dot, utils::Axis3, vec3, Cross, Vec3f};
 
     #[test]
     fn test_macro() {

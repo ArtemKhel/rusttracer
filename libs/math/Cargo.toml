@@ -9,6 +9,10 @@ env_logger = {workspace = true}
 log = {workspace = true}
 rand = {workspace = true}
 obj = {workspace = true}
+approx = "0.5.1"
+approx-derive = "0.1.3"
+derive_more = { version = "1.0.0-beta.6",features = ["full"] }
+derive-where = "1.2.7"
 gen_ops = "0.4.0"
 num-traits = "0.2.19"
 strum = "0.26.2"

@@ -1,4 +1,4 @@
-use math::{Bounded, BoundedIntersectable, Intersectable, Shape};
+use math::{Bounded, BoundedIntersectable, Intersectable};
 
 use crate::{material::Material, Aabb, Hit, Ray, F};
 

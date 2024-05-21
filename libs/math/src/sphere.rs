@@ -6,8 +6,7 @@ use std::{
 use num_traits::Pow;
 
 use crate::{
-    aabb::Aabb, dot, vec3, Bounded, BoundedIntersectable, Dot, Hit, Intersectable, Number, Point3, Ray, Shape,
-    UnitVec3, Vec3,
+    aabb::Aabb, dot, vec3, Bounded, BoundedIntersectable, Dot, Hit, Intersectable, Number, Point3, Ray, UnitVec3, Vec3,
 };
 
 #[derive(Default, Debug, Clone, Copy)]

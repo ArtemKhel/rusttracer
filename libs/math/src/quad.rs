@@ -3,8 +3,8 @@ use std::{ops::Deref, process::exit};
 use num_traits::Pow;
 
 use crate::{
-    aabb::Aabb, cross, dot, local_normal, utils::Axis, vec3, Bounded, Cross, Dot, Hit, Intersectable, Number, Point3,
-    Ray, Shape, Triangle, UnitVec3, Vec3,
+    aabb::Aabb, cross, dot, local_normal, utils::Axis3, vec3, Bounded, Cross, Dot, Hit, Intersectable, Number, Point3,
+    Ray, Triangle, UnitVec3, Vec3,
 };
 
 #[derive(Debug)]
@@ -40,9 +40,9 @@ impl<T: Number> Quad<T> {
 
         let (a, b) = (Point3::min_coords(a, b), Point3::max_coords(a, b));
         let diag = b - a;
-        let px = diag.only(Axis::X);
-        let py = diag.only(Axis::Y);
-        let pz = diag.only(Axis::Z);
+        let px = diag.only(Axis3::X);
+        let py = diag.only(Axis3::Y);
+        let pz = diag.only(Axis3::Z);
 
         sides.push(Quad::new(a, px, py));
         sides.push(Quad::new(a, px, pz));

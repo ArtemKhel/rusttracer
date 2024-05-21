@@ -4,18 +4,38 @@ use strum_macros::EnumIter;
 use crate::{Dot, UnitVec3, UnitVec3f, Vec3f};
 
 #[derive(Copy, Clone, EnumIter, Debug)]
-pub enum Axis {
+pub enum Axis3 {
     X,
     Y,
     Z,
 }
 
-impl Distribution<Axis> for Standard {
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Axis {
+impl Distribution<Axis3> for Standard {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Axis3 {
         match random::<u32>() % 3 {
-            0 => Axis::X,
-            1 => Axis::Y,
-            2 => Axis::Z,
+            0 => Axis3::X,
+            1 => Axis3::Y,
+            2 => Axis3::Z,
+            _ => unreachable!(),
+        }
+    }
+}
+
+#[derive(Copy, Clone, EnumIter, Debug)]
+pub enum Axis4 {
+    X,
+    Y,
+    Z,
+    W,
+}
+
+impl Distribution<Axis4> for Standard {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Axis4 {
+        match random::<u32>() % 4 {
+            0 => Axis4::X,
+            1 => Axis4::Y,
+            2 => Axis4::Z,
+            3 => Axis4::W,
             _ => unreachable!(),
         }
     }

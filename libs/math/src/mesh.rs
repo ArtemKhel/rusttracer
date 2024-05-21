@@ -1,8 +1,7 @@
 use num_traits::Pow;
 
 use crate::{
-    aabb::Aabb, local_normal, Bounded, Cross, Dot, Hit, Intersectable, Number, Point3, Ray, Shape, Sphere, UnitVec3,
-    Vec3,
+    aabb::Aabb, local_normal, Bounded, Cross, Dot, Hit, Intersectable, Number, Point3, Ray, Sphere, UnitVec3, Vec3,
 };
 
 #[derive(Debug)]

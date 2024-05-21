@@ -8,7 +8,7 @@ use std::{
 use derive_new::new;
 use itertools::{partition, Itertools};
 use log::debug;
-use math::{utils::Axis, Bounded, Intersectable};
+use math::{utils::Axis3, Bounded, Intersectable};
 use rayon::join;
 
 use crate::{
@@ -28,7 +28,7 @@ enum BVHLinearNode {
     Interior {
         bounds: Aabb,
         second_child_offset: usize,
-        axis: Axis,
+        axis: Axis3,
     },
     Leaf {
         bounds: Aabb,
@@ -50,7 +50,7 @@ enum BVHBuildNode {
         bounds: Aabb,
         children: (Box<BVHBuildNode>, Box<BVHBuildNode>),
         // children: [Box<BVHBuildNode>; 2],
-        axis: Axis,
+        axis: Axis3,
     },
     Leaf {
         bounds: Aabb,
@@ -162,7 +162,7 @@ impl BVH {
     fn partition(
         primitives_info: &mut [BVHPrimitiveInfo],
         centroid_bounds: Aabb,
-        axis: Axis,
+        axis: Axis3,
         split_method: SplitMethod,
         max_in_node: usize,
     ) -> Option<(&mut [BVHPrimitiveInfo], &mut [BVHPrimitiveInfo])> {

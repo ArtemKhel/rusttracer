@@ -6,7 +6,7 @@ use std::{
 use num_traits::{real::Real, Bounded};
 use strum::IntoEnumIterator;
 
-use crate::{point3, utils::Axis, Number, Point3, Ray, Vec3};
+use crate::{point3, utils::Axis3, Number, Point3, Ray, Vec3};
 
 #[derive(Copy, Clone, Debug, PartialOrd, PartialEq)]
 pub struct Aabb<T: Number> {
@@ -22,14 +22,14 @@ impl<T: Number> Aabb<T> {
         Point3::new(self.min.coords + (self.max.coords - self.min.coords) / T::from(2).unwrap())
     }
 
-    pub fn max_dimension(&self) -> Axis {
+    pub fn max_dimension(&self) -> Axis3 {
         let diag = self.max - self.min;
         if diag.x >= diag.y && diag.x >= diag.z {
-            Axis::X
+            Axis3::X
         } else if diag.y >= diag.z {
-            Axis::Y
+            Axis3::Y
         } else {
-            Axis::Z
+            Axis3::Z
         }
     }
 
@@ -44,7 +44,7 @@ impl<T: Number> Aabb<T> {
 
     fn pad(aabb: &mut Aabb<T>) {
         let padding = T::from(Self::PADDING).unwrap();
-        for axis in Axis::iter() {
+        for axis in Axis3::iter() {
             if aabb.max[axis] - aabb.min[axis] < padding {
                 aabb.min[axis] -= padding;
                 aabb.max[axis] += padding;
@@ -55,7 +55,7 @@ impl<T: Number> Aabb<T> {
     pub fn hit(&self, ray: &Ray<T>, min: T, max: T) -> bool {
         let mut t_min = min;
         let mut t_max = max;
-        for axis in Axis::iter() {
+        for axis in Axis3::iter() {
             let inv_dir = ray.dir[axis].recip();
             let mut t0 = (self.min[axis] - ray.origin[axis]) * inv_dir;
             let mut t1 = (self.max[axis] - ray.origin[axis]) * inv_dir;
@@ -74,7 +74,7 @@ impl<T: Number> Aabb<T> {
     pub fn offset(&self, point: Point3<T>) -> Vec3<T> {
         let padding = T::from(Self::PADDING).unwrap();
         let mut offset = point - self.min;
-        for axis in Axis::iter() {
+        for axis in Axis3::iter() {
             let delta = (self.max[axis] - self.min[axis]).max(padding);
             offset[axis] /= delta;
             debug_assert!((T::zero()..=T::one()).contains(&offset[axis]));
