@@ -1,20 +1,19 @@
 use std::ops::Mul;
 
 use math::{point3, utils::random_in_unit_disk, vec3, Cross, *};
-use serde::{Deserialize, Serialize};
 
-use crate::{rendering::PixelCoord, utils::degrees_to_radians, Point, Ray, Vec3};
+use crate::{rendering::PixelCoord, utils::degrees_to_radians, Point3, Ray, Vec3};
 
 #[derive(Debug, Default)]
 pub struct Screen {
-    center: Point,
+    center: Point3,
     basis: [Vec3; 2],
 }
 
 #[derive(Debug)]
 pub struct CameraConfig {
-    pub position: Point,
-    pub look_at: Point,
+    pub position: Point3,
+    pub look_at: Point3,
     pub up: Vec3,
     pub aspect_ratio: f32,
     pub vertical_fov: f32,
@@ -24,7 +23,7 @@ pub struct CameraConfig {
 
 #[derive(Debug, Default)]
 pub struct Camera {
-    pub position: Point,
+    pub position: Point3,
     pub screen: Screen,
     pub defocus_radius: f32,
 }
@@ -35,7 +34,7 @@ impl Camera {
         Ray::from_to(self.defocus_disk_sample(), direction)
     }
 
-    fn defocus_disk_sample(&self) -> Point {
+    fn defocus_disk_sample(&self) -> Point3 {
         let rnd = random_in_unit_disk();
         self.position + rnd * self.defocus_radius
     }
@@ -70,7 +69,7 @@ impl From<CameraConfig> for Camera {
 impl Default for CameraConfig {
     fn default() -> Self {
         CameraConfig {
-            position: Point::default(),
+            position: Point3::default(),
             look_at: point3!(0., 0., -1.),
             up: vec3!(0., 1., 0.),
             aspect_ratio: 16.0 / 9.0,

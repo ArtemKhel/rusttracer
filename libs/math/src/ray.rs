@@ -13,7 +13,7 @@ use crate::{
 #[derive(Copy, Clone, Debug, PartialEq, new)]
 pub struct Ray<T: Number> {
     pub origin: Point3<T>,
-    // TODO: use vec3 and normalize if needed?
+    // TODO: normalize if needed?
     pub dir: Unit<Vec3<T>>,
     // pub medium: Option<M>
 }

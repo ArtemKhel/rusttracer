@@ -12,7 +12,7 @@ use crate::{
     Aabb, Bounded, Dot, Number, Vec3, Vec4,
 };
 
-#[derive(Debug, Default, Clone, Copy, PartialEq, new,  Div, Mul)] // Deref
+#[derive(Debug, Default, Clone, Copy, PartialEq, new, Div, Mul)] // Deref
 pub struct Point3<T> {
     pub coords: Vec3<T>,
 }

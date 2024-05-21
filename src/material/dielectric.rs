@@ -1,5 +1,10 @@
+use std::ops::Deref;
+
 use image::Rgb;
-use math::{Dot, *};
+use math::{
+    utils::{reflect, refract},
+    Dot, *,
+};
 use rand::{random, Rng};
 
 use crate::{
@@ -30,7 +35,7 @@ impl Material for Dielectric {
             self.refraction_index
         };
 
-        let cos_theta = ray.dir.dot(&intersection.hit.normal);
+        let cos_theta = dot(ray.dir.deref(), intersection.hit.normal.deref());
         let sin_theta = f32::sqrt(1.0 - cos_theta.powi(2));
 
         let refracted =
@@ -46,9 +51,9 @@ impl Material for Dielectric {
             ray: Ray::new(
                 intersection.hit.point
                     + if on_front ^ refracted {
-                        *intersection.hit.normal * 0.01
+                        **intersection.hit.normal * 0.01
                     } else {
-                        *intersection.hit.normal * -0.01
+                        **intersection.hit.normal * -0.01
                     },
                 direction,
             ),

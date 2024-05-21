@@ -1,5 +1,7 @@
+use std::ops::Deref;
+
 use image::Rgb;
-use math::utils::random_unit;
+use math::{utils::random_unit, Dot, Normed};
 
 use crate::{
     material::{Material, Scatter},
@@ -14,9 +16,9 @@ pub struct Lambertian {
 
 impl Material for Lambertian {
     fn scattered(&self, ray: &Ray, intersection: &Intersection) -> Option<Scatter> {
-        let scattered_direction = (*intersection.hit.normal + *random_unit()).to_unit();
+        let scattered_direction = (**intersection.hit.normal + *random_unit()).to_unit();
         let ray = Ray::new(
-            intersection.hit.point + *intersection.hit.normal * 0.01,
+            intersection.hit.point + **intersection.hit.normal * 0.01,
             scattered_direction,
         );
         Some(Scatter {

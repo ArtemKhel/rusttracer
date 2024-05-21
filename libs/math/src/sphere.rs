@@ -5,7 +5,10 @@ use std::{
 
 use num_traits::Pow;
 
-use crate::{aabb::Aabb, dot, unit::Unit, vec3, Bounded, BoundedIntersectable, Dot, Hit, Intersectable, Normed, Number, Point3, Ray, Vec3, Normal3};
+use crate::{
+    aabb::Aabb, dot, unit::Unit, vec3, Bounded, BoundedIntersectable, Dot, Hit, Intersectable, Normal3, Normed, Number,
+    Point3, Ray, Vec3,
+};
 
 #[derive(Default, Debug, Clone, Copy)]
 pub struct Sphere<T: Number> {

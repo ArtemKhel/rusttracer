@@ -3,7 +3,7 @@ use log::debug;
 use math::{unit3_unchecked, Bounded, BoundedIntersectable, Intersectable, *};
 use rand::random;
 
-use crate::{Aabb, Hit, Ray, UnitVec, F};
+use crate::{Aabb, Hit, Ray, F};
 
 #[derive(Debug)]
 pub struct Medium {
@@ -35,7 +35,7 @@ impl Intersectable<F> for Medium {
                         return Some(Hit {
                             t: hit_t,
                             point: ray.at(hit_t),
-                            normal: unit3_unchecked!(1., 0., 0.),
+                            normal: unit3_unchecked!(1., 0., 0.).lift(),
                         });
                     }
                 }

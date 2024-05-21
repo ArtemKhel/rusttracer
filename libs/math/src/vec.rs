@@ -9,11 +9,16 @@ use derive_new::new;
 use num_traits::{Float, Num, One, Pow, Signed, Zero};
 use rand::{
     self,
-    distributions::{Distribution, Standard, uniform::SampleUniform},
+    distributions::{uniform::SampleUniform, Distribution, Standard},
     Rng,
 };
 
-use crate::{Cross, Dot, Normal3, Normed, Number, transform::{Transform, Transformable}, unit::Unit, utils::Axis3, vec3, Vec4};
+use crate::{
+    transform::{Transform, Transformable},
+    unit::Unit,
+    utils::Axis3,
+    vec3, Cross, Dot, Normal3, Normed, Number, Vec4,
+};
 
 #[rustfmt::skip]
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
@@ -44,6 +49,7 @@ macro_rules! unit_vec3 {
 
 impl<T: Number> Vec3<T> {
     pub fn ones() -> Vec3<T> { vec3!(T::one()) }
+
     pub fn to_normal(self) -> Normal3<T> { Normal3 { value: self } }
 
     pub fn from_axis(axis: Axis3, value: T) -> Vec3<T> {
@@ -143,7 +149,7 @@ impl<T: Number> Zero for Vec3<T> {
     fn is_zero(&self) -> bool { self.x == T::zero() && self.y == T::zero() && self.z == T::zero() }
 }
 
-impl<T: Float + AbsDiffEq<Epsilon=T>> AbsDiffEq for Vec3<T> {
+impl<T: Float + AbsDiffEq<Epsilon = T>> AbsDiffEq for Vec3<T> {
     type Epsilon = T;
 
     fn default_epsilon() -> Self::Epsilon { T::epsilon() }
@@ -234,9 +240,8 @@ impl<T: Number> Transformable<T> for Vec3<T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::dot;
-
     use super::*;
+    use crate::dot;
 
     #[test]
     fn test() {

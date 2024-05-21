@@ -1,5 +1,10 @@
+use std::ops::Deref;
+
 use image::Rgb;
-use math::{reflect, utils::random_unit};
+use math::{
+    utils::{random_unit, reflect},
+    Normed,
+};
 
 use crate::{
     material::{Material, Scatter},
@@ -17,7 +22,7 @@ impl Material for Metal {
     fn scattered(&self, ray: &Ray, intersection: &Intersection) -> Option<Scatter> {
         let reflected_direction = (*reflect(&ray.dir, &intersection.hit.normal) + *random_unit() * self.fuzz).to_unit();
         let ray = Ray::new(
-            intersection.hit.point + *intersection.hit.normal * 0.01,
+            intersection.hit.point + **intersection.hit.normal * 0.01,
             reflected_direction,
         );
         Some(Scatter {

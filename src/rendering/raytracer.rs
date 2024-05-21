@@ -1,6 +1,7 @@
 use std::intrinsics::breakpoint;
 
 use image::{ImageBuffer, Pixel, Rgb};
+use indicatif::ProgressStyle;
 use rayon::prelude::*;
 
 use crate::{

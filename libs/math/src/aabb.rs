@@ -22,7 +22,7 @@ pub struct Aabb<T: Number> {
 
 impl<T: Number> Aabb<T> {
     // TODO:
-    const PADDING: f32 = 1e-5;
+    const PADDING: f32 = 1e-4;
 
     pub fn center(&self) -> Point3<T> {
         Point3::new(self.min.coords + (self.max.coords - self.min.coords) / T::from(2).unwrap())

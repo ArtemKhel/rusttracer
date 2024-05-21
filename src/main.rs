@@ -4,7 +4,7 @@ use std::{ops::Mul, rc::Rc};
 
 use env_logger::fmt::style::AnsiColor::White;
 use image::{buffer::ConvertBuffer, Rgb, RgbImage};
-use math::{point3, vec3, Point3, Quad, Sphere};
+use math::{point3, vec3, Normed, Quad, Sphere};
 use rand::random;
 use rusttracer::{
     aggregates::BVH,
@@ -16,9 +16,8 @@ use rusttracer::{
     rendering::{AAType::RegularGrid, RayTracer, Renderer, Resolution},
     scene::{Camera, CameraConfig, Composite, Primitive, Scene},
     utils::lerp,
-    Point, Triangle, Vec3,
+    Point3, Triangle, Vec3,
 };
-use serde::de::value::IsizeDeserializer;
 
 fn spheres() -> Scene {
     let mut world = vec![
@@ -195,7 +194,7 @@ fn cornell_box() -> Scene {
         }),
     });
 
-    let world = BVH::new(world.into_iter().map(Rc::new).collect(), 1);
+    let world = BVH::new(world.into_iter().map(Rc::new).collect(), 4);
 
     let camera = Camera::from(CameraConfig {
         position: point3!(278., 278., -800.),
@@ -219,7 +218,7 @@ fn cubes() -> Scene {
     fn gen_cubes(
         world: &mut Vec<Primitive>,
         count: usize,
-        start: Point,
+        start: Point3,
         size: f32,
         offset: f32,
         start_color: Rgb<f32>,
@@ -332,7 +331,7 @@ fn cubes() -> Scene {
 
 fn teapot() -> Scene {
     let obj = obj::Obj::load("./data/teapot.obj").unwrap();
-    let vertices: Vec<Point> = obj.data.position.iter().map(|x| point3!(x[0], x[1], x[2])).collect();
+    let vertices: Vec<Point3> = obj.data.position.iter().map(|x| point3!(x[0], x[1], x[2])).collect();
     let normals = obj.data.normal;
     let group = obj.data.objects.first().unwrap().groups.first().unwrap();
 
@@ -384,7 +383,7 @@ fn teapot() -> Scene {
         })
     }
 
-    let world = BVH::new(world.into_iter().map(Rc::new).collect(), 1);
+    let world = BVH::new(world.into_iter().map(Rc::new).collect(), 8);
 
     let materials = vec![];
 
@@ -405,27 +404,27 @@ fn teapot() -> Scene {
         background_color: Rgb([0.1, 0.1, 0.1]),
     }
 }
+
 fn main() {
     env_logger::init();
     // let scene = spheres();
-    let scene = cornell_box();
+    // let scene = cornell_box();
     // let scene = cubes();
-    // let scene = teapot();
+    let scene = teapot();
 
     let raytracer = RayTracer {
         scene,
         resolution: Resolution {
-            width: 640,
-            height: 640,
+            // width: 640,
+            // height: 640,
+
             // width: 1280,
             // height: 1280,
 
             // width: 1920,
             // height: 1920,
-
-            // width: 640,
-            // height: 360,
-
+            width: 640,
+            height: 360,
             // width: 1280,
             // height: 720,
 

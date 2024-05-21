@@ -25,13 +25,13 @@ impl<Inner: Normed> Unit<Inner> {
 #[macro_export]
 macro_rules! unit3 {
     ($x:expr, $y:expr, $z:expr) => {
-        Unit::from(crate::vec3!($x, $y, $z))
+        Unit::from($crate::vec3!($x, $y, $z))
     };
 }
 #[macro_export]
 macro_rules! unit3_unchecked {
     ($x:expr, $y:expr, $z:expr) => {
-        Unit::from_unchecked(vec3!($x, $y, $z))
+        Unit::from_unchecked($crate::vec3!($x, $y, $z))
     };
 }
 

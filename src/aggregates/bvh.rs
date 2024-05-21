@@ -12,8 +12,9 @@ use math::{utils::Axis3, Bounded, Intersectable};
 use rayon::join;
 
 use crate::{
+    breakpoint,
     scene::{Intersection, Primitive},
-    Aabb, Point, Ray,
+    Aabb, Point3, Ray,
 };
 
 #[derive(Debug)]
@@ -41,7 +42,7 @@ enum BVHLinearNode {
 struct BVHPrimitiveInfo {
     index: usize,
     bounds: Aabb,
-    center: Point,
+    center: Point3,
 }
 
 #[derive(Debug, new)]
@@ -59,6 +60,7 @@ enum BVHBuildNode {
     },
 }
 
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Clone, Copy, Debug)]
 enum SplitMethod {
     Middle,
@@ -315,7 +317,17 @@ impl BVH {
 
         let mut t_max = f32::MAX;
         let mut closest: Option<Intersection> = None;
+
+        let mut _dbg_counter = 0;
+        let mut _dbg_node_history: Vec<usize> = vec![];
+
         while let Some(node_id) = stack.pop() {
+            #[cfg(debug_assertions)]
+            {
+                _dbg_counter += 1;
+                _dbg_node_history.push(node_id);
+                breakpoint!(_dbg_counter >= 20);
+            }
             let node = &self.nodes[node_id];
             match *node {
                 BVHLinearNode::Interior {
@@ -352,6 +364,10 @@ impl BVH {
                 }
             }
         }
+        #[cfg(debug_assertions)]
+        {
+            debug!("BVH hit in {_dbg_counter}")
+        }
         closest
     }
 }
@@ -359,10 +375,10 @@ impl BVH {
 #[cfg(test)]
 mod tests {
     use image::Rgb;
-    use math::{point3, vec3, Sphere};
+    use math::{point3, vec3, Normed, Sphere};
 
     use super::*;
-    use crate::{material::lambertian::Lambertian, scene::Primitive, Point, Vec3};
+    use crate::{material::lambertian::Lambertian, scene::Primitive, Point3, Vec3};
 
     #[test]
     fn test_bvh() {
@@ -397,7 +413,7 @@ mod tests {
         .collect();
 
         let bvh = BVH::new(world, 1);
-        bvh.hit(&Ray::new(Point::default(), vec3!(1., 0., 0.).to_unit()));
+        bvh.hit(&Ray::new(Point3::default(), vec3!(1., 0., 0.).to_unit()));
         dbg!(&bvh);
     }
 }

@@ -42,6 +42,7 @@ mod vec4;
 pub trait Number: Debug + Float + NumAssignOps + Pow<f32, Output = Self> {}
 impl<T> Number for T where T: Debug + Float + NumAssignOps + Pow<f32, Output = Self> {}
 
+#[allow(clippy::len_without_is_empty)]
 pub trait Normed {
     type Output;
     fn to_unit(self) -> Unit<Self>

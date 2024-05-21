@@ -1,9 +1,9 @@
-use std::ops::Deref;
+use std::{fmt::Debug, ops::Deref};
 
 use rand::{distributions::Standard, prelude::Distribution, random, Rng};
 use strum_macros::EnumIter;
 
-use crate::{dot, unit::Unit, Dot, Normed, Number, Ray, Vec3, Vec3f};
+use crate::{dot, unit::Unit, Dot, Normal3, Normed, Number, Ray, Vec3, Vec3f};
 
 #[derive(Copy, Clone, EnumIter, Debug)]
 pub enum Axis3 {
@@ -74,13 +74,14 @@ pub fn reflect<T: Number>(vec: &Vec3<T>, normal: &Vec3<T>) -> Unit<Vec3<T>> {
     (*vec - (*normal * vec.dot(normal) * (T::one() + T::one()))).into()
 }
 
-pub fn refract<T: Number>(ray: &Vec3<T>, normal: &Unit<Vec3<T>>, refraction_coef_ratio: T) -> Unit<Vec3<T>> {
-    let mut cos_theta = ray.dot(normal);
-    //TODO:
+pub fn refract<T: Number>(ray: &Unit<Vec3<T>>, normal: &Unit<Normal3<T>>, refraction_coef_ratio: T) -> Unit<Vec3<T>> {
+    //TODO: assuming normalized normal and ray dir
+    let mut cos_theta = dot(ray.deref(), normal.deref());
     let sign = cos_theta.signum();
     // cos_theta *= sign;
-    let perpend = (*ray + **normal * cos_theta * sign) * refraction_coef_ratio;
-    let parallel = **normal * -T::pow(T::abs(T::one() - perpend.len_squared()), 0.5);
+    // Derefs for the deref god!
+    let perpend = (**ray + ***normal * cos_theta * sign) * refraction_coef_ratio;
+    let parallel = ***normal * -T::pow(T::abs(T::one() - perpend.len_squared()), 0.5);
     (perpend + parallel).to_unit()
 }
 

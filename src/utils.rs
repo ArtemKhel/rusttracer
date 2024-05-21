@@ -1,4 +1,4 @@
-use std::{f32::consts::PI, intrinsics::breakpoint};
+use std::f32::consts::PI;
 
 use image::{Pixel, Rgb};
 
@@ -18,7 +18,8 @@ pub(crate) fn degrees_to_radians(degrees: f32) -> f32 { PI * degrees / 180.0 }
 macro_rules! breakpoint {
     () => {
         unsafe {
-            breakpoint();
+            std::intrinsics::breakpoint();
+            #[allow(clippy::unused_unit)]
             ()
         }
     };

@@ -12,9 +12,9 @@ pub mod rendering;
 pub mod aggregates;
 
 type F = f32;
-pub type Point = math::Point3<F>;
+pub type Point3 = math::Point3<F>;
 pub type Vec3 = math::Vec3<F>;
-pub type UnitVec = math::UnitVec3<F>;
+pub type Normal3 = math::Normal3<F>;
 pub type Ray = math::Ray<F>;
 pub type Hit = math::Hit<F>;
 pub type Aabb = math::Aabb<F>;

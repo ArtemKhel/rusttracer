@@ -23,6 +23,7 @@ impl<T: Number> Matrix4<T> {
     }
 
     #[rustfmt::skip]
+    #[allow(clippy::too_many_arguments)]
     pub fn from_elements(
         m00: T, m01: T, m02: T, m03: T,
         m10: T, m11: T, m12: T, m13: T,

@@ -1,8 +1,8 @@
 use num_traits::Pow;
 
 use crate::{
-    aabb::Aabb, utils::local_normal, Bounded, Cross, Dot, Hit, Intersectable, Normed, Number, Point3, Ray, Sphere, Unit,
-    Vec3,
+    aabb::Aabb, utils::local_normal, Bounded, Cross, Dot, Hit, Intersectable, Normed, Number, Point3, Ray, Sphere,
+    Unit, Vec3,
 };
 
 #[derive(Debug)]
@@ -17,7 +17,7 @@ pub struct Triangle<T: Number> {
 }
 
 impl<T: Number> Triangle<T> {
-    const PADDING: f32 = 1e-5;
+    const PADDING: f32 = 1e-4;
 
     pub fn new(a: Point3<T>, ab: Vec3<T>, ac: Vec3<T>) -> Self {
         let n = ab.cross(ac);
