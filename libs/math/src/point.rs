@@ -17,19 +17,17 @@ pub struct Point3<T> {
     pub coords: Vec3<T>,
 }
 
-pub type Point3f = Point3<f32>;
-
 #[macro_export]
 macro_rules! point3 {
     () => {
-        Point3::default()
+        $crate::Point3::default()
     };
     ($vec:expr) => {
-        Point3 { coords: $vec }
+        $crate::Point3 { coords: $vec }
     };
     ($x:expr, $y:expr, $z:expr) => {
-        Point3 {
-            coords: Vec3 { x: $x, y: $y, z: $z },
+        $crate::Point3 {
+            coords: $crate::Vec3 { x: $x, y: $y, z: $z },
         }
     };
 }
@@ -110,6 +108,7 @@ gen_ops!(
 impl<T: Number> From<Vec3<T>> for Point3<T> {
     fn from(coords: Vec3<T>) -> Self { Point3 { coords } }
 }
+
 impl<T: Float + AbsDiffEq<Epsilon = T>> AbsDiffEq for Point3<T> {
     type Epsilon = T;
 

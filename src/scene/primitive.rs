@@ -16,6 +16,7 @@ pub struct Composite {
 impl Bounded<F> for Composite {
     fn bound(&self) -> Aabb { self.objects.iter().fold(Aabb::default(), |acc, x| acc + x.bound()) }
 }
+
 impl Intersectable<F> for Composite {
     fn hit(&self, ray: &Ray) -> Option<Hit> { self.objects.iter().filter_map(|x| x.hit(ray)).min() }
 }
@@ -23,6 +24,7 @@ impl Intersectable<F> for Composite {
 impl Bounded<F> for Primitive {
     fn bound(&self) -> Aabb { self.shape.bound() }
 }
+
 impl Intersectable<F> for Primitive {
     fn hit(&self, ray: &Ray) -> Option<Hit> { self.shape.hit(ray) }
 }

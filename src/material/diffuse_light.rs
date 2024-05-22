@@ -1,10 +1,6 @@
 use image::Rgb;
 
-use crate::{
-    material::{Material, Scatter},
-    scene::Intersection,
-    Ray,
-};
+use crate::material::Material;
 
 #[derive(Debug, Clone, Copy)]
 pub struct DiffuseLight {

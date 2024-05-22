@@ -5,18 +5,14 @@ use std::{
 
 use derive_new::new;
 use gen_ops::gen_ops;
-use num_traits::{Float, Num, One, Pow, Signed, Zero};
+use num_traits::{One, Pow, Zero};
 use rand::{
     self,
     distributions::{uniform::SampleUniform, Distribution, Standard},
     Rng,
 };
 
-use crate::{
-    unit::Unit,
-    utils::{Axis3, Axis4},
-    vec3, Cross, Dot, Matrix3, Number, Point3, Vec3,
-};
+use crate::{utils::Axis4, vec3, Cross, Dot, Number, Point3, Vec3};
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, new)]
 pub struct Vec4<T> {
@@ -206,9 +202,11 @@ where T: Copy
 impl<T: Number> From<Vec3<T>> for Vec4<T> {
     fn from(v: Vec3<T>) -> Self { vec4!(v.x, v.y, v.z, T::zero()) }
 }
+
 impl<T: Number> From<Point3<T>> for Vec4<T> {
     fn from(v: Point3<T>) -> Self { vec4!(v.coords.x, v.coords.y, v.coords.z, T::one()) }
 }
+
 impl<Ref: Deref<Target = Vec3<T>>, T: Number> From<Ref> for Vec4<T> {
     fn from(value: Ref) -> Self { Self::from(*value) }
 }

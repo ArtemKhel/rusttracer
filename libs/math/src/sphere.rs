@@ -1,7 +1,4 @@
-use std::{
-    fmt::{Debug, Formatter},
-    ops::Deref,
-};
+use std::{fmt::Debug, ops::Deref};
 
 use num_traits::Pow;
 
@@ -11,10 +8,11 @@ use crate::{
 };
 
 #[derive(Default, Debug, Clone, Copy)]
-pub struct Sphere<T: Number> {
+pub struct Sphere<T> {
     pub center: Point3<T>,
     pub radius: T,
 }
+
 impl<T: Number> Sphere<T> {
     pub fn new(center: Point3<T>, radius: T) -> Sphere<T> { Sphere { center, radius } }
 

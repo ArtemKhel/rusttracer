@@ -1,5 +1,3 @@
-use std::process::Output;
-
 use derive_new::new;
 use num_traits::Pow;
 

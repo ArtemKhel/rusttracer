@@ -1,5 +1,3 @@
-use std::ops::Deref;
-
 use image::Rgb;
 use math::{
     utils::{random_unit, reflect},

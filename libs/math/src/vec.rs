@@ -29,21 +29,19 @@ pub struct Vec3<T> {
     pub z: T,
 }
 
-pub type Vec3f = Vec3<f32>;
-
 #[macro_export]
 macro_rules! vec3 {
     ($x:expr, $y:expr, $z:expr) => {
-        Vec3 { x: $x, y: $y, z: $z }
+        $crate::Vec3 { x: $x, y: $y, z: $z }
     };
     ($x:expr) => {
-        Vec3 { x: $x, y: $x, z: $x }
+        $crate::Vec3 { x: $x, y: $x, z: $x }
     };
 }
 #[macro_export]
 macro_rules! unit_vec3 {
     ($x:expr, $y:expr, $z:expr) => {
-        Vec3 { x: $x, y: $y, z: $z }.to_unit()
+        $crate::Vec3 { x: $x, y: $y, z: $z }.to_unit()
     };
 }
 
@@ -249,7 +247,7 @@ mod tests {
         let v = vec3!(2., 2., 2.);
         let r = v + u;
 
-        assert_eq!(r, Vec3f::new(3., 3., 3.));
+        assert_eq!(r, vec3!(3., 3., 3.));
     }
 
     #[test]
@@ -259,8 +257,8 @@ mod tests {
         let r = u.cross(v);
         let r2 = crate::cross(u, v);
 
-        assert_eq!(r, Vec3f::new(0., 0., 1.));
-        assert_eq!(r2, Vec3f::new(0., 0., 1.));
+        assert_eq!(r, vec3!(0., 0., 1.));
+        assert_eq!(r2, vec3!(0., 0., 1.));
     }
 
     #[test]

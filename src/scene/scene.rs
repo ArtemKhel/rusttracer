@@ -15,6 +15,7 @@ pub struct Scene {
     // lights:
     pub background_color: Rgb<f32>,
 }
+
 impl Scene {
     pub fn cast_ray(&self, ray: &Ray) -> Option<Intersection> {
         self.objects.hit(ray)

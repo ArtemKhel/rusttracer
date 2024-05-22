@@ -1,9 +1,9 @@
-mod antialiasing;
-mod raytracer;
-
 pub use antialiasing::{AAType, AntiAliasing};
 use image::{ImageBuffer, Pixel, Rgb};
 pub use raytracer::RayTracer;
+
+mod antialiasing;
+mod raytracer;
 
 pub struct Resolution {
     pub width: u32,

@@ -1,7 +1,5 @@
-use std::ops::Deref;
-
 use image::Rgb;
-use math::{utils::random_unit, Dot, Normed};
+use math::{utils::random_unit, Normed};
 
 use crate::{
     material::{Material, Scatter},

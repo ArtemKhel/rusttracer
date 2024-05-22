@@ -15,12 +15,12 @@ pub use matrix::*;
 pub use mesh::Triangle;
 pub use normal::Normal3;
 use num_traits::{Float, Num, NumAssignOps, Pow, Signed};
-pub use point::{Point3, Point3f};
+pub use point::Point3;
 pub use quad::Quad;
 pub use ray::Ray;
 pub use sphere::Sphere;
 pub use unit::Unit;
-pub use vec::{Vec3, Vec3f};
+pub use vec::Vec3;
 pub use vec4::Vec4;
 
 mod aabb;
@@ -40,6 +40,7 @@ mod vec;
 mod vec4;
 
 pub trait Number: Debug + Float + NumAssignOps + Pow<f32, Output = Self> {}
+
 impl<T> Number for T where T: Debug + Float + NumAssignOps + Pow<f32, Output = Self> {}
 
 #[allow(clippy::len_without_is_empty)]
@@ -50,6 +51,7 @@ pub trait Normed {
     fn len(&self) -> Self::Output;
     fn len_squared(&self) -> Self::Output;
 }
+
 impl<Ref, Base, Out> Normed for Ref
 where
     Ref: Deref<Target = Base> + From<Base>,
@@ -57,7 +59,7 @@ where
 {
     type Output = Out;
 
-    fn to_unit(self) -> Unit<Self> { self.deref().to_unit().lift() }
+    fn to_unit(self) -> Unit<Self> { self.deref().to_unit().cast() }
 
     fn len(&self) -> Self::Output { self.deref().len() }
 

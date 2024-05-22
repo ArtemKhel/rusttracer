@@ -318,16 +318,16 @@ impl BVH {
         let mut t_max = f32::MAX;
         let mut closest: Option<Intersection> = None;
 
-        let mut _dbg_counter = 0;
-        let mut _dbg_node_history: Vec<usize> = vec![];
+        // let mut _dbg_counter = 0;
+        // let mut _dbg_node_history: Vec<usize> = vec![];
 
         while let Some(node_id) = stack.pop() {
-            #[cfg(debug_assertions)]
-            {
-                _dbg_counter += 1;
-                _dbg_node_history.push(node_id);
-                breakpoint!(_dbg_counter >= 20);
-            }
+            // #[cfg(debug_assertions)]
+            // {
+            //     _dbg_counter += 1;
+            //     _dbg_node_history.push(node_id);
+            //     breakpoint!(_dbg_counter >= 20);
+            // }
             let node = &self.nodes[node_id];
             match *node {
                 BVHLinearNode::Interior {
@@ -364,10 +364,9 @@ impl BVH {
                 }
             }
         }
-        #[cfg(debug_assertions)]
-        {
-            debug!("BVH hit in {_dbg_counter}")
-        }
+        // #[cfg(debug_assertions)]
+        // debug!("BVH hit in {_dbg_counter}");
+
         closest
     }
 }
@@ -414,6 +413,6 @@ mod tests {
 
         let bvh = BVH::new(world, 1);
         bvh.hit(&Ray::new(Point3::default(), vec3!(1., 0., 0.).to_unit()));
-        dbg!(&bvh);
+        // dbg!(&bvh);
     }
 }

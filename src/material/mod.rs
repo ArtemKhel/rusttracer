@@ -3,6 +3,7 @@ use std::fmt::Debug;
 use image::Rgb;
 
 use crate::{scene::Intersection, Ray};
+
 pub mod dielectric;
 pub mod diffuse_light;
 pub mod isotropic;

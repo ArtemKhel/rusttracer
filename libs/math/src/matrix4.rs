@@ -85,7 +85,7 @@ impl<T: Number> Matrix4<T> {
             let t = self.transpose();
             let cf = |i, j| {
                 #[rustfmt::skip]
-                let mat = match i {
+                    let mat = match i {
                     X => Matrix3 { x: t.y.drop(j), y: t.z.drop(j), z: t.w.drop(j) },
                     Y => Matrix3 { x: t.x.drop(j), y: t.z.drop(j), z: t.w.drop(j) },
                     Z => Matrix3 { x: t.x.drop(j), y: t.y.drop(j), z: t.w.drop(j) },

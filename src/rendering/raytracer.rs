@@ -1,11 +1,7 @@
-use std::intrinsics::breakpoint;
-
 use image::{ImageBuffer, Pixel, Rgb};
-use indicatif::ProgressStyle;
 use rayon::prelude::*;
 
 use crate::{
-    breakpoint,
     rendering::{antialiasing::AntiAliasing, PixelCoord, Renderer, Resolution},
     scene::Scene,
     utils::linear_to_gamma,

@@ -3,9 +3,9 @@ use std::ops::Deref;
 use image::Rgb;
 use math::{
     utils::{reflect, refract},
-    Dot, *,
+    *,
 };
-use rand::{random, Rng};
+use rand::random;
 
 use crate::{
     material::{Material, Scatter},

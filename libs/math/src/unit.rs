@@ -1,8 +1,8 @@
-use std::{marker::PhantomData, ops::Div};
+use std::ops::Div;
 
 use derive_more::{Deref, DerefMut, Neg};
 
-use crate::{vec3, Normed, Vec3};
+use crate::Normed;
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Deref, DerefMut, Neg)]
 pub struct Unit<Inner> {
@@ -14,7 +14,7 @@ impl<Inner: Normed> Unit<Inner> {
 
     pub fn into_inner(self) -> Inner { self.value }
 
-    pub fn lift<Outer>(self) -> Unit<Outer>
+    pub fn cast<Outer>(self) -> Unit<Outer>
     where Outer: From<Inner> {
         Unit {
             value: self.value.into(),
@@ -48,11 +48,7 @@ where Inner: Normed<Output = T> + Div<T, Output = Inner> + Copy
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        cross, dot,
-        utils::{reflect, Axis3},
-        vec3, Cross, Vec3f,
-    };
+    use crate::{cross, dot, utils::reflect, Cross, vec3};
 
     #[test]
     fn test_macro() {
@@ -69,7 +65,7 @@ mod tests {
         let r = cross(*u, *v);
         let r2 = dot(u.deref(), u.deref());
 
-        assert_eq!(r, Vec3f::new(0., 0., 1.));
+        assert_eq!(r, vec3!(0., 0., 1.));
         assert_eq!(r2, 1.0);
     }
 

@@ -1,12 +1,10 @@
-use std::{ops::Deref, process::exit};
-
-use num_traits::Pow;
+use std::ops::Deref;
 
 use crate::{
     aabb::Aabb,
     cross, dot,
     utils::{local_normal, Axis3},
-    vec3, Bounded, Cross, Dot, Hit, Intersectable, Normed, Number, Point3, Ray, Triangle, Unit, Vec3,
+    Bounded, Cross, Dot, Hit, Intersectable, Normed, Number, Point3, Ray, Unit, Vec3,
 };
 
 #[derive(Debug)]

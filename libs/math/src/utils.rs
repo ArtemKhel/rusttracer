@@ -1,9 +1,13 @@
 use std::{fmt::Debug, ops::Deref};
 
-use rand::{distributions::Standard, prelude::Distribution, random, Rng};
+use rand::{
+    distributions::{uniform::SampleUniform, Standard},
+    prelude::Distribution,
+    random, Rng,
+};
 use strum_macros::EnumIter;
 
-use crate::{dot, unit::Unit, Dot, Normal3, Normed, Number, Ray, Vec3, Vec3f};
+use crate::{dot, unit::Unit, Dot, Normal3, Normed, Number, Ray, Vec3};
 
 #[derive(Copy, Clone, EnumIter, Debug)]
 pub enum Axis3 {
@@ -43,28 +47,28 @@ impl Distribution<Axis4> for Standard {
     }
 }
 
-pub fn random_unit() -> Unit<Vec3f> {
+pub fn random_unit<T: Number + SampleUniform>() -> Unit<Vec3<T>> {
     loop {
-        let rnd: Vec3f = random();
-        if rnd.len() <= 1. {
+        let rnd: Vec3<T> = random();
+        if rnd.len() <= T::one() {
             break rnd.to_unit();
         }
     }
 }
 
-pub fn random_on_hemisphere(normal: &Unit<Vec3f>) -> Unit<Vec3f> {
+pub fn random_on_hemisphere<T: Number + SampleUniform>(normal: &Unit<Vec3<T>>) -> Unit<Vec3<T>> {
     let random = random_unit();
-    if normal.dot(&random) >= 0. {
+    if normal.dot(&random) >= T::zero() {
         random
     } else {
         -random
     }
 }
 
-pub fn random_in_unit_disk() -> Vec3f {
+pub fn random_in_unit_disk<T: Number + SampleUniform>() -> Vec3<T> {
     loop {
-        let rnd: Vec3f = random();
-        if rnd.len_squared() <= 1. {
+        let rnd: Vec3<T> = random();
+        if rnd.len_squared() <= T::one() {
             break rnd;
         }
     }

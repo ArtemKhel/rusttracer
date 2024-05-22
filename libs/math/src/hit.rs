@@ -2,13 +2,14 @@ use std::cmp::Ordering;
 
 use derive_new::new;
 
-use crate::{unit::Unit, Dot, Normal3, Number, Point3, Ray, Vec3};
+use crate::{unit::Unit, Dot, Normal3, Number, Point3, Ray};
 
 #[derive(Debug, Clone, Copy, PartialEq, new)]
 pub struct Hit<T: Number> {
     pub point: Point3<T>,
     pub normal: Unit<Normal3<T>>,
     pub t: T,
+    // pub medium: Option<M>
 }
 
 impl<T: Number> Hit<T> {
@@ -20,6 +21,7 @@ impl<T: Number> Eq for Hit<T> {}
 impl<T: Number> PartialOrd for Hit<T> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> { Some(self.cmp(other)) }
 }
+
 impl<T: Number> Ord for Hit<T> {
     fn cmp(&self, other: &Self) -> Ordering { self.t.partial_cmp(&other.t).unwrap() }
 }
@@ -27,7 +29,7 @@ impl<T: Number> Ord for Hit<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{normal3, point3, unit3, unit_normal3, vec3};
+    use crate::{point3, unit_normal3};
 
     #[test]
     fn test() {

@@ -1,5 +1,3 @@
-use image::Rgb;
-use log::debug;
 use math::{unit3_unchecked, Bounded, BoundedIntersectable, Intersectable, *};
 use rand::random;
 
@@ -35,7 +33,7 @@ impl Intersectable<F> for Medium {
                         return Some(Hit {
                             t: hit_t,
                             point: ray.at(hit_t),
-                            normal: unit3_unchecked!(1., 0., 0.).lift(),
+                            normal: unit3_unchecked!(1., 0., 0.).cast(),
                         });
                     }
                 }
