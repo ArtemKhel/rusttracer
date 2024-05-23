@@ -9,9 +9,9 @@ use rusttracer::{
 fn main() {
     env_logger::init();
     // let scene = spheres();
-    let scene = cornell_box();
+    // let scene = cornell_box();
     // let scene = cubes();
-    // let scene = teapot();
+    let scene = teapot();
 
     let raytracer = RayTracer {
         scene,

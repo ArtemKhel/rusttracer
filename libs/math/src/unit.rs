@@ -48,7 +48,7 @@ where Inner: Normed<Output = T> + Div<T, Output = Inner> + Copy
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{cross, dot, utils::reflect, Cross, vec3};
+    use crate::{cross, dot, utils::reflect, vec3, Cross};
 
     #[test]
     fn test_macro() {

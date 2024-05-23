@@ -7,7 +7,7 @@ use rand::random;
 use crate::{
     aggregates::BVH,
     material::{dielectric::Dielectric, diffuse_light::DiffuseLight, lambertian::Lambertian, metal::Metal, Material},
-    scene::{Camera, CameraConfig, Primitive, Scene},
+    scene::{SimpleCamera, CameraConfig, Primitive, Scene},
 };
 
 pub fn spheres() -> Scene {
@@ -81,7 +81,7 @@ pub fn spheres() -> Scene {
 
     let materials = vec![];
 
-    let camera = Camera::from(CameraConfig {
+    let camera = SimpleCamera::from(CameraConfig {
         position: point3!(13., 2., 4.),
         look_at: point3!(0., 0., 0.),
         up: vec3!(0., 1., 0.),

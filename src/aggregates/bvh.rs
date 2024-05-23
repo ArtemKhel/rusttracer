@@ -8,7 +8,7 @@ use std::{
 use derive_new::new;
 use itertools::{partition, Itertools};
 use log::debug;
-use math::{utils::Axis3, Bounded, Intersectable};
+use math::{utils::Axis3, Bounded, BoundedIntersectable, Intersectable};
 use rayon::join;
 
 use crate::{
@@ -377,7 +377,7 @@ mod tests {
     use math::{point3, vec3, Normed, Sphere};
 
     use super::*;
-    use crate::{material::lambertian::Lambertian, scene::Primitive, Point3, Vec3};
+    use crate::{material::lambertian::Lambertian, scene::Primitive, Point3};
 
     #[test]
     fn test_bvh() {

@@ -3,12 +3,12 @@ use image::Rgb;
 use crate::{
     aggregates::BVH,
     material::Material,
-    scene::{Camera, Intersection},
+    scene::{SimpleCamera, Intersection},
     Ray,
 };
 
 pub struct Scene {
-    pub camera: Camera,
+    pub camera: SimpleCamera,
     // pub objects: Vec<Primitive>,
     pub objects: BVH,
     pub materials: Vec<Box<dyn Material>>,

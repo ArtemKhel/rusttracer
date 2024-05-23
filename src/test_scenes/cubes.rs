@@ -6,7 +6,7 @@ use math::{point3, vec3, Quad};
 use crate::{
     aggregates::BVH,
     material::{diffuse_light::DiffuseLight, lambertian::Lambertian},
-    scene::{Camera, CameraConfig, Primitive, Scene},
+    scene::{SimpleCamera, CameraConfig, Primitive, Scene},
     utils::lerp,
     Point3, Vec3,
 };
@@ -108,7 +108,7 @@ pub fn cubes() -> Scene {
 
     let materials = vec![];
 
-    let camera = Camera::from(CameraConfig {
+    let camera = SimpleCamera::from(CameraConfig {
         position: point3!(-20., 15., -5.),
         look_at: point3!(3., 10., 3.),
         up: vec3!(0., 1., 0.),

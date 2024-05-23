@@ -7,6 +7,7 @@ use crate::{
     utils::linear_to_gamma,
     Ray,
 };
+use crate::scene::Camera;
 
 pub struct RayTracer {
     pub scene: Scene,

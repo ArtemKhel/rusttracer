@@ -4,6 +4,11 @@ use math::{point3, utils::random_in_unit_disk, vec3, Cross, *};
 
 use crate::{rendering::PixelCoord, utils::degrees_to_radians, Point3, Ray, Vec3};
 
+
+pub trait Camera{
+    fn create_ray(&self, coord: PixelCoord) -> Ray;
+}
+
 #[derive(Debug, Default)]
 pub struct Screen {
     center: Point3,
@@ -22,25 +27,28 @@ pub struct CameraConfig {
 }
 
 #[derive(Debug, Default)]
-pub struct Camera {
+pub struct SimpleCamera {
     pub position: Point3,
     pub screen: Screen,
     pub defocus_radius: f32,
 }
 
-impl Camera {
-    pub fn create_ray(&self, coord: PixelCoord) -> Ray {
+impl Camera for SimpleCamera{
+    fn create_ray(&self, coord: PixelCoord) -> Ray {
         let direction = self.screen.center + self.screen.basis[0] * coord[0] + self.screen.basis[1] * coord[1];
         Ray::from_to(self.defocus_disk_sample(), direction)
     }
 
+}
+
+impl SimpleCamera {
     fn defocus_disk_sample(&self) -> Point3 {
         let rnd = random_in_unit_disk();
         self.position + rnd * self.defocus_radius
     }
 }
 
-impl From<CameraConfig> for Camera {
+impl From<CameraConfig> for SimpleCamera {
     fn from(config: CameraConfig) -> Self {
         let theta = degrees_to_radians(config.vertical_fov);
         let half_height = (theta / 2.0).tan() * config.focus_dist;
@@ -55,7 +63,7 @@ impl From<CameraConfig> for Camera {
 
         let defocus_radius = config.focus_dist * degrees_to_radians(config.defocus_angle / 2.).tan();
 
-        Camera {
+        SimpleCamera {
             position: config.position,
             defocus_radius,
             screen: Screen {

@@ -6,7 +6,7 @@ use math::{point3, vec3, Sphere, Triangle};
 use crate::{
     aggregates::BVH,
     material::{diffuse_light::DiffuseLight, lambertian::Lambertian, metal::Metal},
-    scene::{Camera, CameraConfig, Primitive, Scene},
+    scene::{SimpleCamera, CameraConfig, Primitive, Scene},
     Point3, F,
 };
 
@@ -68,7 +68,7 @@ pub fn teapot() -> Scene {
 
     let materials = vec![];
 
-    let camera = Camera::from(CameraConfig {
+    let camera = SimpleCamera::from(CameraConfig {
         position: point3!(2., 5., 5.),
         look_at: point3!(0.5, 1., 0.),
         up: vec3!(0., 1., 0.),

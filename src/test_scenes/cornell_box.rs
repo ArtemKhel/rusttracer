@@ -9,7 +9,7 @@ use crate::{
         dielectric::Dielectric, diffuse_light::DiffuseLight, isotropic::Isotropic, lambertian::Lambertian, Material,
     },
     mediums::Medium,
-    scene::{Camera, CameraConfig, Composite, Primitive, Scene},
+    scene::{SimpleCamera, CameraConfig, Composite, Primitive, Scene},
 };
 
 pub fn cornell_box() -> Scene {
@@ -100,7 +100,7 @@ pub fn cornell_box() -> Scene {
 
     let world = BVH::new(world.into_iter().map(Rc::new).collect(), 4);
 
-    let camera = Camera::from(CameraConfig {
+    let camera = SimpleCamera::from(CameraConfig {
         position: point3!(278., 278., -800.),
         look_at: point3!(278., 278., 0.),
         up: vec3!(0., 1., 0.),
