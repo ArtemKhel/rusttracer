@@ -7,7 +7,10 @@ use rand::{
 };
 use strum_macros::EnumIter;
 
-use crate::{dot, unit::Unit, Dot, Normal3, Normed, Number, Ray, Vec3};
+use crate::{
+    core::Ray,
+    math::{dot, unit::Unit, Dot, Normal3, Normed, Number, Vec3},
+};
 
 #[derive(Copy, Clone, EnumIter, Debug)]
 pub enum Axis3 {

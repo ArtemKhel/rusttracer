@@ -8,53 +8,56 @@ use std::{
 use derive_new::new;
 use itertools::{partition, Itertools};
 use log::debug;
-use math::{utils::Axis3, Bounded, BoundedIntersectable, Intersectable};
+use num_traits::Float;
 use rayon::join;
 
 use crate::{
+    aggregates::Aabb,
     breakpoint,
+    math::{utils::Axis3, Number},
     scene::{Intersection, Primitive},
-    Aabb, Point3, Ray,
+    shapes::{Bounded, Intersectable},
+    Point3, Ray, F,
 };
 
 #[derive(Debug)]
-pub struct BVH {
+pub struct BVH<T: Number> {
     primitives: Vec<Rc<Primitive>>,
-    nodes: Vec<BVHLinearNode>,
+    nodes: Vec<BVHLinearNode<T>>,
     height: usize,
 }
 
 #[derive(Debug, new)]
-enum BVHLinearNode {
+enum BVHLinearNode<T: Number> {
     Interior {
-        bounds: Aabb,
+        bounds: Aabb<T>,
         second_child_offset: usize,
         axis: Axis3,
     },
     Leaf {
-        bounds: Aabb,
+        bounds: Aabb<T>,
         first_offset: usize,
         n_primitives: usize,
     },
 }
 
 #[derive(Debug)]
-struct BVHPrimitiveInfo {
+struct BVHPrimitiveInfo<T: Number> {
     index: usize,
-    bounds: Aabb,
+    bounds: Aabb<T>,
     center: Point3,
 }
 
 #[derive(Debug, new)]
-enum BVHBuildNode {
+enum BVHBuildNode<T: Number> {
     Interior {
-        bounds: Aabb,
-        children: (Box<BVHBuildNode>, Box<BVHBuildNode>),
+        bounds: Aabb<T>,
+        children: (Box<BVHBuildNode<T>>, Box<BVHBuildNode<T>>),
         // children: [Box<BVHBuildNode>; 2],
         axis: Axis3,
     },
     Leaf {
-        bounds: Aabb,
+        bounds: Aabb<T>,
         first_offset: usize,
         n_primitives: usize,
     },
@@ -69,17 +72,18 @@ enum SplitMethod {
 }
 
 #[derive(Copy, Clone, Debug, Default)]
-struct BVHSplitBucket {
+struct BVHSplitBucket<T: Number> {
     count: usize,
-    bounds: Aabb,
+    bounds: Aabb<T>,
 }
 
-impl BVH {
-    pub fn new(primitives: Vec<Rc<Primitive>>, mut max_in_node: usize) -> BVH {
+// TODO: generic
+impl BVH<F> {
+    pub fn new(primitives: Vec<Rc<Primitive>>, mut max_in_node: usize) -> BVH<F> {
         // TODO: allocators
         let bounds = primitives.iter().fold(Aabb::default(), |acc, p| acc + p.bound());
 
-        let mut primitives_info: Vec<BVHPrimitiveInfo> = Vec::with_capacity(primitives.len());
+        let mut primitives_info: Vec<BVHPrimitiveInfo<F>> = Vec::with_capacity(primitives.len());
         for (index, p) in primitives.iter().enumerate() {
             let bounds = p.bound();
             primitives_info.push(BVHPrimitiveInfo {
@@ -114,12 +118,12 @@ impl BVH {
 
     fn recursive_build(
         primitives: &Vec<Rc<Primitive>>,
-        primitives_info: &mut [BVHPrimitiveInfo],
+        primitives_info: &mut [BVHPrimitiveInfo<F>],
         ordered_primitives: &mut Vec<Rc<Primitive>>,
         total_nodes: &mut usize,
         split_method: SplitMethod,
         max_in_node: usize,
-    ) -> BVHBuildNode {
+    ) -> BVHBuildNode<F> {
         *total_nodes += 1;
 
         let bounds = primitives_info.iter().fold(Aabb::default(), |acc, p| acc + p.bounds);
@@ -162,12 +166,12 @@ impl BVH {
     }
 
     fn partition(
-        primitives_info: &mut [BVHPrimitiveInfo],
-        centroid_bounds: Aabb,
+        primitives_info: &mut [BVHPrimitiveInfo<F>],
+        centroid_bounds: Aabb<F>,
         axis: Axis3,
         split_method: SplitMethod,
         max_in_node: usize,
-    ) -> Option<(&mut [BVHPrimitiveInfo], &mut [BVHPrimitiveInfo])> {
+    ) -> Option<(&mut [BVHPrimitiveInfo<F>], &mut [BVHPrimitiveInfo<F>])> {
         let mut mid = primitives_info.len() / 2;
         match split_method {
             SplitMethod::Middle => {
@@ -240,10 +244,10 @@ impl BVH {
 
     fn build_leaf(
         primitives: &[Rc<Primitive>],
-        primitives_info: &[BVHPrimitiveInfo],
+        primitives_info: &[BVHPrimitiveInfo<F>],
         ordered_primitives: &mut Vec<Rc<Primitive>>,
-        bounds: Aabb,
-    ) -> BVHBuildNode {
+        bounds: Aabb<F>,
+    ) -> BVHBuildNode<F> {
         let first_offset = ordered_primitives.len();
         for prim_info in primitives_info {
             ordered_primitives.push(primitives[prim_info.index].clone())
@@ -251,7 +255,7 @@ impl BVH {
         BVHBuildNode::new_leaf(bounds, first_offset, primitives_info.len())
     }
 
-    fn height(root: &BVHBuildNode) -> usize {
+    fn height(root: &BVHBuildNode<F>) -> usize {
         match root {
             BVHBuildNode::Interior { children, .. } => {
                 max(Self::height(children.0.as_ref()), Self::height(children.1.as_ref())) + 1
@@ -260,8 +264,8 @@ impl BVH {
         }
     }
 
-    fn flatten(root: BVHBuildNode, total_nodes: usize) -> Vec<BVHLinearNode> {
-        fn rec(root: &BVHBuildNode, lin_root: &mut Vec<BVHLinearNode>) {
+    fn flatten(root: BVHBuildNode<F>, total_nodes: usize) -> Vec<BVHLinearNode<F>> {
+        fn rec(root: &BVHBuildNode<F>, lin_root: &mut Vec<BVHLinearNode<F>>) {
             match root {
                 BVHBuildNode::Interior { bounds, children, axis } => {
                     let idx = lin_root.len();
@@ -307,7 +311,7 @@ impl BVH {
 //     }
 // }
 
-impl BVH {
+impl BVH<F> {
     pub fn hit(&self, ray: &Ray) -> Option<Intersection> {
         if self.nodes.is_empty() {
             return None;
@@ -315,7 +319,7 @@ impl BVH {
         let mut stack = Vec::with_capacity(self.height);
         stack.push(0);
 
-        let mut t_max = f32::MAX;
+        let mut t_max = F::max_value();
         let mut closest: Option<Intersection> = None;
 
         // let mut _dbg_counter = 0;
@@ -374,10 +378,11 @@ impl BVH {
 #[cfg(test)]
 mod tests {
     use image::Rgb;
-    use math::{point3, vec3, Normed, Sphere};
 
     use super::*;
-    use crate::{material::lambertian::Lambertian, scene::Primitive, Point3};
+    use crate::{
+        material::lambertian::Lambertian, math::Normed, point3, scene::Primitive, shapes::sphere::Sphere, vec3, Point3,
+    };
 
     #[test]
     fn test_bvh() {

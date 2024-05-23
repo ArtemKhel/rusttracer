@@ -1,7 +1,6 @@
 use std::rc::Rc;
 
 use image::Rgb;
-use math::{point3, vec3, Quad, Sphere};
 
 use crate::{
     aggregates::BVH,
@@ -9,7 +8,10 @@ use crate::{
         dielectric::Dielectric, diffuse_light::DiffuseLight, isotropic::Isotropic, lambertian::Lambertian, Material,
     },
     mediums::Medium,
-    scene::{SimpleCamera, CameraConfig, Composite, Primitive, Scene},
+    point3,
+    scene::{CameraConfig, Composite, Primitive, Scene, SimpleCamera},
+    shapes::{quad::Quad, sphere::Sphere},
+    vec3,
 };
 
 pub fn cornell_box() -> Scene {

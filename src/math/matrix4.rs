@@ -2,7 +2,10 @@ use std::ops::{Add, Index, Mul};
 
 use num_traits::Zero;
 
-use crate::{dot, utils::Axis4, vec4, Matrix3, Number, Vec4};
+use crate::{
+    math::{dot, utils::Axis4, vec4, Matrix3, Number, Vec4},
+    vec4,
+};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Matrix4<T> {

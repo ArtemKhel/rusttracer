@@ -1,7 +1,11 @@
-use math::{unit3_unchecked, Bounded, BoundedIntersectable, Intersectable, *};
 use rand::random;
 
-use crate::{Aabb, Hit, Ray, F};
+use crate::{
+    aggregates::Aabb,
+    math::Normed,
+    shapes::{Bounded, BoundedIntersectable, Intersectable},
+    unit3_unchecked, Hit, Ray, F,
+};
 
 #[derive(Debug)]
 pub struct Medium {
@@ -44,5 +48,5 @@ impl Intersectable<F> for Medium {
 }
 
 impl Bounded<F> for Medium {
-    fn bound(&self) -> Aabb { self.shape.bound() }
+    fn bound(&self) -> Aabb<F> { self.shape.bound() }
 }

@@ -3,11 +3,10 @@ use rayon::prelude::*;
 
 use crate::{
     rendering::{antialiasing::AntiAliasing, PixelCoord, Renderer, Resolution},
-    scene::Scene,
+    scene::{Camera, Scene},
     utils::linear_to_gamma,
     Ray,
 };
-use crate::scene::Camera;
 
 pub struct RayTracer {
     pub scene: Scene,

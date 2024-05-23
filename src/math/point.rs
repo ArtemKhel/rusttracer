@@ -6,10 +6,10 @@ use derive_new::new;
 use gen_ops::gen_ops;
 use num_traits::{float::FloatCore, Float, One};
 
-use crate::{
+use crate::math::{
     transform::{Transform, Transformable},
     utils::Axis3,
-    Aabb, Bounded, Dot, Number, Vec3, Vec4,
+    Dot, Number, Vec3, Vec4,
 };
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, new, Div, Mul)] // Deref
@@ -20,14 +20,14 @@ pub struct Point3<T> {
 #[macro_export]
 macro_rules! point3 {
     () => {
-        $crate::Point3::default()
+        $crate::math::Point3::default()
     };
     ($vec:expr) => {
-        $crate::Point3 { coords: $vec }
+        $crate::math::Point3 { coords: $vec }
     };
     ($x:expr, $y:expr, $z:expr) => {
-        $crate::Point3 {
-            coords: $crate::Vec3 { x: $x, y: $y, z: $z },
+        $crate::math::Point3 {
+            coords: $crate::math::Vec3 { x: $x, y: $y, z: $z },
         }
     };
 }
@@ -117,10 +117,6 @@ impl<T: Float + AbsDiffEq<Epsilon = T>> AbsDiffEq for Point3<T> {
     fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
         self.coords.abs_diff_eq(&other.coords, epsilon)
     }
-}
-
-impl<T: Number> Bounded<T> for Point3<T> {
-    fn bound(&self) -> Aabb<T> { Aabb { min: *self, max: *self } }
 }
 
 impl<T: Number> Transformable<T> for Point3<T> {

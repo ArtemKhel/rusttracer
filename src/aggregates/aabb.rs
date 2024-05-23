@@ -8,10 +8,10 @@ use num_traits::Float;
 use strum::IntoEnumIterator;
 
 use crate::{
+    core::Ray,
+    math::{utils::Axis3, Number, Point3, Transform, Transformable, Vec3},
     point3,
-    transform::{Transform, Transformable},
-    utils::Axis3,
-    Bounded, Number, Point3, Ray, Vec3,
+    shapes::Bounded,
 };
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -170,7 +170,7 @@ mod tests {
     use approx::assert_abs_diff_eq;
 
     use super::*;
-    use crate::{unit3, utils::Axis3::Z, Unit};
+    use crate::{math::utils::Axis3, unit3, Ray};
 
     #[test]
     fn test_aabb() {
@@ -196,7 +196,7 @@ mod tests {
             min: point3!(0., 0., 0.),
             max: point3!(1., 2., 3.),
         };
-        let t = Transform::rotate(Z, FRAC_PI_4);
+        let t = Transform::rotate(Axis3::Z, FRAC_PI_4);
         let expected = Aabb {
             min: point3!(0., -SQRT_2 / 2., 0.),
             max: point3!(SQRT_2 + SQRT_2 / 2., SQRT_2, 3.),

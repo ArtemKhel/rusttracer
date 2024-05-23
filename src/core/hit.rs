@@ -2,7 +2,10 @@ use std::cmp::Ordering;
 
 use derive_new::new;
 
-use crate::{unit::Unit, Dot, Normal3, Number, Point3, Ray};
+use crate::{
+    core::Ray,
+    math::{Dot, Normal3, Number, Point3, Unit},
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, new)]
 pub struct Hit<T: Number> {

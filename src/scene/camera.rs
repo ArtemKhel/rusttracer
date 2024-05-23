@@ -1,11 +1,14 @@
 use std::ops::Mul;
 
-use math::{point3, utils::random_in_unit_disk, vec3, Cross, *};
+use crate::{
+    math::{utils::random_in_unit_disk, Cross, *},
+    point3,
+    rendering::PixelCoord,
+    utils::degrees_to_radians,
+    vec3, Point3, Ray, Vec3,
+};
 
-use crate::{rendering::PixelCoord, utils::degrees_to_radians, Point3, Ray, Vec3};
-
-
-pub trait Camera{
+pub trait Camera {
     fn create_ray(&self, coord: PixelCoord) -> Ray;
 }
 
@@ -33,12 +36,11 @@ pub struct SimpleCamera {
     pub defocus_radius: f32,
 }
 
-impl Camera for SimpleCamera{
+impl Camera for SimpleCamera {
     fn create_ray(&self, coord: PixelCoord) -> Ray {
         let direction = self.screen.center + self.screen.basis[0] * coord[0] + self.screen.basis[1] * coord[1];
         Ray::from_to(self.defocus_disk_sample(), direction)
     }
-
 }
 
 impl SimpleCamera {

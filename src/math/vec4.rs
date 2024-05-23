@@ -12,7 +12,10 @@ use rand::{
     Rng,
 };
 
-use crate::{utils::Axis4, vec3, Cross, Dot, Number, Point3, Vec3};
+use crate::{
+    math::{utils::Axis4, Cross, Dot, Number, Point3, Vec3},
+    vec3,
+};
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, new)]
 pub struct Vec4<T> {

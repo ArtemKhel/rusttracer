@@ -3,8 +3,11 @@ use std::{fmt::Debug, ops::Deref};
 use num_traits::Pow;
 
 use crate::{
-    aabb::Aabb, dot, unit::Unit, vec3, Bounded, BoundedIntersectable, Dot, Hit, Intersectable, Normal3, Normed, Number,
-    Point3, Ray, Vec3,
+    aggregates::Aabb,
+    core::{Hit, Ray},
+    math::{dot, Dot, Normal3, Normed, Number, Point3, Unit, Vec3},
+    shapes::{Bounded, Intersectable},
+    vec3,
 };
 
 #[derive(Default, Debug, Clone, Copy)]
@@ -60,7 +63,7 @@ impl<T: Number> Bounded<T> for Sphere<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{point3, BoundedIntersectable};
+    use crate::{point3, shapes::BoundedIntersectable};
 
     #[test]
     fn test_aabb() {

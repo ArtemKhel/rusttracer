@@ -1,13 +1,14 @@
 use std::rc::Rc;
 
 use image::Rgb;
-use math::{point3, vec3, Sphere, Triangle};
 
 use crate::{
     aggregates::BVH,
     material::{diffuse_light::DiffuseLight, lambertian::Lambertian, metal::Metal},
-    scene::{SimpleCamera, CameraConfig, Primitive, Scene},
-    Point3, F,
+    point3,
+    scene::{CameraConfig, Primitive, Scene, SimpleCamera},
+    shapes::{mesh::Triangle, sphere::Sphere},
+    vec3, Point3, F,
 };
 
 pub fn teapot() -> Scene {

@@ -13,11 +13,11 @@ use rand::{
     Rng,
 };
 
-use crate::{
+use crate::math::{
     transform::{Transform, Transformable},
     unit::Unit,
     utils::Axis3,
-    vec3, Cross, Dot, Normal3, Normed, Number, Vec4,
+    Cross, Dot, Normal3, Normed, Number, Vec4,
 };
 
 #[rustfmt::skip]
@@ -32,10 +32,10 @@ pub struct Vec3<T> {
 #[macro_export]
 macro_rules! vec3 {
     ($x:expr, $y:expr, $z:expr) => {
-        $crate::Vec3 { x: $x, y: $y, z: $z }
+        $crate::math::Vec3 { x: $x, y: $y, z: $z }
     };
     ($x:expr) => {
-        $crate::Vec3 { x: $x, y: $x, z: $x }
+        $crate::math::Vec3 { x: $x, y: $x, z: $x }
     };
 }
 #[macro_export]
@@ -239,7 +239,7 @@ impl<T: Number> Transformable<T> for Vec3<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::dot;
+    use crate::math::{cross, dot};
 
     #[test]
     fn test() {
@@ -255,7 +255,7 @@ mod tests {
         let u = vec3!(1., 0., 0.);
         let v = vec3!(0., 1., 0.);
         let r = u.cross(v);
-        let r2 = crate::cross(u, v);
+        let r2 = cross(u, v);
 
         assert_eq!(r, vec3!(0., 0., 1.));
         assert_eq!(r2, vec3!(0., 0., 1.));

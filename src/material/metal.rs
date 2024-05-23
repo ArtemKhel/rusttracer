@@ -1,11 +1,11 @@
 use image::Rgb;
-use math::{
-    utils::{random_unit, reflect},
-    Normed,
-};
 
 use crate::{
     material::{Material, Scatter},
+    math::{
+        utils::{random_unit, reflect},
+        Normed,
+    },
     scene::Intersection,
     Ray,
 };

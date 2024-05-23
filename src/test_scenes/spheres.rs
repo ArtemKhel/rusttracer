@@ -1,13 +1,16 @@
 use std::rc::Rc;
 
 use image::Rgb;
-use math::{point3, vec3, Normed, Sphere};
 use rand::random;
 
 use crate::{
     aggregates::BVH,
     material::{dielectric::Dielectric, diffuse_light::DiffuseLight, lambertian::Lambertian, metal::Metal, Material},
-    scene::{SimpleCamera, CameraConfig, Primitive, Scene},
+    math::Normed,
+    point3,
+    scene::{CameraConfig, Primitive, Scene, SimpleCamera},
+    shapes::sphere::Sphere,
+    vec3,
 };
 
 pub fn spheres() -> Scene {

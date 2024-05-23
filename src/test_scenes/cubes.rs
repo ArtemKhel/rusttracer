@@ -1,14 +1,15 @@
 use std::rc::Rc;
 
 use image::Rgb;
-use math::{point3, vec3, Quad};
 
 use crate::{
     aggregates::BVH,
     material::{diffuse_light::DiffuseLight, lambertian::Lambertian},
-    scene::{SimpleCamera, CameraConfig, Primitive, Scene},
+    point3,
+    scene::{CameraConfig, Primitive, Scene, SimpleCamera},
+    shapes::quad::Quad,
     utils::lerp,
-    Point3, Vec3,
+    vec3, Point3, Vec3,
 };
 
 pub fn cubes() -> Scene {

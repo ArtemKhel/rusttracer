@@ -1,12 +1,7 @@
 use derive_new::new;
 use num_traits::Pow;
 
-use crate::{
-    point::Point3,
-    transform::{Transform, Transformable},
-    unit::Unit,
-    Normed, Number, Vec3,
-};
+use crate::math::{Normed, Number, Point3, Transform, Transformable, Unit, Vec3};
 
 #[derive(Copy, Clone, Debug, PartialEq, new)]
 pub struct Ray<T: Number> {

@@ -1,10 +1,14 @@
 use std::ops::Deref;
 
 use crate::{
-    aabb::Aabb,
-    cross, dot,
-    utils::{local_normal, Axis3},
-    Bounded, Cross, Dot, Hit, Intersectable, Normed, Number, Point3, Ray, Unit, Vec3,
+    aggregates::Aabb,
+    core::{Hit, Ray},
+    math::{
+        cross, dot,
+        utils::{local_normal, Axis3},
+        Cross, Dot, Normed, Number, Point3, Unit, Vec3,
+    },
+    shapes::{Bounded, Intersectable},
 };
 
 #[derive(Debug)]

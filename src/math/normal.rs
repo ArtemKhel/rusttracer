@@ -2,7 +2,7 @@ use approx::AbsDiffEq;
 use derive_more::{Deref, DerefMut, From, Neg};
 use num_traits::Float;
 
-use crate::{
+use crate::math::{
     transform::{Transform, Transformable},
     Dot, Normed, Number, Vec3, Vec4,
 };

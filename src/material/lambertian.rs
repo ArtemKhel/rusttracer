@@ -1,8 +1,8 @@
 use image::Rgb;
-use math::{utils::random_unit, Normed};
 
 use crate::{
     material::{Material, Scatter},
+    math::{utils::random_unit, Normed},
     scene::Intersection,
     Ray,
 };

@@ -2,7 +2,7 @@ use std::ops::Div;
 
 use derive_more::{Deref, DerefMut, Neg};
 
-use crate::Normed;
+use crate::math::Normed;
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Deref, DerefMut, Neg)]
 pub struct Unit<Inner> {
@@ -25,13 +25,13 @@ impl<Inner: Normed> Unit<Inner> {
 #[macro_export]
 macro_rules! unit3 {
     ($x:expr, $y:expr, $z:expr) => {
-        Unit::from($crate::vec3!($x, $y, $z))
+        $crate::math::Unit::from($crate::vec3!($x, $y, $z))
     };
 }
 #[macro_export]
 macro_rules! unit3_unchecked {
     ($x:expr, $y:expr, $z:expr) => {
-        Unit::from_unchecked($crate::vec3!($x, $y, $z))
+        $crate::math::Unit::from_unchecked($crate::vec3!($x, $y, $z))
     };
 }
 
@@ -48,7 +48,10 @@ where Inner: Normed<Output = T> + Div<T, Output = Inner> + Copy
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{cross, dot, utils::reflect, vec3, Cross};
+    use crate::{
+        math::{cross, dot, utils::reflect, Cross},
+        vec3,
+    };
 
     #[test]
     fn test_macro() {
@@ -62,7 +65,7 @@ mod tests {
     fn test_dot_cross() {
         let u = unit3!(10., 0., 0.);
         let v = unit3!(0., 20., 0.);
-        let r = cross(*u, *v);
+        let r = cross(u.deref(), v.deref());
         let r2 = dot(u.deref(), u.deref());
 
         assert_eq!(r, vec3!(0., 0., 1.));

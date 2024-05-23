@@ -1,7 +1,10 @@
 use num_traits::Pow;
 
 use crate::{
-    aabb::Aabb, utils::local_normal, Bounded, Cross, Dot, Hit, Intersectable, Normed, Number, Point3, Ray, Unit, Vec3,
+    aggregates::Aabb,
+    core::{Hit, Ray},
+    math::{utils::local_normal, Cross, Dot, Normed, Number, Point3, Unit, Vec3},
+    shapes::{Bounded, Intersectable},
 };
 
 #[derive(Debug)]
@@ -93,6 +96,7 @@ impl<T: Number> Bounded<T> for Triangle<T> {
 #[cfg(test)]
 mod tests {
     use obj;
+    // TODO:
 
     #[test]
     fn test() {}

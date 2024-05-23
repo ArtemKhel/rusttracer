@@ -1,6 +1,9 @@
-use math::{Bounded, BoundedIntersectable, Intersectable};
-
-use crate::{material::Material, Aabb, Hit, Ray, F};
+use crate::{
+    aggregates::Aabb,
+    material::Material,
+    shapes::{Bounded, BoundedIntersectable, Intersectable},
+    Hit, Ray, F,
+};
 
 #[derive(Debug)]
 pub struct Primitive {
@@ -14,7 +17,7 @@ pub struct Composite {
 }
 
 impl Bounded<F> for Composite {
-    fn bound(&self) -> Aabb { self.objects.iter().fold(Aabb::default(), |acc, x| acc + x.bound()) }
+    fn bound(&self) -> Aabb<F> { self.objects.iter().fold(Aabb::default(), |acc, x| acc + x.bound()) }
 }
 
 impl Intersectable<F> for Composite {
@@ -22,7 +25,7 @@ impl Intersectable<F> for Composite {
 }
 
 impl Bounded<F> for Primitive {
-    fn bound(&self) -> Aabb { self.shape.bound() }
+    fn bound(&self) -> Aabb<F> { self.shape.bound() }
 }
 
 impl Intersectable<F> for Primitive {

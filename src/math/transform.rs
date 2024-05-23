@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use crate::{matrix4::Matrix4, point3, utils::Axis3, vec3, Dot, Number, Vec3};
+use crate::math::{matrix4::Matrix4, utils::Axis3, Dot, Number, Vec3};
 
 #[derive(Debug)]
 pub struct Transform<T> {
