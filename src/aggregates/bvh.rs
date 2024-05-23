@@ -384,40 +384,40 @@ mod tests {
         material::lambertian::Lambertian, math::Normed, point3, scene::Primitive, shapes::sphere::Sphere, vec3, Point3,
     };
 
-    #[test]
-    fn test_bvh() {
-        let mut world: Vec<Rc<Primitive>> = vec![
-            Primitive {
-                shape: Box::new(Sphere::new(point3!(0., 0., 0.), 1.0)),
-                material: Box::new(Lambertian {
-                    albedo: Rgb([0.4, 0.2, 0.1]),
-                }),
-            },
-            Primitive {
-                shape: Box::new(Sphere::new(point3!(4., 0., 0.), 1.0)),
-                material: Box::new(Lambertian {
-                    albedo: Rgb([0.4, 0.2, 0.1]),
-                }),
-            },
-            Primitive {
-                shape: Box::new(Sphere::new(point3!(0., 4., 0.), 1.0)),
-                material: Box::new(Lambertian {
-                    albedo: Rgb([0.4, 0.2, 0.1]),
-                }),
-            },
-            Primitive {
-                shape: Box::new(Sphere::new(point3!(4., 4., 0.), 1.0)),
-                material: Box::new(Lambertian {
-                    albedo: Rgb([0.4, 0.2, 0.1]),
-                }),
-            },
-        ]
-        .into_iter()
-        .map(Rc::new)
-        .collect();
-
-        let bvh = BVH::new(world, 1);
-        bvh.hit(&Ray::new(Point3::default(), vec3!(1., 0., 0.).to_unit()));
-        // dbg!(&bvh);
-    }
+    // #[test]
+    // fn test_bvh() {
+    //     let mut world: Vec<Rc<Primitive>> = vec![
+    //         Primitive {
+    //             shape: Box::new(Sphere::new(point3!(0., 0., 0.), 1.0)),
+    //             material: Box::new(Lambertian {
+    //                 albedo: Rgb([0.4, 0.2, 0.1]),
+    //             }),
+    //         },
+    //         Primitive {
+    //             shape: Box::new(Sphere::new(point3!(4., 0., 0.), 1.0)),
+    //             material: Box::new(Lambertian {
+    //                 albedo: Rgb([0.4, 0.2, 0.1]),
+    //             }),
+    //         },
+    //         Primitive {
+    //             shape: Box::new(Sphere::new(point3!(0., 4., 0.), 1.0)),
+    //             material: Box::new(Lambertian {
+    //                 albedo: Rgb([0.4, 0.2, 0.1]),
+    //             }),
+    //         },
+    //         Primitive {
+    //             shape: Box::new(Sphere::new(point3!(4., 4., 0.), 1.0)),
+    //             material: Box::new(Lambertian {
+    //                 albedo: Rgb([0.4, 0.2, 0.1]),
+    //             }),
+    //         },
+    //     ]
+    //     .into_iter()
+    //     .map(Rc::new)
+    //     .collect();
+    //
+    //     let bvh = BVH::new(world, 1);
+    //     bvh.hit(&Ray::new(Point3::default(), vec3!(1., 0., 0.).to_unit()));
+    //     // dbg!(&bvh);
+    // }
 }

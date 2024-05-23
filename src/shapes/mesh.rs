@@ -6,6 +6,7 @@ use crate::{
     math::{utils::local_normal, Cross, Dot, Normed, Number, Point3, Unit, Vec3},
     shapes::{Bounded, Intersectable},
 };
+use crate::math::{Transform, Transformable};
 
 #[derive(Debug)]
 pub struct Triangle<T: Number> {
@@ -21,7 +22,11 @@ pub struct Triangle<T: Number> {
 impl<T: Number> Triangle<T> {
     const PADDING: f32 = 1e-4;
 
-    pub fn new(a: Point3<T>, ab: Vec3<T>, ac: Vec3<T>) -> Self {
+    pub fn new(a: Point3<T>, ab: Vec3<T>, ac: Vec3<T>, trans: &Transform<T>) -> Self {
+        let a = a.transform(&trans);
+        let ab = ab.transform(&trans);
+        let ac = ac.transform(&trans);
+        
         let n = ab.cross(ac);
         let normal = n.to_unit();
         let d = normal.dot(&a.coords);

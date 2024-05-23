@@ -9,30 +9,33 @@ use rusttracer::{
 fn main() {
     env_logger::init();
     // let scene = spheres();
-    // let scene = cornell_box();
+    let scene = cornell_box();
     // let scene = cubes();
-    let scene = teapot();
+    // let scene = teapot();
 
     let raytracer = RayTracer {
         scene,
         resolution: Resolution {
-            width: 640,
-            height: 640,
+            // width: 640,
+            // height: 640,
+            //
             // width: 1280,
             // height: 1280,
-
-            // width: 1920,
-            // height: 1920,
+            //
+            width: 1920,
+            height: 1920,
+            //
             // width: 640,
             // height: 360,
+            //
             // width: 1280,
             // height: 720,
-
+            //
             // width: 1920,
             // height: 1080,
         },
         // antialiasing: AAType::None.into(),
-        antialiasing: RegularGrid(3).into(),
+        antialiasing: RegularGrid(20).into(),
         max_reflections: 5,
     };
 

@@ -9,7 +9,7 @@ use strum_macros::EnumIter;
 
 use crate::{
     core::Ray,
-    math::{dot, unit::Unit, Dot, Normal3, Normed, Number, Vec3},
+    math::{dot, unit::Unit, Dot, Normal3, Normed, Number, Two, Vec3},
 };
 
 #[derive(Copy, Clone, EnumIter, Debug)]
@@ -78,7 +78,7 @@ pub fn random_in_unit_disk<T: Number + SampleUniform>() -> Vec3<T> {
 }
 
 pub fn reflect<T: Number>(vec: &Vec3<T>, normal: &Vec3<T>) -> Unit<Vec3<T>> {
-    (*vec - (*normal * vec.dot(normal) * (T::one() + T::one()))).into()
+    (*vec - (*normal * vec.dot(normal) * (T::two()))).into()
 }
 
 pub fn refract<T: Number>(ray: &Unit<Vec3<T>>, normal: &Unit<Normal3<T>>, refraction_coef_ratio: T) -> Unit<Vec3<T>> {

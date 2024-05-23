@@ -150,7 +150,12 @@ impl<T: Number> Transformable<T> for Aabb<T> {
             .fold(Aabb::default(), |aabb, x| aabb + x)
     }
 
-    fn inv_transform(&self, trans: &Transform<T>) -> Self { todo!() }
+    fn inv_transform(&self, trans: &Transform<T>) -> Self {
+        self.corners()
+            .iter()
+            .map(|x| x.inv_transform(trans))
+            .fold(Aabb::default(), |aabb, x| aabb + x)
+    }
 }
 
 impl<T: Number + AbsDiffEq<Epsilon = T>> AbsDiffEq for Aabb<T> {

@@ -4,7 +4,7 @@ use derive_new::new;
 
 use crate::{
     core::Ray,
-    math::{Dot, Normal3, Number, Point3, Unit},
+    math::{Dot, Normal3, Normed, Number, Point3, Transform, Transformable, Unit},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, new)]
@@ -27,6 +27,25 @@ impl<T: Number> PartialOrd for Hit<T> {
 
 impl<T: Number> Ord for Hit<T> {
     fn cmp(&self, other: &Self) -> Ordering { self.t.partial_cmp(&other.t).unwrap() }
+}
+
+impl<T: Number> Transformable<T> for Hit<T> {
+    fn transform(&self, trans: &Transform<T>) -> Self {
+        Hit {
+            point: self.point.transform(&trans),
+            normal: self.normal.transform(&trans).to_unit(),
+            t: self.t,
+        }
+    }
+
+    fn inv_transform(&self, trans: &Transform<T>) -> Self {
+        // TODO: don't normalize normals?
+        Hit {
+            point: self.point.inv_transform(&trans),
+            normal: self.normal.inv_transform(&trans).to_unit(),
+            t: self.t,
+        }
+    }
 }
 
 #[cfg(test)]

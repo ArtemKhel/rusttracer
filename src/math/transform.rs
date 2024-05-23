@@ -1,8 +1,9 @@
 use std::fmt::Debug;
+use std::iter::Iterator;
 
 use crate::math::{matrix4::Matrix4, utils::Axis3, Dot, Number, Vec3};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Transform<T> {
     pub(crate) mat: Matrix4<T>,
     pub(crate) inv: Matrix4<T>,
@@ -14,6 +15,13 @@ pub trait Transformable<T> {
 }
 
 impl<T: Number> Transform<T> {
+    pub fn id() -> Transform<T> {
+        Transform {
+            mat: Matrix4::id(),
+            inv: Matrix4::id(),
+        }
+    }
+
     pub fn from_matrix(mat: Matrix4<T>) -> Transform<T> {
         // TODO: unwraps
         Transform {
@@ -43,6 +51,8 @@ impl<T: Number> Transform<T> {
             mat,
         }
     }
+
+    pub fn scale_uniform(factor:T) -> Self{ Self::scale(factor,factor,factor) }
 
     /// Clockwise
     pub fn rotate(axis: Axis3, theta: T) -> Self {
@@ -77,18 +87,25 @@ impl<T: Number> Transform<T> {
 
     pub fn compose(a: Transform<T>, b: Transform<T>) -> Self {
         Transform {
-            mat: a.mat * b.mat,
-            inv: b.inv * a.inv,
+            mat: b.mat * a.mat,
+            inv: a.inv * b.inv,
         }
     }
 
-    pub fn compose_iter<I: IntoIterator<Item = Transform<T>>>(it: I) -> Self {
-        it.into_iter().reduce(|acc, x| Self::compose(acc, x)).unwrap()
+    pub fn compose_iter<Iterable, Iterator>(it: Iterable) -> Self
+    where Iterable: IntoIterator<Item = Transform<T>, IntoIter = Iterator>, 
+          Iterator: DoubleEndedIterator<Item = Transform<T>>
+    {
+        it.into_iter().rev().reduce(|acc, x| Self::compose(acc, x)).unwrap()
     }
 
     pub fn apply_to<R: Transformable<T>>(&self, x: R) -> R { x.transform(self) }
 
     pub fn apply_inv_to<R: Transformable<T>>(&self, x: R) -> R { x.inv_transform(self) }
+}
+
+impl<T: Number> Default for Transform<T> {
+    fn default() -> Self { Transform::id() }
 }
 
 #[cfg(test)]

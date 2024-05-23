@@ -1,30 +1,31 @@
 use std::{fmt::Debug, ops::Deref};
 
+use derive_new::new;
 use num_traits::Pow;
 
 use crate::{
     aggregates::Aabb,
     core::{Hit, Ray},
-    math::{dot, Dot, Normal3, Normed, Number, Point3, Unit, Vec3},
+    math::{dot, Dot, Normal3, Normed, Number, Point3, Transform, Transformable, Unit},
     shapes::{Bounded, Intersectable},
     vec3,
 };
 
-#[derive(Default, Debug, Clone, Copy)]
-pub struct Sphere<T> {
-    pub center: Point3<T>,
+#[derive(Default, Debug, Clone, Copy, new)]
+pub struct Sphere<T: Number> {
+    // pub center: Point3<T>,
     pub radius: T,
+    pub transform: Transform<T>,
 }
 
 impl<T: Number> Sphere<T> {
-    pub fn new(center: Point3<T>, radius: T) -> Sphere<T> { Sphere { center, radius } }
-
-    pub fn normal(&self, point: Point3<T>) -> Unit<Normal3<T>> { (point - self.center).to_normal().to_unit() }
+    pub fn normal(&self, point: Point3<T>) -> Unit<Normal3<T>> { point.coords.to_normal().to_unit() }
 }
 
 impl<T: Number> Intersectable<T> for Sphere<T> {
     fn hit(&self, ray: &Ray<T>) -> Option<Hit<T>> {
-        let o = ray.origin - self.center;
+        let ray = ray.inv_transform(&self.transform);
+        let o = ray.origin.coords;
         let h = dot(ray.dir.deref(), &o);
         let c = o.len_squared() - self.radius.powi(2);
         let disc = h.powi(2) - c;
@@ -48,7 +49,7 @@ impl<T: Number> Intersectable<T> for Sphere<T> {
 
         root.map(|root| {
             let point = ray.at(root);
-            Hit::new(point, self.normal(point), root)
+            Hit::new(point, self.normal(point), root).transform(&self.transform)
         })
     }
 }
@@ -56,18 +57,18 @@ impl<T: Number> Intersectable<T> for Sphere<T> {
 impl<T: Number> Bounded<T> for Sphere<T> {
     fn bound(&self) -> Aabb<T> {
         let vec = vec3!(self.radius);
-        Aabb::from_points(Point3::from(self.center - vec), self.center + vec)
+        Aabb::from_points(Point3::from(vec), Point3::from(-vec)).transform(&self.transform)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{point3, shapes::BoundedIntersectable};
+    use crate::point3;
 
     #[test]
     fn test_aabb() {
-        let sphere = Sphere::new(Point3::default(), 1.0);
+        let sphere = Sphere::new(1.0, Transform::id());
         let aabb = sphere.bound();
         let expected = Aabb::from_points(point3!(1., 1., 1.), point3!(-1., -1., -1.));
 
@@ -75,9 +76,23 @@ mod tests {
     }
 
     #[test]
-    fn test() {
-        let sphere = Sphere::new(Point3::default(), 1.0_f32);
-        let boxed = Box::new(sphere);
-        let boxed_dyn: Box<dyn BoundedIntersectable<_>> = Box::new(sphere);
+    fn test_aabb_translated() {
+        let sphere = Sphere::new(1.0, Transform::translate(vec3!(1., 2., 3.)));
+        let aabb = sphere.bound();
+        let expected = Aabb::from_points(point3!(0., 1., 2.), point3!(2., 3., 4.));
+
+        assert_eq!(aabb, expected)
+    }
+
+    #[test]
+    fn test_aabb_translated_scaled() {
+        let sphere = Sphere::new(
+            1.0,
+            Transform::compose(Transform::translate(vec3!(1., 2., 3.)), Transform::scale(1., 1., 2.)),
+        );
+        let aabb = sphere.bound();
+        let expected = Aabb::from_points(point3!(0., 1., 1.), point3!(2., 3., 5.));
+
+        assert_eq!(aabb, expected)
     }
 }

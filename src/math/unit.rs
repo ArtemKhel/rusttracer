@@ -65,7 +65,7 @@ mod tests {
     fn test_dot_cross() {
         let u = unit3!(10., 0., 0.);
         let v = unit3!(0., 20., 0.);
-        let r = cross(u.deref(), v.deref());
+        let r = cross(*u, *v);
         let r2 = dot(u.deref(), u.deref());
 
         assert_eq!(r, vec3!(0., 0., 1.));
