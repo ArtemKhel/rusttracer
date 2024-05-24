@@ -41,7 +41,7 @@ macro_rules! vec3 {
 #[macro_export]
 macro_rules! unit_vec3 {
     ($x:expr, $y:expr, $z:expr) => {
-        $crate::Vec3 { x: $x, y: $y, z: $z }.to_unit()
+        $crate::Vec3f { x: $x, y: $y, z: $z }.to_unit()
     };
 }
 
@@ -65,10 +65,9 @@ impl<T: Number> Vec3<T> {
             Axis3::Z => vec3!(T::zero(), T::zero(), self.z),
         }
     }
-    
-    pub fn map<F,Out>(&self, f: F) -> Vec3<Out>
-    where F: Fn<(T,), Output=Out> 
-    {
+
+    pub fn map<F, Out>(&self, f: F) -> Vec3<Out>
+    where F: Fn<(T,), Output = Out> {
         vec3!(f(self.x), f(self.y), f(self.z))
     }
 }

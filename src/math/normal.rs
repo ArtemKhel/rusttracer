@@ -21,7 +21,6 @@ macro_rules! normal3 {
 macro_rules! unit_normal3 {
     ($x:expr, $y:expr, $z:expr) => {
         Unit::from($crate::vec3!($x, $y, $z)).cast::<Normal3<_>>()
-        // Unit::from(Normal3::from(crate::vec3!($x, $y, $z)))
     };
 }
 

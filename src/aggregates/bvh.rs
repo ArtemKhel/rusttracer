@@ -6,13 +6,19 @@ use std::{
 };
 
 use derive_new::new;
-use itertools::{Itertools, partition};
+use itertools::{partition, Itertools};
 use log::debug;
 use num_traits::{Float, Zero};
 use rayon::join;
 
-use crate::{aggregates::Aabb, breakpoint, F, math::{Number, utils::Axis3}, Point3, Ray, scene::{Intersection, Primitive}, shapes::{Bounded, Intersectable}, vec3};
-use crate::aggregates::aabb::AabbBound;
+use crate::{
+    aggregates::{aabb::AabbBound, Aabb},
+    breakpoint,
+    math::{utils::Axis3, Number, Point3},
+    scene::{Intersection, Primitive},
+    shapes::{Bounded, Intersectable},
+    vec3, Ray, F,
+};
 
 #[derive(Debug)]
 pub struct BVH<T: Number> {
@@ -39,7 +45,7 @@ enum BVHLinearNode<T: Number> {
 struct BVHPrimitiveInfo<T: Number> {
     index: usize,
     bounds: Aabb<T>,
-    center: Point3,
+    center: Point3<T>,
 }
 
 #[derive(Debug, new)]
@@ -125,7 +131,9 @@ impl BVH<F> {
             return Self::build_leaf(primitives, primitives_info, ordered_primitives, bounds);
         }
 
-        let centroid_bounds = primitives_info.iter().fold(Aabb::default(), |acc, p| acc.union(p.center));
+        let centroid_bounds = primitives_info
+            .iter()
+            .fold(Aabb::default(), |acc, p| acc.union(p.center));
         let axis = centroid_bounds.max_dimension();
         // all centers are in the same point
         if centroid_bounds.min == centroid_bounds.max {
@@ -272,8 +280,8 @@ impl BVH<F> {
                     let offset = lin_root.len();
                     match lin_root.get_mut(idx) {
                         Some(BVHLinearNode::Interior {
-                                 second_child_offset, ..
-                             }) => *second_child_offset = offset,
+                            second_child_offset, ..
+                        }) => *second_child_offset = offset,
                         _ => unreachable!(),
                     };
                     rec(children.1.as_ref(), lin_root);
@@ -310,7 +318,7 @@ impl BVH<F> {
         if self.nodes.is_empty() {
             return None;
         }
-        let mut stack = Vec::with_capacity(self.height*2);
+        let mut stack = Vec::with_capacity(self.height * 2);
         stack.push(0);
 
         let mut t_max = F::max_value();
@@ -321,9 +329,21 @@ impl BVH<F> {
 
         let inv_dir = ray.dir.map(F::recip);
         let inv_bounds = vec3!(
-            if ray.dir.x >= F::zero() {AabbBound::Min} else {AabbBound::Max},
-            if ray.dir.y >= F::zero() {AabbBound::Min} else {AabbBound::Max},
-            if ray.dir.z >= F::zero() {AabbBound::Min} else {AabbBound::Max}
+            if ray.dir.x >= F::zero() {
+                AabbBound::Min
+            } else {
+                AabbBound::Max
+            },
+            if ray.dir.y >= F::zero() {
+                AabbBound::Min
+            } else {
+                AabbBound::Max
+            },
+            if ray.dir.z >= F::zero() {
+                AabbBound::Min
+            } else {
+                AabbBound::Max
+            }
         );
 
         while let Some(node_id) = stack.pop() {
@@ -382,31 +402,44 @@ impl BVH<F> {
 mod tests {
     use test::Bencher;
 
-    use crate::{
-        math::Normed, point3, shapes::sphere::Sphere, vec3,
-    };
-    use crate::math::Transform;
-
     use super::*;
+    use crate::{
+        math::{Normed, Transform},
+        point3,
+        shapes::sphere::Sphere,
+        vec3,
+    };
 
     extern crate test;
 
     #[bench]
     fn bench_hit(b: &mut Bencher) {
         let aabb = Sphere::new(1., Transform::id()).bound();
-        let ray = Ray::new(point3!(10.,10.,10.), vec3!(-1.,-1.,-1.).to_unit());
+        let ray = Ray::new(point3!(10., 10., 10.), vec3!(-1., -1., -1.).to_unit());
         b.iter(|| aabb.hit(&ray, f32::INFINITY));
     }
 
     #[bench]
     fn bench_hit_fast(b: &mut Bencher) {
         let aabb = Sphere::new(1., Transform::id()).bound();
-        let ray = Ray::new(point3!(10.,10.,10.), vec3!(-1.,-1.,-1.).to_unit());
+        let ray = Ray::new(point3!(10., 10., 10.), vec3!(-1., -1., -1.).to_unit());
         let inv_dir = ray.dir.map(f32::recip);
         let inv_bounds = vec3!(
-            if ray.dir.x >= F::zero() {AabbBound::Min} else {AabbBound::Max},
-            if ray.dir.y >= F::zero() {AabbBound::Min} else {AabbBound::Max},
-            if ray.dir.z >= F::zero() {AabbBound::Min} else {AabbBound::Max}
+            if ray.dir.x >= F::zero() {
+                AabbBound::Min
+            } else {
+                AabbBound::Max
+            },
+            if ray.dir.y >= F::zero() {
+                AabbBound::Min
+            } else {
+                AabbBound::Max
+            },
+            if ray.dir.z >= F::zero() {
+                AabbBound::Min
+            } else {
+                AabbBound::Max
+            }
         );
         b.iter(|| aabb.hit_fast(&ray, inv_dir, inv_bounds, f32::INFINITY));
     }

@@ -5,7 +5,7 @@ use crate::{
     point3,
     rendering::PixelCoord,
     utils::degrees_to_radians,
-    vec3, Point3, Ray, Vec3,
+    vec3, Point3f, Ray, Vec3f,
 };
 
 pub trait Camera {
@@ -14,15 +14,15 @@ pub trait Camera {
 
 #[derive(Debug, Default)]
 pub struct Screen {
-    center: Point3,
-    basis: [Vec3; 2],
+    center: Point3f,
+    basis: [Vec3f; 2],
 }
 
 #[derive(Debug)]
 pub struct CameraConfig {
-    pub position: Point3,
-    pub look_at: Point3,
-    pub up: Vec3,
+    pub position: Point3f,
+    pub look_at: Point3f,
+    pub up: Vec3f,
     pub aspect_ratio: f32,
     pub vertical_fov: f32,
     pub defocus_angle: f32,
@@ -31,7 +31,7 @@ pub struct CameraConfig {
 
 #[derive(Debug, Default)]
 pub struct SimpleCamera {
-    pub position: Point3,
+    pub position: Point3f,
     pub screen: Screen,
     pub defocus_radius: f32,
 }
@@ -44,7 +44,7 @@ impl Camera for SimpleCamera {
 }
 
 impl SimpleCamera {
-    fn defocus_disk_sample(&self) -> Point3 {
+    fn defocus_disk_sample(&self) -> Point3f {
         let rnd = random_in_unit_disk();
         self.position + rnd * self.defocus_radius
     }

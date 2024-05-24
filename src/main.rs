@@ -35,7 +35,7 @@ fn main() {
             // height: 1080,
         },
         // antialiasing: AAType::None.into(),
-        antialiasing: RegularGrid(5).into(),
+        antialiasing: RegularGrid(3).into(),
         max_reflections: 5,
     };
 

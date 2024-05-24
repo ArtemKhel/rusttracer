@@ -1,8 +1,7 @@
 use std::{
     mem::swap,
-    ops::{Add, AddAssign},
+    ops::{Add, AddAssign, Index, Not},
 };
-use std::ops::{Index, Not};
 
 use approx::AbsDiffEq;
 use num_traits::Float;
@@ -10,7 +9,7 @@ use strum::IntoEnumIterator;
 
 use crate::{
     core::Ray,
-    math::{Number, Point3, Transform, Transformable, utils::Axis3, Vec3},
+    math::{utils::Axis3, Number, Point3, Transform, Transformable, Vec3},
     point3,
     shapes::Bounded,
 };
@@ -83,6 +82,7 @@ impl<T: Number> Aabb<T> {
         }
         true
     }
+
     pub fn hit_fast(&self, ray: &Ray<T>, inv_dir: Vec3<T>, inv_bounds: Vec3<AabbBound>, mut ray_t_max: T) -> bool {
         // TODO:
         let mut t_min = T::neg_infinity();
@@ -132,7 +132,10 @@ impl<T: Number> Aabb<T> {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub enum AabbBound { Min, Max }
+pub enum AabbBound {
+    Min,
+    Max,
+}
 
 impl Not for AabbBound {
     type Output = Self;
@@ -147,6 +150,7 @@ impl Not for AabbBound {
 
 impl<T: Number> Index<AabbBound> for Aabb<T> {
     type Output = Point3<T>;
+
     fn index(&self, index: AabbBound) -> &Self::Output {
         match index {
             AabbBound::Min => &self.min,
@@ -204,7 +208,7 @@ impl<T: Number> Transformable<T> for Aabb<T> {
     }
 }
 
-impl<T: Number + AbsDiffEq<Epsilon=T>> AbsDiffEq for Aabb<T> {
+impl<T: Number + AbsDiffEq<Epsilon = T>> AbsDiffEq for Aabb<T> {
     type Epsilon = T;
 
     fn default_epsilon() -> Self::Epsilon { T::epsilon() }
@@ -220,9 +224,8 @@ mod tests {
 
     use approx::assert_abs_diff_eq;
 
-    use crate::{math::utils::Axis3, Ray, unit3};
-
     use super::*;
+    use crate::{math::utils::Axis3, unit3, Ray};
 
     #[test]
     fn test_aabb() {

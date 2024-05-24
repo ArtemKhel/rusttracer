@@ -1,21 +1,23 @@
-use std::{f32::consts::FRAC_PI_8, rc::Rc};
-use std::f32::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_4, FRAC_PI_6, PI};
+use std::{
+    f32::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_4, FRAC_PI_6, FRAC_PI_8, PI},
+    rc::Rc,
+};
 
 use image::Rgb;
 
 use crate::{
     aggregates::BVH,
     material::{
-        dielectric::Dielectric, diffuse_light::DiffuseLight, isotropic::Isotropic, lambertian::Lambertian, Material,
+        dielectric::Dielectric, diffuse_light::DiffuseLight, isotropic::Isotropic, lambertian::Lambertian,
+        metal::Metal, Material,
     },
     math::{utils::Axis3, Transform},
     mediums::Medium,
     point3,
     scene::{CameraConfig, Composite, Primitive, Scene, SimpleCamera},
     shapes::{mesh::Triangle, quad::Quad, sphere::Sphere},
-    vec3, Point3, F,
+    vec3, Point3f, F,
 };
-use crate::material::metal::Metal;
 
 pub fn cornell_box() -> Scene {
     let materials: Vec<Box<dyn Material>> = vec![Box::new(Lambertian {
@@ -53,7 +55,7 @@ pub fn cornell_box() -> Scene {
                 Transform::id(),
             )),
             material: Box::new(DiffuseLight {
-                color: Rgb([1., 1., 1.]),
+                color: Rgb([2., 2., 2.]),
             }),
         },
         Primitive {
@@ -99,8 +101,6 @@ pub fn cornell_box() -> Scene {
     ];
 
     for side in Quad::quad_box(
-        // point3!(130., 0., 65.),
-        // point3!(295., 165., 230.),
         165.0,
         165.0,
         165.0,
@@ -119,8 +119,6 @@ pub fn cornell_box() -> Scene {
         })
     }
     let box2 = Quad::quad_box(
-        // point3!(265., 0.1, 295.),
-        // point3!(430., 330., 460.),
         165.0,
         330.0,
         165.0,
@@ -140,7 +138,7 @@ pub fn cornell_box() -> Scene {
     });
 
     let obj = obj::Obj::load("./data/buddha.obj").unwrap();
-    let vertices: Vec<Point3> = obj.data.position.iter().map(|x| point3!(x[0], x[1], x[2])).collect();
+    let vertices: Vec<Point3f> = obj.data.position.iter().map(|x| point3!(x[0], x[1], x[2])).collect();
     let normals = obj.data.normal;
     let group = obj.data.objects.first().unwrap().groups.first().unwrap();
 

@@ -5,19 +5,23 @@ use std::{
 };
 
 use approx::AbsDiffEq;
+pub use frame::Frame;
 pub use matrix::*;
 pub use normal::Normal3;
 use num_traits::{Float, Num, NumAssignOps, One, Pow, Signed};
 pub use point::Point3;
+pub use point2::Point2;
 pub use transform::{Transform, Transformable};
 pub use unit::Unit;
 pub use vec::Vec3;
 pub use vec4::Vec4;
 
+mod frame;
 mod matrix;
 mod matrix4;
 mod normal;
 mod point;
+mod point2;
 mod transform;
 mod unit;
 pub mod utils;

@@ -29,8 +29,13 @@ impl<T: Number> Transform<T> {
             mat,
         }
     }
-    
-    pub fn invert(&self) -> Self{ Transform{ mat: self.inv, inv: self.mat } }
+
+    pub fn invert(&self) -> Self {
+        Transform {
+            mat: self.inv,
+            inv: self.mat,
+        }
+    }
 
     pub fn translate(vec: Vec3<T>) -> Self {
         let mut mat = Matrix4::id();
@@ -101,6 +106,8 @@ impl<T: Number> Transform<T> {
         it.into_iter().reduce(|acc, x| Self::compose(acc, x)).unwrap()
     }
 
+    pub fn builder() -> TransformBuilder<T> { TransformBuilder::default() }
+
     pub fn apply_to<R: Transformable<T>>(&self, x: R) -> R { x.transform(self) }
 
     pub fn apply_inv_to<R: Transformable<T>>(&self, x: R) -> R { x.inv_transform(self) }
@@ -110,6 +117,35 @@ impl<T: Number> Default for Transform<T> {
     fn default() -> Self { Transform::id() }
 }
 
+#[derive(Default)]
+pub struct TransformBuilder<T: Number> {
+    result: Transform<T>,
+}
+impl<T: Number> TransformBuilder<T> {
+    pub fn build(self) -> Transform<T> { self.result }
+
+    pub fn translate(mut self, vec: Vec3<T>) -> Self {
+        self.result = Transform::compose(self.result, Transform::translate(vec));
+        self
+    }
+
+    pub fn scale(mut self, factor_x: T, factor_y: T, factor_z: T) -> Self {
+        self.result = Transform::compose(self.result, Transform::scale(factor_x, factor_y, factor_z));
+        self
+    }
+
+    pub fn scale_uniform(mut self, factor: T) -> Self {
+        self.result = Transform::compose(self.result, Transform::scale_uniform(factor));
+        self
+    }
+
+    /// Clockwise
+    pub fn rotate(mut self, axis: Axis3, theta: T) -> Self {
+        self.result = Transform::compose(self.result, Transform::rotate(axis, theta));
+        self
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::f32::consts::FRAC_PI_2;
@@ -117,7 +153,7 @@ mod tests {
     use approx::assert_abs_diff_eq;
 
     use super::*;
-    use crate::{point3, vec3, Point3, Vec3};
+    use crate::{point3, vec3, Vec3f};
 
     #[test]
     fn test_translate() {
