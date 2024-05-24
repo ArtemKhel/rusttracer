@@ -21,13 +21,10 @@ pub mod aggregates;
 pub mod shapes;
 pub mod test_scenes;
 
-pub type F = f32;
-pub type Point2f = math::Point2<F>;
-pub type Point3f = math::Point3<F>;
-pub type Vec3f = math::Vec3<F>;
-pub type Normal3f = math::Normal3<F>;
-pub type Ray = core::Ray<F>;
-pub type Hit = core::Hit<F>;
+pub type Point2f = math::Point2<f32>;
+pub type Point3f = math::Point3<f32>;
+pub type Vec3f = math::Vec3<f32>;
+pub type Normal3f = math::Normal3<f32>;
 
 pub mod colors {
     use image::Rgb;

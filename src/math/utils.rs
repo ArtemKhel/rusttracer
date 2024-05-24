@@ -10,6 +10,7 @@ use strum_macros::EnumIter;
 use crate::{
     core::Ray,
     math::{dot, unit::Unit, Dot, Normal3, Normed, Number, Two, Vec3},
+    Vec3f,
 };
 
 #[derive(Copy, Clone, EnumIter, Debug)]
@@ -92,8 +93,8 @@ pub fn refract<T: Number>(ray: &Unit<Vec3<T>>, normal: &Unit<Normal3<T>>, refrac
     (perpend + parallel).to_unit()
 }
 
-pub fn local_normal<T: Number>(normal: Vec3<T>, ray: &Ray<T>) -> Vec3<T> {
-    if dot(&normal, &ray.dir) < T::zero() {
+pub fn local_normal(normal: Vec3f, ray: &Ray) -> Vec3f {
+    if dot(&normal, &ray.dir) < 0.0 {
         normal
     } else {
         -normal

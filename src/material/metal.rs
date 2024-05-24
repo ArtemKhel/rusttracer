@@ -1,13 +1,13 @@
 use image::Rgb;
 
 use crate::{
+    core::Ray,
     material::{Material, Scatter},
     math::{
         utils::{random_unit, reflect},
         Normed,
     },
     scene::Intersection,
-    Ray,
 };
 
 #[derive(Debug, Clone, Copy)]

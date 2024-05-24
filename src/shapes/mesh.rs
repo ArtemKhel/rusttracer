@@ -5,23 +5,24 @@ use crate::{
     core::{Hit, Ray},
     math::{utils::local_normal, Cross, Dot, Normed, Number, Point3, Transform, Transformable, Unit, Vec3},
     shapes::{Bounded, Intersectable},
+    Point3f, Vec3f,
 };
 
 #[derive(Debug)]
-pub struct Triangle<T: Number> {
-    a: Point3<T>,
-    ab: Vec3<T>,
-    ac: Vec3<T>,
-    normal: Unit<Vec3<T>>,
-    normals: [Unit<Vec3<T>>; 3],
-    d: T,
-    w: Vec3<T>,
+pub struct Triangle {
+    a: Point3f,
+    ab: Vec3f,
+    ac: Vec3f,
+    normal: Unit<Vec3f>,
+    normals: [Unit<Vec3f>; 3],
+    d: f32,
+    w: Vec3f,
 }
 
-impl<T: Number> Triangle<T> {
+impl Triangle {
     const PADDING: f32 = 1e-4;
 
-    pub fn new(a: Point3<T>, ab: Vec3<T>, ac: Vec3<T>, trans: &Transform<T>) -> Self {
+    pub fn new(a: Point3f, ab: Vec3f, ac: Vec3f, trans: &Transform<f32>) -> Self {
         let a = a.transform(trans);
         let ab = ab.transform(trans);
         let ac = ac.transform(trans);
@@ -41,7 +42,7 @@ impl<T: Number> Triangle<T> {
         }
     }
 
-    pub fn new_with_normals(a: Point3<T>, ab: Vec3<T>, ac: Vec3<T>, normals: [Unit<Vec3<T>>; 3]) -> Self {
+    pub fn new_with_normals(a: Point3f, ab: Vec3f, ac: Vec3f, normals: [Unit<Vec3f>; 3]) -> Self {
         let n = ab.cross(ac);
         let normal = n.to_unit();
         let d = normal.dot(&a.coords);
@@ -58,16 +59,16 @@ impl<T: Number> Triangle<T> {
     }
 }
 
-impl<T: Number> Intersectable<T> for Triangle<T> {
-    fn hit(&self, ray: &Ray<T>) -> Option<Hit<T>> {
+impl Intersectable<f32> for Triangle {
+    fn hit(&self, ray: &Ray) -> Option<Hit> {
         // let denom = ray.dir.dot(self.normal);
         let denom = self.normal.dot(&ray.dir);
-        if T::abs(denom) < T::from(Self::PADDING).unwrap() {
+        if denom.abs() < Self::PADDING {
             return None;
         }
 
         let t = (self.d - self.normal.dot(&ray.origin.coords)) / denom;
-        if t < T::zero() {
+        if t < 0.0 {
             return None;
         }
 
@@ -76,9 +77,8 @@ impl<T: Number> Intersectable<T> for Triangle<T> {
         let alpha = self.w.dot(&planar_hit_point.cross(self.ab));
         let beta = self.w.dot(&self.ac.cross(planar_hit_point));
 
-        if (T::zero()..=T::one()).contains(&alpha) && (T::zero()..=T::one()).contains(&beta) && alpha + beta <= T::one()
-        {
-            let an = T::one() - alpha - beta;
+        if (0.0..=1.0).contains(&alpha) && (0.0..=1.0).contains(&beta) && alpha + beta <= 1.0 {
+            let an = 1.0 - alpha - beta;
             let normal = (*self.normals[0] * an + *self.normals[1] * alpha + *self.normals[2] * beta);
             Some(Hit {
                 point: hit_point,
@@ -91,16 +91,16 @@ impl<T: Number> Intersectable<T> for Triangle<T> {
     }
 }
 
-impl<T: Number> Bounded<T> for Triangle<T> {
-    fn bound(&self) -> Aabb<T> {
+impl Bounded<f32> for Triangle {
+    fn bound(&self) -> Aabb<f32> {
         Aabb::from_points(self.a + self.ab, self.a + self.ac) + Aabb::from_points(self.a, self.a + (self.ac + self.ab))
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use obj;
     // TODO:
+    use obj;
 
     #[test]
     fn test() {}

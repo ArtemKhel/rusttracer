@@ -8,28 +8,28 @@ use crate::{
     core::{Hit, Ray},
     math::{dot, Dot, Normal3, Normed, Number, Point3, Transform, Transformable, Unit},
     shapes::{Bounded, Intersectable},
-    vec3,
+    vec3, Normal3f, Point3f,
 };
 
 #[derive(Default, Debug, Clone, Copy, new)]
-pub struct Sphere<T: Number> {
+pub struct Sphere {
     // pub center: Point3<T>,
-    pub radius: T,
-    pub transform: Transform<T>,
+    pub radius: f32,
+    pub transform: Transform<f32>,
 }
 
-impl<T: Number> Sphere<T> {
-    pub fn normal(&self, point: Point3<T>) -> Unit<Normal3<T>> { point.coords.to_normal().to_unit() }
+impl Sphere {
+    pub fn normal(&self, point: Point3f) -> Unit<Normal3f> { point.coords.to_normal().to_unit() }
 }
 
-impl<T: Number> Intersectable<T> for Sphere<T> {
-    fn hit(&self, ray: &Ray<T>) -> Option<Hit<T>> {
+impl Intersectable<f32> for Sphere {
+    fn hit(&self, ray: &Ray) -> Option<Hit> {
         let ray = ray.inv_transform(&self.transform);
         let o = ray.origin.coords;
         let h = dot(ray.dir.deref(), &o);
         let c = o.len_squared() - self.radius.powi(2);
         let disc = h.powi(2) - c;
-        if disc < T::zero() {
+        if disc < 0.0 {
             return None;
         }
 
@@ -38,9 +38,9 @@ impl<T: Number> Intersectable<T> for Sphere<T> {
         let root = {
             let r = -h - disc_sqrt;
             let r2 = -h + disc_sqrt;
-            if r >= T::zero() {
+            if r >= 0.0 {
                 Some(r)
-            } else if r2 >= T::zero() {
+            } else if r2 >= 0.0 {
                 Some(r2)
             } else {
                 None
@@ -54,8 +54,8 @@ impl<T: Number> Intersectable<T> for Sphere<T> {
     }
 }
 
-impl<T: Number> Bounded<T> for Sphere<T> {
-    fn bound(&self) -> Aabb<T> {
+impl Bounded<f32> for Sphere {
+    fn bound(&self) -> Aabb<f32> {
         let vec = vec3!(self.radius);
         Aabb::from_points(Point3::from(vec), Point3::from(-vec)).transform(&self.transform)
     }

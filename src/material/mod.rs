@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use image::Rgb;
 
-use crate::{scene::Intersection, Ray};
+use crate::{core::Ray, scene::Intersection};
 
 pub mod dielectric;
 pub mod diffuse_light;

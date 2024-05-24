@@ -7,7 +7,7 @@ use crate::{
         bxdf::{BxDF, BxDFSample, BxDFType, Shading},
         utils::{abs_cos_theta, cosine_hemisphere_pdf, same_hemisphere, sample_cosine_hemisphere},
     },
-    colors, Point2f, Vec3f, F,
+    colors, Point2f, Vec3f,
 };
 
 #[derive(Debug, Copy, Clone)]
@@ -39,11 +39,11 @@ impl BxDF for DiffuseBxDF {
         })
     }
 
-    fn pdf(&self, incoming: Shading<Vec3f>, outgoing: Shading<Vec3f>) -> F {
+    fn pdf(&self, incoming: Shading<Vec3f>, outgoing: Shading<Vec3f>) -> f32 {
         if same_hemisphere(incoming, outgoing) {
             cosine_hemisphere_pdf(abs_cos_theta(incoming))
         } else {
-            F::zero()
+            0.0
         }
     }
 }

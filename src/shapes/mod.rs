@@ -10,7 +10,7 @@ pub mod quad;
 pub mod sphere;
 
 pub trait Intersectable<T: Number> {
-    fn hit(&self, ray: &Ray<T>) -> Option<Hit<T>>;
+    fn hit(&self, ray: &Ray) -> Option<Hit>;
 }
 
 pub trait Bounded<T: Number> {

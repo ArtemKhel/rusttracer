@@ -1,10 +1,10 @@
 use image::Rgb;
 
 use crate::{
+    core::Ray,
     material::{Material, Scatter},
     math::{utils::random_unit, Normed},
     scene::Intersection,
-    Ray,
 };
 
 #[derive(Debug, Clone, Copy)]

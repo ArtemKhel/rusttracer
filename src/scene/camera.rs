@@ -1,11 +1,12 @@
 use std::ops::Mul;
 
 use crate::{
+    core::Ray,
     math::{utils::random_in_unit_disk, Cross, *},
     point3,
     rendering::PixelCoord,
     utils::degrees_to_radians,
-    vec3, Point3f, Ray, Vec3f,
+    vec3, Point3f, Vec3f,
 };
 
 pub trait Camera {

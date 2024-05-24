@@ -14,10 +14,11 @@ use rayon::join;
 use crate::{
     aggregates::{aabb::AabbBound, Aabb},
     breakpoint,
+    core::Ray,
     math::{utils::Axis3, Number, Point3},
     scene::{Intersection, Primitive},
     shapes::{Bounded, Intersectable},
-    vec3, Ray, F,
+    vec3,
 };
 
 #[derive(Debug)]
@@ -78,12 +79,12 @@ struct BVHSplitBucket<T: Number> {
 }
 
 // TODO: generic
-impl BVH<F> {
-    pub fn new(primitives: Vec<Rc<Primitive>>, mut max_in_node: usize) -> BVH<F> {
+impl BVH<f32> {
+    pub fn new(primitives: Vec<Rc<Primitive>>, mut max_in_node: usize) -> BVH<f32> {
         // TODO: allocators
         let bounds = primitives.iter().fold(Aabb::default(), |acc, p| acc + p.bound());
 
-        let mut primitives_info: Vec<BVHPrimitiveInfo<F>> = Vec::with_capacity(primitives.len());
+        let mut primitives_info: Vec<BVHPrimitiveInfo<f32>> = Vec::with_capacity(primitives.len());
         for (index, p) in primitives.iter().enumerate() {
             let bounds = p.bound();
             primitives_info.push(BVHPrimitiveInfo {
@@ -118,12 +119,12 @@ impl BVH<F> {
 
     fn recursive_build(
         primitives: &Vec<Rc<Primitive>>,
-        primitives_info: &mut [BVHPrimitiveInfo<F>],
+        primitives_info: &mut [BVHPrimitiveInfo<f32>],
         ordered_primitives: &mut Vec<Rc<Primitive>>,
         total_nodes: &mut usize,
         split_method: SplitMethod,
         max_in_node: usize,
-    ) -> BVHBuildNode<F> {
+    ) -> BVHBuildNode<f32> {
         *total_nodes += 1;
 
         let bounds = primitives_info.iter().fold(Aabb::default(), |acc, p| acc + p.bounds);
@@ -168,12 +169,12 @@ impl BVH<F> {
     }
 
     fn partition(
-        primitives_info: &mut [BVHPrimitiveInfo<F>],
-        centroid_bounds: Aabb<F>,
+        primitives_info: &mut [BVHPrimitiveInfo<f32>],
+        centroid_bounds: Aabb<f32>,
         axis: Axis3,
         split_method: SplitMethod,
         max_in_node: usize,
-    ) -> Option<(&mut [BVHPrimitiveInfo<F>], &mut [BVHPrimitiveInfo<F>])> {
+    ) -> Option<(&mut [BVHPrimitiveInfo<f32>], &mut [BVHPrimitiveInfo<f32>])> {
         let mut mid = primitives_info.len() / 2;
         match split_method {
             SplitMethod::Middle => {
@@ -246,10 +247,10 @@ impl BVH<F> {
 
     fn build_leaf(
         primitives: &[Rc<Primitive>],
-        primitives_info: &[BVHPrimitiveInfo<F>],
+        primitives_info: &[BVHPrimitiveInfo<f32>],
         ordered_primitives: &mut Vec<Rc<Primitive>>,
-        bounds: Aabb<F>,
-    ) -> BVHBuildNode<F> {
+        bounds: Aabb<f32>,
+    ) -> BVHBuildNode<f32> {
         let first_offset = ordered_primitives.len();
         for prim_info in primitives_info {
             ordered_primitives.push(primitives[prim_info.index].clone())
@@ -257,7 +258,7 @@ impl BVH<F> {
         BVHBuildNode::new_leaf(bounds, first_offset, primitives_info.len())
     }
 
-    fn height(root: &BVHBuildNode<F>) -> usize {
+    fn height(root: &BVHBuildNode<f32>) -> usize {
         match root {
             BVHBuildNode::Interior { children, .. } => {
                 max(Self::height(children.0.as_ref()), Self::height(children.1.as_ref())) + 1
@@ -266,8 +267,8 @@ impl BVH<F> {
         }
     }
 
-    fn flatten(root: BVHBuildNode<F>, total_nodes: usize) -> Vec<BVHLinearNode<F>> {
-        fn rec(root: &BVHBuildNode<F>, lin_root: &mut Vec<BVHLinearNode<F>>) {
+    fn flatten(root: BVHBuildNode<f32>, total_nodes: usize) -> Vec<BVHLinearNode<f32>> {
+        fn rec(root: &BVHBuildNode<f32>, lin_root: &mut Vec<BVHLinearNode<f32>>) {
             match root {
                 BVHBuildNode::Interior { bounds, children, axis } => {
                     let idx = lin_root.len();
@@ -313,7 +314,7 @@ impl BVH<F> {
 //     }
 // }
 
-impl BVH<F> {
+impl BVH<f32> {
     pub fn hit(&self, ray: &Ray) -> Option<Intersection> {
         if self.nodes.is_empty() {
             return None;
@@ -321,25 +322,25 @@ impl BVH<F> {
         let mut stack = Vec::with_capacity(self.height * 2);
         stack.push(0);
 
-        let mut t_max = F::max_value();
+        let mut t_max = f32::max_value();
         let mut closest: Option<Intersection> = None;
 
         // let mut _dbg_counter = 0;
         // let mut _dbg_node_history: Vec<usize> = vec![];
 
-        let inv_dir = ray.dir.map(F::recip);
+        let inv_dir = ray.dir.map(f32::recip);
         let inv_bounds = vec3!(
-            if ray.dir.x >= F::zero() {
+            if ray.dir.x >= 0.0 {
                 AabbBound::Min
             } else {
                 AabbBound::Max
             },
-            if ray.dir.y >= F::zero() {
+            if ray.dir.y >= 0.0 {
                 AabbBound::Min
             } else {
                 AabbBound::Max
             },
-            if ray.dir.z >= F::zero() {
+            if ray.dir.z >= 0.0 {
                 AabbBound::Min
             } else {
                 AabbBound::Max
@@ -425,17 +426,17 @@ mod tests {
         let ray = Ray::new(point3!(10., 10., 10.), vec3!(-1., -1., -1.).to_unit());
         let inv_dir = ray.dir.map(f32::recip);
         let inv_bounds = vec3!(
-            if ray.dir.x >= F::zero() {
+            if ray.dir.x >= 0.0 {
                 AabbBound::Min
             } else {
                 AabbBound::Max
             },
-            if ray.dir.y >= F::zero() {
+            if ray.dir.y >= 0.0 {
                 AabbBound::Min
             } else {
                 AabbBound::Max
             },
-            if ray.dir.z >= F::zero() {
+            if ray.dir.z >= 0.0 {
                 AabbBound::Min
             } else {
                 AabbBound::Max

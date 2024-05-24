@@ -1,4 +1,4 @@
-pub use hit::Hit;
-pub use ray::Ray;
-mod hit;
-mod ray;
+pub type Hit = hit::Hit<f32>;
+pub type Ray = ray::Ray<f32>;
+pub mod hit;
+pub mod ray;

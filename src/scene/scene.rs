@@ -2,15 +2,15 @@ use image::Rgb;
 
 use crate::{
     aggregates::BVH,
+    core::Ray,
     material::Material,
     scene::{Intersection, SimpleCamera},
-    Ray, F,
 };
 
 pub struct Scene {
     pub camera: SimpleCamera,
     // pub objects: Vec<Primitive>,
-    pub objects: BVH<F>,
+    pub objects: BVH<f32>,
     pub materials: Vec<Box<dyn Material>>,
     // lights:
     pub background_color: Rgb<f32>,

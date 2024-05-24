@@ -5,19 +5,19 @@ use crate::{
     bxdf::bxdf::{BxDF, Shading},
     colors,
     math::Frame,
-    Point2f, Vec3f, F,
+    Point2f, Vec3f,
 };
 
 pub struct BSDF {
     bxdf: Box<dyn BxDF>,
-    shading_frame: Frame<F>,
+    shading_frame: Frame<f32>,
 }
 
 #[derive(Debug, Copy, Clone)]
 pub struct BSDFSample {
     color: Rgb<f32>,
     incoming: Vec3f,
-    pdf: F,
+    pdf: f32,
 }
 
 impl BSDF {
@@ -25,7 +25,7 @@ impl BSDF {
         // TODO: normalized?
         let s_in = self.render_to_shading(incoming);
         let s_out = self.render_to_shading(outgoing);
-        if s_out.z == F::zero() {
+        if s_out.z == 0.0 {
             return colors::BLACK;
         }
         self.bxdf.eval(s_in, s_out)
@@ -34,13 +34,13 @@ impl BSDF {
     // TODO: zero-valued instead of Option?
     pub fn sample(&self, point: Point2f, outgoing: Vec3f) -> Option<BSDFSample> {
         let s_out = self.render_to_shading(outgoing);
-        if s_out.z == F::zero()
+        if s_out.z == 0.0
         /*TODO flags here*/
         {
             return None;
         }
         if let Some(mut sample) = self.bxdf.sample(point, s_out) {
-            if sample.pdf == F::zero() || sample.incoming.z == F::zero()
+            if sample.pdf == 0.0 || sample.incoming.z == 0.0
             /* || RGB==0?! */
             {
                 None
@@ -57,11 +57,11 @@ impl BSDF {
         }
     }
 
-    pub fn pdf(&self, incoming: Vec3f, outgoing: Vec3f) -> F {
+    pub fn pdf(&self, incoming: Vec3f, outgoing: Vec3f) -> f32 {
         let s_in = self.render_to_shading(incoming);
         let s_out = self.render_to_shading(outgoing);
-        if s_out.z == F::zero() {
-            return F::zero();
+        if s_out.z == 0.0 {
+            return 0.0;
         }
         self.bxdf.pdf(s_in, s_out)
     }

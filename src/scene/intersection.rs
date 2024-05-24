@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use crate::{scene::Primitive, Hit};
+use crate::{core::Hit, scene::Primitive};
 
 #[derive(Clone, Copy)]
 pub struct Intersection<'a> {

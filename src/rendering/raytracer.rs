@@ -2,10 +2,10 @@ use image::{ImageBuffer, Pixel, Rgb};
 use rayon::prelude::*;
 
 use crate::{
+    core::Ray,
     rendering::{antialiasing::AntiAliasing, PixelCoord, Renderer, Resolution},
     scene::{Camera, Scene},
     utils::linear_to_gamma,
-    Ray,
 };
 
 pub struct RayTracer {

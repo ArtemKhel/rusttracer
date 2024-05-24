@@ -3,7 +3,7 @@ use std::cmp::Ordering;
 use derive_new::new;
 
 use crate::{
-    core::Ray,
+    core::ray::Ray,
     math::{Dot, Normal3, Normed, Number, Point3, Transform, Transformable, Unit},
 };
 

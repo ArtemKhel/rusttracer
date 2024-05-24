@@ -8,7 +8,7 @@ use num_traits::Float;
 use strum::IntoEnumIterator;
 
 use crate::{
-    core::Ray,
+    core::ray::Ray,
     math::{utils::Axis3, Number, Point3, Transform, Transformable, Vec3},
     point3,
     shapes::Bounded,

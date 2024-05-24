@@ -10,24 +10,24 @@ use crate::{
     },
     point3,
     shapes::{Bounded, Intersectable},
-    vec3,
+    vec3, Point3f, Vec3f,
 };
 
 #[derive(Debug)]
-pub struct Quad<T: Number> {
-    a: Point3<T>,
-    ab: Vec3<T>,
-    ac: Vec3<T>,
-    normal: Unit<Vec3<T>>,
-    d: T,
-    w: Vec3<T>,
-    transform: Transform<T>,
+pub struct Quad {
+    a: Point3f,
+    ab: Vec3f,
+    ac: Vec3f,
+    normal: Unit<Vec3f>,
+    d: f32,
+    w: Vec3f,
+    transform: Transform<f32>,
 }
 
-impl<T: Number> Quad<T> {
+impl Quad {
     const PADDING: f32 = 1e-4;
 
-    pub fn new(a: Point3<T>, ab: Vec3<T>, ac: Vec3<T>, transform: Transform<T>) -> Self {
+    pub fn new(a: Point3f, ab: Vec3f, ac: Vec3f, transform: Transform<f32>) -> Self {
         let n = cross(ab, ac);
         let normal = n.to_unit();
         let d = dot(normal.deref(), &a.coords);
@@ -43,12 +43,11 @@ impl<T: Number> Quad<T> {
         }
     }
 
-    pub fn quad_box(width: T, height: T, depth: T, transform: Transform<T>) -> Vec<Quad<T>> {
+    pub fn quad_box(width: f32, height: f32, depth: f32, transform: Transform<f32>) -> Vec<Quad> {
         let mut sides = Vec::with_capacity(6);
 
-        let _2 = T::two();
-        let a = Point3::new(Vec3::new(-width / _2, -height / _2, -depth / _2));
-        let b = Point3::new(Vec3::new(width / _2, height / _2, depth / _2));
+        let a = Point3::new(Vec3::new(-width / 2., -height / 2., -depth / 2.));
+        let b = Point3::new(Vec3::new(width / 2., height / 2., depth / 2.));
         let diag = b - a;
         let px = diag.only(Axis3::X);
         let py = diag.only(Axis3::Y);
@@ -65,17 +64,17 @@ impl<T: Number> Quad<T> {
     }
 }
 
-impl<T: Number> Intersectable<T> for Quad<T> {
-    fn hit(&self, ray: &Ray<T>) -> Option<Hit<T>> {
+impl Intersectable<f32> for Quad {
+    fn hit(&self, ray: &Ray) -> Option<Hit> {
         let ray = ray.inv_transform(&self.transform);
         // let denom = ray.dir.dot(self.normal);
         let denom = dot(self.normal.deref(), ray.dir.deref());
-        if T::abs(denom) < T::from(Self::PADDING).unwrap() {
+        if denom.abs() < Self::PADDING {
             return None;
         }
 
         let t = (self.d - dot(self.normal.deref(), &ray.origin.coords)) / denom;
-        if t < T::zero() {
+        if t < 0.0 {
             return None;
         }
 
@@ -84,7 +83,7 @@ impl<T: Number> Intersectable<T> for Quad<T> {
         let alpha = self.w.dot(&planar_hit_point.cross(self.ab));
         let beta = self.w.dot(&self.ac.cross(planar_hit_point));
 
-        if (T::zero()..=T::one()).contains(&alpha) && (T::zero()..=T::one()).contains(&beta) {
+        if (0.0..=1.0).contains(&alpha) && (0.0..=1.0).contains(&beta) {
             Some(
                 Hit {
                     point: hit_point,
@@ -99,8 +98,8 @@ impl<T: Number> Intersectable<T> for Quad<T> {
     }
 }
 
-impl<T: Number> Bounded<T> for Quad<T> {
-    fn bound(&self) -> Aabb<T> {
+impl Bounded<f32> for Quad {
+    fn bound(&self) -> Aabb<f32> {
         Aabb::from_points(self.a + self.ab, self.a + self.ac)
             + Aabb::from_points(self.a, self.a + (self.ac + self.ab)).transform(&self.transform)
     }

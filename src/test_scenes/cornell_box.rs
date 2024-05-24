@@ -16,7 +16,7 @@ use crate::{
     point3,
     scene::{CameraConfig, Composite, Primitive, Scene, SimpleCamera},
     shapes::{mesh::Triangle, quad::Quad, sphere::Sphere},
-    vec3, Point3f, F,
+    vec3, Point3f,
 };
 
 pub fn cornell_box() -> Scene {
@@ -128,7 +128,7 @@ pub fn cornell_box() -> Scene {
         ),
     )
     .into_iter()
-    .map(|x: Quad<f32>| Box::new(x) as _)
+    .map(|x: Quad| Box::new(x) as _)
     .collect();
     world.push(Primitive {
         shape: Box::new(Medium::new(Box::new(Composite { objects: box2 }), 0.015)),
@@ -142,7 +142,7 @@ pub fn cornell_box() -> Scene {
     let normals = obj.data.normal;
     let group = obj.data.objects.first().unwrap().groups.first().unwrap();
 
-    let mut triangles: Vec<Triangle<F>> = vec![];
+    let mut triangles: Vec<Triangle> = vec![];
     for x in group.polys.iter() {
         let a = x.0[0].0;
         let b = x.0[1].0;

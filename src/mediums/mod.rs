@@ -2,19 +2,20 @@ use rand::random;
 
 use crate::{
     aggregates::Aabb,
+    core::{Hit, Ray},
     math::Normed,
     shapes::{Bounded, BoundedIntersectable, Intersectable},
-    unit3_unchecked, Hit, Ray, F,
+    unit3_unchecked,
 };
 
 #[derive(Debug)]
 pub struct Medium {
-    shape: Box<dyn BoundedIntersectable<F>>,
+    shape: Box<dyn BoundedIntersectable<f32>>,
     inv_density: f32,
 }
 
 impl Medium {
-    pub fn new(shape: Box<dyn BoundedIntersectable<F>>, density: f32) -> Self {
+    pub fn new(shape: Box<dyn BoundedIntersectable<f32>>, density: f32) -> Self {
         Medium {
             shape,
             inv_density: -1. / density,
@@ -22,7 +23,7 @@ impl Medium {
     }
 }
 
-impl Intersectable<F> for Medium {
+impl Intersectable<f32> for Medium {
     fn hit(&self, ray: &Ray) -> Option<Hit> {
         // TODO: assuming convex shape and ray starting outside a medium
         match self.shape.hit(ray) {
@@ -47,6 +48,6 @@ impl Intersectable<F> for Medium {
     }
 }
 
-impl Bounded<F> for Medium {
-    fn bound(&self) -> Aabb<F> { self.shape.bound() }
+impl Bounded<f32> for Medium {
+    fn bound(&self) -> Aabb<f32> { self.shape.bound() }
 }
