@@ -32,8 +32,8 @@ impl<T: Number> Ord for Hit<T> {
 impl<T: Number> Transformable<T> for Hit<T> {
     fn transform(&self, trans: &Transform<T>) -> Self {
         Hit {
-            point: self.point.transform(&trans),
-            normal: self.normal.transform(&trans).to_unit(),
+            point: self.point.transform(trans),
+            normal: self.normal.transform(trans).to_unit(),
             t: self.t,
         }
     }
@@ -41,8 +41,8 @@ impl<T: Number> Transformable<T> for Hit<T> {
     fn inv_transform(&self, trans: &Transform<T>) -> Self {
         // TODO: don't normalize normals?
         Hit {
-            point: self.point.inv_transform(&trans),
-            normal: self.normal.inv_transform(&trans).to_unit(),
+            point: self.point.inv_transform(trans),
+            normal: self.normal.inv_transform(trans).to_unit(),
             t: self.t,
         }
     }

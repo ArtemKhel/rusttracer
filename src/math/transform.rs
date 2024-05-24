@@ -1,5 +1,4 @@
-use std::fmt::Debug;
-use std::iter::Iterator;
+use std::{fmt::Debug, iter::Iterator};
 
 use crate::math::{matrix4::Matrix4, utils::Axis3, Dot, Number, Vec3};
 
@@ -52,7 +51,7 @@ impl<T: Number> Transform<T> {
         }
     }
 
-    pub fn scale_uniform(factor:T) -> Self{ Self::scale(factor,factor,factor) }
+    pub fn scale_uniform(factor: T) -> Self { Self::scale(factor, factor, factor) }
 
     /// Clockwise
     pub fn rotate(axis: Axis3, theta: T) -> Self {
@@ -93,9 +92,9 @@ impl<T: Number> Transform<T> {
     }
 
     pub fn compose_iter<Iterable, Iterator>(it: Iterable) -> Self
-    where Iterable: IntoIterator<Item = Transform<T>, IntoIter = Iterator>, 
-          Iterator: DoubleEndedIterator<Item = Transform<T>>
-    {
+    where
+        Iterable: IntoIterator<Item = Transform<T>, IntoIter = Iterator>,
+        Iterator: DoubleEndedIterator<Item = Transform<T>>, {
         it.into_iter().rev().reduce(|acc, x| Self::compose(acc, x)).unwrap()
     }
 

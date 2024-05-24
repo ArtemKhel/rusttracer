@@ -1,14 +1,19 @@
-use std::{
-    f32::consts::FRAC_PI_8,
-    rc::Rc,
-};
+use std::{f32::consts::FRAC_PI_8, rc::Rc};
 
 use image::Rgb;
 
-use crate::{aggregates::BVH, F, material::{
-    dielectric::Dielectric, diffuse_light::DiffuseLight, isotropic::Isotropic, lambertian::Lambertian, Material,
-}, math::{Transform, utils::Axis3}, mediums::Medium, point3, Point3, scene::{CameraConfig, Composite, Primitive, Scene, SimpleCamera}, shapes::{quad::Quad, sphere::Sphere}, vec3};
-use crate::shapes::mesh::Triangle;
+use crate::{
+    aggregates::BVH,
+    material::{
+        dielectric::Dielectric, diffuse_light::DiffuseLight, isotropic::Isotropic, lambertian::Lambertian, Material,
+    },
+    math::{utils::Axis3, Transform},
+    mediums::Medium,
+    point3,
+    scene::{CameraConfig, Composite, Primitive, Scene, SimpleCamera},
+    shapes::{mesh::Triangle, quad::Quad, sphere::Sphere},
+    vec3, Point3, F,
+};
 
 pub fn cornell_box() -> Scene {
     let materials: Vec<Box<dyn Material>> = vec![Box::new(Lambertian {
@@ -102,7 +107,7 @@ pub fn cornell_box() -> Scene {
             Transform::translate(vec3!(150.5, 82.5, 150.5)),
         ),
     )
-        .into_iter()
+    .into_iter()
     {
         world.push(Primitive {
             shape: Box::new(side),
@@ -122,16 +127,15 @@ pub fn cornell_box() -> Scene {
             Transform::translate(vec3!(347.5, 165.1, 377.5)),
         ),
     )
-        .into_iter()
-        .map(|x: Quad<f32>| Box::new(x) as _)
-        .collect();
+    .into_iter()
+    .map(|x: Quad<f32>| Box::new(x) as _)
+    .collect();
     world.push(Primitive {
         shape: Box::new(Medium::new(Box::new(Composite { objects: box2 }), 0.015)),
         material: Box::new(Isotropic {
             color: Rgb([0.2, 0.2, 0.2]),
         }),
     });
-
 
     let obj = obj::Obj::load("./data/brilliant_diamond.obj").unwrap();
     let vertices: Vec<Point3> = obj.data.position.iter().map(|x| point3!(x[0], x[1], x[2])).collect();
@@ -157,7 +161,10 @@ pub fn cornell_box() -> Scene {
     for t in triangles {
         world.push(Primitive {
             shape: Box::new(t),
-            material: Box::new(Dielectric { attenuation: Rgb([0.95, 0.95,0.95]), refraction_index: 2.4 })
+            material: Box::new(Dielectric {
+                attenuation: Rgb([0.95, 0.95, 0.95]),
+                refraction_index: 2.4,
+            }),
         })
     }
 
