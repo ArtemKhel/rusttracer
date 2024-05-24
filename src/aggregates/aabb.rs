@@ -2,6 +2,7 @@ use std::{
     mem::swap,
     ops::{Add, AddAssign},
 };
+use std::ops::{Index, Not};
 
 use approx::AbsDiffEq;
 use num_traits::Float;
@@ -9,13 +10,13 @@ use strum::IntoEnumIterator;
 
 use crate::{
     core::Ray,
-    math::{utils::Axis3, Number, Point3, Transform, Transformable, Vec3},
+    math::{Number, Point3, Transform, Transformable, utils::Axis3, Vec3},
     point3,
     shapes::Bounded,
 };
 
 #[derive(Copy, Clone, Debug, PartialEq)]
-pub struct Aabb<T: Number> {
+pub struct Aabb<T> {
     pub min: Point3<T>,
     pub max: Point3<T>,
 }
@@ -48,6 +49,13 @@ impl<T: Number> Aabb<T> {
         aabb
     }
 
+    pub fn union(&self, p: Point3<T>) -> Self {
+        Aabb {
+            min: Point3::min_coords(self.min, p),
+            max: Point3::max_coords(self.max, p),
+        }
+    }
+
     fn pad(aabb: &mut Aabb<T>) {
         let padding = T::from(Self::PADDING).unwrap();
         for axis in Axis3::iter() {
@@ -58,9 +66,8 @@ impl<T: Number> Aabb<T> {
         }
     }
 
-    pub fn hit(&self, ray: &Ray<T>, min: T, max: T) -> bool {
-        let mut t_min = min;
-        let mut t_max = max;
+    pub fn hit(&self, ray: &Ray<T>, mut t_max: T) -> bool {
+        let mut t_min = T::zero();
         for axis in Axis3::iter() {
             let inv_dir = ray.dir[axis].recip();
             let mut t0 = (self.min[axis] - ray.origin[axis]) * inv_dir;
@@ -75,6 +82,21 @@ impl<T: Number> Aabb<T> {
             }
         }
         true
+    }
+    pub fn hit_fast(&self, ray: &Ray<T>, inv_dir: Vec3<T>, inv_bounds: Vec3<AabbBound>, mut ray_t_max: T) -> bool {
+        // TODO:
+        let mut t_min = T::neg_infinity();
+        let mut t_max = T::infinity();
+        for axis in Axis3::iter() {
+            let t0 = (self[inv_bounds[axis]][axis] - ray.origin[axis]) * inv_dir[axis];
+            let t1 = (self[!inv_bounds[axis]][axis] - ray.origin[axis]) * inv_dir[axis];
+            t_min = T::max(t0, t_min);
+            t_max = T::min(t1, t_max);
+            if t_min > t_max {
+                return false;
+            }
+        }
+        t_min < ray_t_max && t_max > T::zero()
     }
 
     pub fn offset(&self, point: Point3<T>) -> Vec3<T> {
@@ -106,6 +128,30 @@ impl<T: Number> Aabb<T> {
             self.max + -diag.only(X),
             self.max + -diag.only(X),
         ]
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum AabbBound { Min, Max }
+
+impl Not for AabbBound {
+    type Output = Self;
+
+    fn not(self) -> Self::Output {
+        match self {
+            AabbBound::Min => AabbBound::Max,
+            AabbBound::Max => AabbBound::Min,
+        }
+    }
+}
+
+impl<T: Number> Index<AabbBound> for Aabb<T> {
+    type Output = Point3<T>;
+    fn index(&self, index: AabbBound) -> &Self::Output {
+        match index {
+            AabbBound::Min => &self.min,
+            AabbBound::Max => &self.max,
+        }
     }
 }
 
@@ -147,18 +193,18 @@ impl<T: Number> Transformable<T> for Aabb<T> {
         self.corners()
             .iter()
             .map(|x| x.transform(trans))
-            .fold(Aabb::default(), |aabb, x| aabb + x)
+            .fold(Aabb::default(), |aabb, x| aabb.union(x))
     }
 
     fn inv_transform(&self, trans: &Transform<T>) -> Self {
         self.corners()
             .iter()
             .map(|x| x.inv_transform(trans))
-            .fold(Aabb::default(), |aabb, x| aabb + x)
+            .fold(Aabb::default(), |aabb, x| aabb.union(x))
     }
 }
 
-impl<T: Number + AbsDiffEq<Epsilon = T>> AbsDiffEq for Aabb<T> {
+impl<T: Number + AbsDiffEq<Epsilon=T>> AbsDiffEq for Aabb<T> {
     type Epsilon = T;
 
     fn default_epsilon() -> Self::Epsilon { T::epsilon() }
@@ -174,8 +220,9 @@ mod tests {
 
     use approx::assert_abs_diff_eq;
 
+    use crate::{math::utils::Axis3, Ray, unit3};
+
     use super::*;
-    use crate::{math::utils::Axis3, unit3, Ray};
 
     #[test]
     fn test_aabb() {
@@ -185,14 +232,14 @@ mod tests {
         };
 
         let ray = Ray::new(Point3::default(), unit3!(1., 0., 0.));
-        assert!(bbox.hit(&ray, 0., 10.));
-        assert!(!bbox.hit(&ray, 0., 0.5));
+        assert!(bbox.hit(&ray, 10.));
+        assert!(!bbox.hit(&ray, 0.5));
 
         let ray = Ray::new(Point3::default(), unit3!(1., 2., 0.));
-        assert!(!bbox.hit(&ray, 0., 10.));
+        assert!(!bbox.hit(&ray, 10.));
 
         let ray = Ray::new(point3!(0., 1., 0.), unit3!(1., 0., 0.));
-        assert!(bbox.hit(&ray, 0., 10.));
+        assert!(bbox.hit(&ray, 10.));
     }
 
     #[test]

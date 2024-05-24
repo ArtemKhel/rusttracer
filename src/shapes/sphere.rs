@@ -88,7 +88,10 @@ mod tests {
     fn test_aabb_translated_scaled() {
         let sphere = Sphere::new(
             1.0,
-            Transform::compose(Transform::translate(vec3!(1., 2., 3.)), Transform::scale(1., 1., 2.)),
+            Transform::compose(
+                Transform::scale(1., 1., 2.),
+                Transform::translate(vec3!(1., 2., 3.)),
+            ),
         );
         let aabb = sphere.bound();
         let expected = Aabb::from_points(point3!(0., 1., 1.), point3!(2., 3., 5.));

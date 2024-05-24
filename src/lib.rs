@@ -3,7 +3,7 @@
 #![feature(core_intrinsics)]
 #![feature(unboxed_closures, fn_traits)]
 #![feature(stmt_expr_attributes)]
-
+#![feature(test)]
 pub mod material;
 pub mod mediums;
 pub mod scene;

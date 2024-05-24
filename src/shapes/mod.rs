@@ -21,7 +21,6 @@ pub trait BoundedIntersectable<T: Number>: Bounded<T> + Intersectable<T> + Debug
 
 impl<Shape, T: Number> BoundedIntersectable<T> for Shape where Shape: Bounded<T> + Intersectable<T> + Debug {}
 
-impl<T: Number> Bounded<T> for Point3<T> {
-    //TODO: padding?
-    fn bound(&self) -> Aabb<T> { Aabb { min: *self, max: *self } }
-}
+// impl<T: Number> Bounded<T> for Point3<T> {
+//     fn bound(&self) -> Aabb<T> { Aabb { min: *self, max: *self } }
+// }

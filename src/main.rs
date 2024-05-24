@@ -16,14 +16,14 @@ fn main() {
     let raytracer = RayTracer {
         scene,
         resolution: Resolution {
-            // width: 640,
-            // height: 640,
+            width: 640,
+            height: 640,
             //
             // width: 1280,
             // height: 1280,
             //
-            width: 1920,
-            height: 1920,
+            // width: 1920,
+            // height: 1920,
             //
             // width: 640,
             // height: 360,

@@ -65,6 +65,12 @@ impl<T: Number> Vec3<T> {
             Axis3::Z => vec3!(T::zero(), T::zero(), self.z),
         }
     }
+    
+    pub fn map<F,Out>(&self, f: F) -> Vec3<Out>
+    where F: Fn<(T,), Output=Out> 
+    {
+        vec3!(f(self.x), f(self.y), f(self.z))
+    }
 }
 
 impl<T: Number> Normed for Vec3<T> {
@@ -88,7 +94,7 @@ impl<T: Number + SampleUniform> Distribution<Vec3<T>> for Standard {
     }
 }
 
-impl<T: Number> Index<Axis3> for Vec3<T> {
+impl<T> Index<Axis3> for Vec3<T> {
     type Output = T;
 
     fn index(&self, index: Axis3) -> &Self::Output {
@@ -100,7 +106,7 @@ impl<T: Number> Index<Axis3> for Vec3<T> {
     }
 }
 
-impl<T: Number> IndexMut<Axis3> for Vec3<T> {
+impl<T> IndexMut<Axis3> for Vec3<T> {
     fn index_mut(&mut self, index: Axis3) -> &mut Self::Output {
         match index {
             Axis3::X => &mut self.x,

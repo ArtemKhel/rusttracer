@@ -1,4 +1,5 @@
 use std::{f32::consts::FRAC_PI_8, rc::Rc};
+use std::f32::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_4, FRAC_PI_6, PI};
 
 use image::Rgb;
 
@@ -14,6 +15,7 @@ use crate::{
     shapes::{mesh::Triangle, quad::Quad, sphere::Sphere},
     vec3, Point3, F,
 };
+use crate::material::metal::Metal;
 
 pub fn cornell_box() -> Scene {
     let materials: Vec<Box<dyn Material>> = vec![Box::new(Lambertian {
@@ -137,7 +139,7 @@ pub fn cornell_box() -> Scene {
         }),
     });
 
-    let obj = obj::Obj::load("./data/brilliant_diamond.obj").unwrap();
+    let obj = obj::Obj::load("./data/buddha.obj").unwrap();
     let vertices: Vec<Point3> = obj.data.position.iter().map(|x| point3!(x[0], x[1], x[2])).collect();
     let normals = obj.data.normal;
     let group = obj.data.objects.first().unwrap().groups.first().unwrap();
@@ -147,23 +149,47 @@ pub fn cornell_box() -> Scene {
         let a = x.0[0].0;
         let b = x.0[1].0;
         let c = x.0[2].0;
+        // let d = x.0[3].0;
 
         triangles.push(Triangle::new(
             vertices[a],
             vertices[b] - vertices[a],
             vertices[c] - vertices[a],
-            &Transform::compose(
-                Transform::scale_uniform(125.),
+            &Transform::compose_iter([
+                Transform::scale_uniform(40.),
+                Transform::rotate(Axis3::Y, PI),
                 Transform::translate(vec3!(400.5, 0., 200.5)),
-            ),
+            ]),
+            // &Transform::compose_iter([
+            //     Transform::scale_uniform(150.),
+            //     Transform::rotate(Axis3::Z, FRAC_PI_2),
+            //     Transform::rotate(Axis3::Y, PI),
+            //     Transform::rotate(Axis3::X, -FRAC_PI_3),
+            //     Transform::translate(vec3!(400.5, 150., 200.5)),
+            // ]),
         ));
+        // triangles.push(Triangle::new(
+        //     vertices[d],
+        //     vertices[c] - vertices[d],
+        //     vertices[a] - vertices[d],
+        //     &Transform::compose_iter([
+        //         Transform::scale_uniform(150.),
+        //         Transform::rotate(Axis3::Z, FRAC_PI_2),
+        //         Transform::rotate(Axis3::Y, PI),
+        //         Transform::rotate(Axis3::X, -FRAC_PI_3),
+        //         Transform::translate(vec3!(400.5, 150., 200.5)),
+        //     ]
+        //     ),
+        // ));
     }
     for t in triangles {
         world.push(Primitive {
             shape: Box::new(t),
-            material: Box::new(Dielectric {
-                attenuation: Rgb([0.95, 0.95, 0.95]),
-                refraction_index: 2.4,
+            material: Box::new(Metal {
+                albedo: Rgb([0.8, 0.5, 0.2]),
+                fuzz: 0.75,
+                // attenuation: Rgb([0.95, 0.95, 0.95]),
+                // refraction_index: 2.4,
             }),
         })
     }

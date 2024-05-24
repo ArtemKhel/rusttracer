@@ -9,6 +9,7 @@ pub struct Transform<T> {
 }
 
 pub trait Transformable<T> {
+    // TODO:
     fn transform(&self, trans: &Transform<T>) -> Self;
     fn inv_transform(&self, trans: &Transform<T>) -> Self;
 }
@@ -28,6 +29,8 @@ impl<T: Number> Transform<T> {
             mat,
         }
     }
+    
+    pub fn invert(&self) -> Self{ Transform{ mat: self.inv, inv: self.mat } }
 
     pub fn translate(vec: Vec3<T>) -> Self {
         let mut mat = Matrix4::id();
@@ -95,7 +98,7 @@ impl<T: Number> Transform<T> {
     where
         Iterable: IntoIterator<Item = Transform<T>, IntoIter = Iterator>,
         Iterator: DoubleEndedIterator<Item = Transform<T>>, {
-        it.into_iter().rev().reduce(|acc, x| Self::compose(acc, x)).unwrap()
+        it.into_iter().reduce(|acc, x| Self::compose(acc, x)).unwrap()
     }
 
     pub fn apply_to<R: Transformable<T>>(&self, x: R) -> R { x.transform(self) }
@@ -170,7 +173,7 @@ mod tests {
         let t1 = Transform::translate(vec3!(1., 2., 3.));
         let t2 = Transform::scale(1., 2., 3.);
         let t3 = Transform::rotate(Axis3::Z, FRAC_PI_2);
-        let comp = Transform::compose_iter([t3, t2, t1]);
+        let comp = Transform::compose_iter([t1, t2, t3]);
         let ep = point3!(4., -1., 9.);
         let eip = point3!(-1., -2., -3.);
 
