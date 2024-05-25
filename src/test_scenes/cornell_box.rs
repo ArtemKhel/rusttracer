@@ -7,11 +7,12 @@ use image::Rgb;
 
 use crate::{
     aggregates::BVH,
+    colors,
     material::{
         dielectric::Dielectric, diffuse_light::DiffuseLight, isotropic::Isotropic, lambertian::Lambertian,
         metal::Metal, Material,
     },
-    math::{utils::Axis3, Transform},
+    math::{utils::Axis3, Transform, TransformBuilder},
     mediums::Medium,
     point3,
     scene::{CameraConfig, Composite, Primitive, Scene, SimpleCamera},
@@ -32,9 +33,7 @@ pub fn cornell_box() -> Scene {
                 vec3!(0., 0., 555.),
                 Transform::id(),
             )),
-            material: Box::new(Lambertian {
-                albedo: Rgb([0.12, 0.45, 0.15]),
-            }),
+            material: Box::new(Lambertian { albedo: colors::GREEN }),
         },
         Primitive {
             shape: Box::new(Quad::new(
@@ -43,9 +42,7 @@ pub fn cornell_box() -> Scene {
                 vec3!(0., 0., 555.),
                 Transform::id(),
             )),
-            material: Box::new(Lambertian {
-                albedo: Rgb([0.65, 0.05, 0.05]),
-            }),
+            material: Box::new(Lambertian { albedo: colors::RED }),
         },
         Primitive {
             shape: Box::new(Quad::new(
@@ -66,7 +63,7 @@ pub fn cornell_box() -> Scene {
                 Transform::id(),
             )),
             material: Box::new(Lambertian {
-                albedo: Rgb([0.73, 0.73, 0.73]),
+                albedo: colors::LIGHT_GRAY,
             }),
         },
         Primitive {
@@ -77,7 +74,7 @@ pub fn cornell_box() -> Scene {
                 Transform::id(),
             )),
             material: Box::new(Lambertian {
-                albedo: Rgb([0.73, 0.73, 0.73]),
+                albedo: colors::LIGHT_GRAY,
             }),
         },
         Primitive {
@@ -88,7 +85,7 @@ pub fn cornell_box() -> Scene {
                 Transform::id(),
             )),
             material: Box::new(Lambertian {
-                albedo: Rgb([0.73, 0.73, 0.73]),
+                albedo: colors::LIGHT_GRAY,
             }),
         },
         // Primitive {
@@ -104,17 +101,17 @@ pub fn cornell_box() -> Scene {
         165.0,
         165.0,
         165.0,
-        Transform::compose(
-            Transform::rotate(Axis3::Y, FRAC_PI_8),
-            Transform::translate(vec3!(150.5, 82.5, 150.5)),
-        ),
+        TransformBuilder::default()
+            .rotate(Axis3::Y, FRAC_PI_8)
+            .translate(vec3!(150.5, 82.5, 150.5))
+            .build(),
     )
     .into_iter()
     {
         world.push(Primitive {
             shape: Box::new(side),
             material: Box::new(Lambertian {
-                albedo: Rgb([0.73, 0.73, 0.73]),
+                albedo: colors::LIGHT_GRAY,
             }),
         })
     }
@@ -122,10 +119,10 @@ pub fn cornell_box() -> Scene {
         165.0,
         330.0,
         165.0,
-        Transform::compose(
-            Transform::rotate(Axis3::Y, -FRAC_PI_8),
-            Transform::translate(vec3!(347.5, 165.1, 377.5)),
-        ),
+        TransformBuilder::default()
+            .rotate(Axis3::Y, -FRAC_PI_8)
+            .translate(vec3!(347.5, 165.1, 377.5))
+            .build(),
     )
     .into_iter()
     .map(|x: Quad| Box::new(x) as _)
@@ -153,7 +150,7 @@ pub fn cornell_box() -> Scene {
             vertices[a],
             vertices[b] - vertices[a],
             vertices[c] - vertices[a],
-            &Transform::compose_iter([
+            Transform::compose_iter([
                 Transform::scale_uniform(40.),
                 Transform::rotate(Axis3::Y, PI),
                 Transform::translate(vec3!(400.5, 0., 200.5)),
@@ -192,12 +189,14 @@ pub fn cornell_box() -> Scene {
         })
     }
 
-    let world = BVH::new(world.into_iter().map(Rc::new).collect(), 4);
+    let world = BVH::new(world.into_iter().map(Rc::new).collect(), 8);
 
     let camera = SimpleCamera::from(CameraConfig {
-        position: point3!(278., 278., -800.),
-        look_at: point3!(278., 278., 0.),
-        up: vec3!(0., 1., 0.),
+        transform: TransformBuilder::default()
+            .rotate(Axis3::Y, PI)
+            // .rotate(Axis3::Z, FRAC_PI_4)
+            .translate(vec3!(278., 278., -800.))
+            .build(),
         aspect_ratio: 1.0,
         vertical_fov: 40.0,
         defocus_angle: 0.01,
@@ -208,6 +207,6 @@ pub fn cornell_box() -> Scene {
         camera,
         objects: world,
         materials,
-        background_color: Rgb([0.0, 0.0, 0.0]),
+        background_color: colors::BLACK,
     }
 }

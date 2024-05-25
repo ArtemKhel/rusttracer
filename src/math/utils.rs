@@ -5,21 +5,38 @@ use rand::{
     prelude::Distribution,
     random, Rng,
 };
+use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
 use crate::{
     core::Ray,
-    math::{dot, unit::Unit, Dot, Normal3, Normed, Number, Two, Vec3},
+    math::{dot, unit::Unit, Dot, Normal3, Normed, Number, Vec3},
     Vec3f,
 };
 
-#[derive(Copy, Clone, EnumIter, Debug)]
-pub enum Axis3 {
-    X,
-    Y,
-    Z,
+macro_rules! gen_axis_enums {
+    ($name:ident { $( $axis:ident ),* }) => {
+        #[derive(Copy, Clone, Debug)]
+        #[derive(EnumIter)]
+        pub enum $name {
+            $( $axis ),*
+        }
+    }
 }
 
+gen_axis_enums!(Axis2 { X, Y });
+gen_axis_enums!(Axis3 { X, Y, Z });
+gen_axis_enums!(Axis4 { X, Y, Z, W });
+
+impl Distribution<Axis2> for Standard {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Axis2 {
+        match random::<u32>() % 2 {
+            0 => Axis2::X,
+            1 => Axis2::Y,
+            _ => unreachable!(),
+        }
+    }
+}
 impl Distribution<Axis3> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Axis3 {
         match random::<u32>() % 3 {
@@ -29,14 +46,6 @@ impl Distribution<Axis3> for Standard {
             _ => unreachable!(),
         }
     }
-}
-
-#[derive(Copy, Clone, EnumIter, Debug)]
-pub enum Axis4 {
-    X,
-    Y,
-    Z,
-    W,
 }
 
 impl Distribution<Axis4> for Standard {
@@ -79,7 +88,7 @@ pub fn random_in_unit_disk<T: Number + SampleUniform>() -> Vec3<T> {
 }
 
 pub fn reflect<T: Number>(vec: &Vec3<T>, normal: &Vec3<T>) -> Unit<Vec3<T>> {
-    (*vec - (*normal * vec.dot(normal) * (T::two()))).into()
+    (*vec - (*normal * vec.dot(normal) * (T::one() + T::one()))).into()
 }
 
 pub fn refract<T: Number>(ray: &Unit<Vec3<T>>, normal: &Unit<Normal3<T>>, refraction_coef_ratio: T) -> Unit<Vec3<T>> {

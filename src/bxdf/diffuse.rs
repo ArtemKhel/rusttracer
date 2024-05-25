@@ -4,7 +4,8 @@ use num_traits::Zero;
 
 use crate::{
     bxdf::{
-        bxdf::{BxDF, BxDFSample, BxDFType, Shading},
+        bsdf::BSDFSample,
+        bxdf::{BxDF, BxDFType, Shading},
         utils::{abs_cos_theta, cosine_hemisphere_pdf, same_hemisphere, sample_cosine_hemisphere},
     },
     colors, Point2f, Vec3f,
@@ -27,12 +28,12 @@ impl BxDF for DiffuseBxDF {
         }
     }
 
-    fn sample(&self, point: Point2f, outgoing: Shading<Vec3f>) -> Option<BxDFSample> {
+    fn sample(&self, point: Point2f, outgoing: Shading<Vec3f>) -> Option<BSDFSample<Shading<Vec3f>>> {
         // TODO: flags
         let mut incoming = sample_cosine_hemisphere(point);
         incoming.z *= outgoing.z.signum();
         let pdf = cosine_hemisphere_pdf(abs_cos_theta(incoming));
-        Some(BxDFSample {
+        Some(BSDFSample {
             color: self.color, //TODO: * FRAC_1_PI
             incoming,
             pdf,

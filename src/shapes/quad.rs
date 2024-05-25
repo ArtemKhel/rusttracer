@@ -6,7 +6,7 @@ use crate::{
     math::{
         cross, dot,
         utils::{local_normal, Axis3},
-        Cross, Dot, Normed, Number, Point3, Transform, Transformable, Two, Unit, Vec3,
+        Cross, Dot, Normed, Number, Point3, Transform, Transformable, Unit, Vec3,
     },
     point3,
     shapes::{Bounded, Intersectable},

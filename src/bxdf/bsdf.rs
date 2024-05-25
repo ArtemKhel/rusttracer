@@ -1,3 +1,6 @@
+use std::ops::{Deref, DerefMut};
+
+use env_logger::Target;
 use image::Rgb;
 use num_traits::Zero;
 
@@ -14,10 +17,10 @@ pub struct BSDF {
 }
 
 #[derive(Debug, Copy, Clone)]
-pub struct BSDFSample {
-    color: Rgb<f32>,
-    incoming: Vec3f,
-    pdf: f32,
+pub struct BSDFSample<T> {
+    pub(crate) color: Rgb<f32>,
+    pub(crate) incoming: T,
+    pub(crate) pdf: f32,
 }
 
 impl BSDF {
@@ -32,7 +35,7 @@ impl BSDF {
     }
 
     // TODO: zero-valued instead of Option?
-    pub fn sample(&self, point: Point2f, outgoing: Vec3f) -> Option<BSDFSample> {
+    pub fn sample(&self, point: Point2f, outgoing: Vec3f) -> Option<BSDFSample<Vec3f>> {
         let s_out = self.render_to_shading(outgoing);
         if s_out.z == 0.0
         /*TODO flags here*/
@@ -45,7 +48,6 @@ impl BSDF {
             {
                 None
             } else {
-                // TODO: how to convert efficiently and type-safe?
                 Some(BSDFSample {
                     color: sample.color,
                     incoming: self.shading_to_render(sample.incoming),

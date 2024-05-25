@@ -1,14 +1,24 @@
 use derive_new::new;
-use num_traits::Pow;
 
 use crate::math::{Normed, Number, Point3, Transform, Transformable, Unit, Vec3};
 
-#[derive(Copy, Clone, Debug, PartialEq, new)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(new)]
+pub struct RayDifferential<T> {
+    pub rx_origin: Point3<T>,
+    pub ry_origin: Point3<T>,
+    pub rx_direction: Unit<Vec3<T>>,
+    pub ry_direction: Unit<Vec3<T>>,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(new)]
 pub struct Ray<T: Number> {
     pub origin: Point3<T>,
     // TODO: normalize if needed?
     pub dir: Unit<Vec3<T>>,
     // pub medium: Option<M>
+    // pub diff: Option<RayDifferential>, // TODO: scale
 }
 
 #[macro_export]

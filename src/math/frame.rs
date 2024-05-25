@@ -51,16 +51,16 @@ impl<T: Number> Frame<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::vec3;
+    use crate::{unit3, vec3};
 
     #[test]
     fn test() {
         let x = vec3!(2., 0., 0.);
         let y = vec3!(0., 3., 0.);
         let expected = Frame {
-            x: vec3!(1., 0., 0.).to_unit(),
-            y: vec3!(0., 1., 0.).to_unit(),
-            z: vec3!(0., 0., 1.).to_unit(),
+            x: unit3!(1., 0., 0.),
+            y: unit3!(0., 1., 0.),
+            z: unit3!(0., 0., 1.),
         };
         assert_eq!(Frame::from_x_y(x, y), expected)
     }

@@ -11,6 +11,7 @@ use crate::{
 
 pub trait Camera {
     fn create_ray(&self, coord: PixelCoord) -> Ray;
+    fn create_differential_ray(&self, coord: PixelCoord) -> Ray;
 }
 
 #[derive(Debug, Default)]
@@ -21,9 +22,7 @@ pub struct Screen {
 
 #[derive(Debug)]
 pub struct CameraConfig {
-    pub position: Point3f,
-    pub look_at: Point3f,
-    pub up: Vec3f,
+    pub transform: Transform<f32>,
     pub aspect_ratio: f32,
     pub vertical_fov: f32,
     pub defocus_angle: f32,
@@ -42,6 +41,8 @@ impl Camera for SimpleCamera {
         let direction = self.screen.center + self.screen.basis[0] * coord[0] + self.screen.basis[1] * coord[1];
         Ray::from_to(self.defocus_disk_sample(), direction)
     }
+
+    fn create_differential_ray(&self, coord: PixelCoord) -> Ray { todo!() }
 }
 
 impl SimpleCamera {
@@ -58,20 +59,21 @@ impl From<CameraConfig> for SimpleCamera {
         let half_width = half_height * config.aspect_ratio;
 
         // Basis
-        let backward = (config.position - config.look_at).to_unit();
-        let right = config.up.cross(*backward).to_unit();
-        let up = backward.cross(*right).to_unit();
+        let position = point3!().transform(&config.transform);
+        let forward = vec3!(0., 0., 1.).transform(&config.transform);
+        let up = vec3!(0., 1., 0.).transform(&config.transform);
+        let right = vec3!(1., 0., 0.).transform(&config.transform);
 
-        let center = config.position + -backward.mul(config.focus_dist);
+        let center = position + -forward.mul(config.focus_dist);
 
         let defocus_radius = config.focus_dist * degrees_to_radians(config.defocus_angle / 2.).tan();
 
         SimpleCamera {
-            position: config.position,
+            position,
             defocus_radius,
             screen: Screen {
                 center,
-                basis: [*right * half_width, -*up * half_height], // TODO: types
+                basis: [right * half_width, -up * half_height], // TODO: types
             },
         }
     }
@@ -80,9 +82,7 @@ impl From<CameraConfig> for SimpleCamera {
 impl Default for CameraConfig {
     fn default() -> Self {
         CameraConfig {
-            position: Point3::default(),
-            look_at: point3!(0., 0., -1.),
-            up: vec3!(0., 1., 0.),
+            transform: Transform::id(),
             aspect_ratio: 16.0 / 9.0,
             vertical_fov: 90.0,
             defocus_angle: 0.5,

@@ -5,7 +5,7 @@ use derive_more::{Deref, DerefMut, From};
 use image::Rgb;
 use num_traits::Zero;
 
-use crate::{Point2f, Vec3f};
+use crate::{bxdf::bsdf::BSDFSample, Point2f, Vec3f};
 
 bitflags! {
     pub struct BxDFType: u32 {
@@ -43,17 +43,10 @@ pub struct Shading<T> {
     vec: T,
 }
 
-#[derive(Debug, Copy, Clone)]
-pub struct BxDFSample {
-    pub(crate) color: Rgb<f32>,
-    pub(crate) incoming: Shading<Vec3f>,
-    pub(crate) pdf: f32,
-}
-
 pub trait BxDF {
     fn bxdf_type(&self) -> BxDFType;
     fn eval(&self, incoming: Shading<Vec3f>, outgoing: Shading<Vec3f>) -> Rgb<f32>;
-    fn sample(&self, point: Point2f, outgoing: Shading<Vec3f>) -> Option<BxDFSample>;
+    fn sample(&self, point: Point2f, outgoing: Shading<Vec3f>) -> Option<BSDFSample<Shading<Vec3f>>>;
     fn pdf(&self, incoming: Shading<Vec3f>, outgoing: Shading<Vec3f>) -> f32;
     // TODO:  fn rho()
 }

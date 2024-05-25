@@ -1,10 +1,11 @@
 use std::{
     mem::swap,
     ops::{Add, AddAssign, Index, Not},
+    sync::atomic::{Ordering, Ordering::Relaxed},
 };
 
 use approx::AbsDiffEq;
-use num_traits::Float;
+use num_traits::{Float, Signed};
 use strum::IntoEnumIterator;
 
 use crate::{
@@ -12,6 +13,7 @@ use crate::{
     math::{utils::Axis3, Number, Point3, Transform, Transformable, Vec3},
     point3,
     shapes::Bounded,
+    CALLS, SKIP,
 };
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -83,18 +85,22 @@ impl<T: Number> Aabb<T> {
         true
     }
 
-    pub fn hit_fast(&self, ray: &Ray<T>, inv_dir: Vec3<T>, inv_bounds: Vec3<AabbBound>, mut ray_t_max: T) -> bool {
-        // TODO:
+    pub fn hit_fast(&self, ray: &Ray<T>, inv_dir: Vec3<T>, inv_bounds: Vec3<Sign>, ray_t_max: T) -> bool {
         let mut t_min = T::neg_infinity();
         let mut t_max = T::infinity();
+        CALLS.fetch_add(1, Relaxed);
         for axis in Axis3::iter() {
             let t0 = (self[inv_bounds[axis]][axis] - ray.origin[axis]) * inv_dir[axis];
             let t1 = (self[!inv_bounds[axis]][axis] - ray.origin[axis]) * inv_dir[axis];
-            t_min = T::max(t0, t_min);
-            t_max = T::min(t1, t_max);
-            if t_min > t_max {
+            if t_min > t1 || t0 > t_max {
+                SKIP.fetch_add(1, Relaxed);
                 return false;
             }
+            t_min = T::max(t0, t_min);
+            t_max = T::min(t1, t_max);
+        }
+        if t_min > ray_t_max || t_max < T::zero() {
+            SKIP.fetch_add(1, Relaxed);
         }
         t_min < ray_t_max && t_max > T::zero()
     }
@@ -132,29 +138,37 @@ impl<T: Number> Aabb<T> {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub enum AabbBound {
-    Min,
-    Max,
+pub enum Sign {
+    Neg,
+    Pos,
 }
-
-impl Not for AabbBound {
+impl From<f32> for Sign {
+    fn from(value: f32) -> Self {
+        if value.is_negative() {
+            Sign::Neg
+        } else {
+            Sign::Pos
+        }
+    }
+}
+impl Not for Sign {
     type Output = Self;
 
     fn not(self) -> Self::Output {
         match self {
-            AabbBound::Min => AabbBound::Max,
-            AabbBound::Max => AabbBound::Min,
+            Sign::Neg => Sign::Pos,
+            Sign::Pos => Sign::Neg,
         }
     }
 }
 
-impl<T: Number> Index<AabbBound> for Aabb<T> {
+impl<T: Number> Index<Sign> for Aabb<T> {
     type Output = Point3<T>;
 
-    fn index(&self, index: AabbBound) -> &Self::Output {
+    fn index(&self, index: Sign) -> &Self::Output {
         match index {
-            AabbBound::Min => &self.min,
-            AabbBound::Max => &self.max,
+            Sign::Pos => &self.min,
+            Sign::Neg => &self.max,
         }
     }
 }
@@ -225,7 +239,7 @@ mod tests {
     use approx::assert_abs_diff_eq;
 
     use super::*;
-    use crate::{math::utils::Axis3, unit3, Ray};
+    use crate::{math::utils::Axis3, unit3};
 
     #[test]
     fn test_aabb() {

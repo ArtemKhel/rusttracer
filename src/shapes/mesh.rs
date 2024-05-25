@@ -22,10 +22,10 @@ pub struct Triangle {
 impl Triangle {
     const PADDING: f32 = 1e-4;
 
-    pub fn new(a: Point3f, ab: Vec3f, ac: Vec3f, trans: &Transform<f32>) -> Self {
-        let a = a.transform(trans);
-        let ab = ab.transform(trans);
-        let ac = ac.transform(trans);
+    pub fn new(a: Point3f, ab: Vec3f, ac: Vec3f, trans: Transform<f32>) -> Self {
+        let a = a.transform(&trans);
+        let ab = ab.transform(&trans);
+        let ac = ac.transform(&trans);
 
         let n = ab.cross(ac);
         let normal = n.to_unit();

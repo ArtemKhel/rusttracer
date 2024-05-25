@@ -9,38 +9,30 @@ pub use frame::Frame;
 pub use matrix::*;
 pub use normal::Normal3;
 use num_traits::{Float, Num, NumAssignOps, One, Pow, Signed};
-pub use point::Point3;
 pub use point2::Point2;
-pub use transform::{Transform, Transformable};
+pub use point3::Point3;
+pub use transform::{Transform, TransformBuilder, Transformable};
 pub use unit::Unit;
-pub use vec::Vec3;
+pub use vec2::Vec2;
+pub use vec3::Vec3;
 pub use vec4::Vec4;
 
 mod frame;
 mod matrix;
 mod matrix4;
 mod normal;
-mod point;
 mod point2;
+mod point3;
 mod transform;
 mod unit;
 pub mod utils;
-mod vec;
+mod vec2;
+mod vec3;
 mod vec4;
 
 pub trait Number: Debug + Default + Float + NumAssignOps + Pow<f32, Output = Self> {}
 
 impl<T> Number for T where T: Debug + Default + Float + NumAssignOps + Pow<f32, Output = Self> {}
-
-pub trait Two {
-    fn two() -> Self;
-}
-
-impl<T> Two for T
-where T: One + Add<Output = T>
-{
-    fn two() -> Self { Self::one() + Self::one() }
-}
 
 #[allow(clippy::len_without_is_empty)]
 pub trait Normed {

@@ -20,9 +20,9 @@ use crate::math::{
     Cross, Dot, Normal3, Normed, Number, Vec4,
 };
 
-#[rustfmt::skip]
+// TODO: generate base structs using macro
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
-#[derive(new, Add, Sub, Mul, Div, Neg, AddAssign, SubAssign, MulAssign, DivAssign)]
+#[derive(new, Neg, Add, Sub, Mul, Div, AddAssign, SubAssign, MulAssign, DivAssign)]
 pub struct Vec3<T> {
     pub x: T,
     pub y: T,
@@ -36,12 +36,6 @@ macro_rules! vec3 {
     };
     ($x:expr) => {
         $crate::math::Vec3 { x: $x, y: $x, z: $x }
-    };
-}
-#[macro_export]
-macro_rules! unit_vec3 {
-    ($x:expr, $y:expr, $z:expr) => {
-        $crate::Vec3f { x: $x, y: $y, z: $z }.to_unit()
     };
 }
 
@@ -275,18 +269,5 @@ mod tests {
 
         assert_eq!(r, 20.0);
         assert_eq!(r2, 20.0);
-    }
-
-    #[test]
-    fn test_axis_index() {
-        let mut v = vec3!(1., 2., 3.);
-        assert_eq!(v.x, 1.);
-        assert_eq!(v.y, 2.);
-        assert_eq!(v.z, 3.);
-
-        v += v;
-        assert_eq!(v.x, 2.);
-        assert_eq!(v.y, 4.);
-        assert_eq!(v.z, 6.);
     }
 }

@@ -12,14 +12,16 @@ use num_traits::{Float, Zero};
 use rayon::join;
 
 use crate::{
-    aggregates::{aabb::AabbBound, Aabb},
+    aggregates::{aabb::Sign, Aabb},
     breakpoint,
     core::Ray,
-    math::{utils::Axis3, Number, Point3},
+    math::{utils::Axis3, Normed, Number, Point3},
     scene::{Intersection, Primitive},
     shapes::{Bounded, Intersectable},
     vec3,
 };
+
+type Pair<T> = (T, T);
 
 #[derive(Debug)]
 pub struct BVH<T: Number> {
@@ -174,7 +176,7 @@ impl BVH<f32> {
         axis: Axis3,
         split_method: SplitMethod,
         max_in_node: usize,
-    ) -> Option<(&mut [BVHPrimitiveInfo<f32>], &mut [BVHPrimitiveInfo<f32>])> {
+    ) -> Option<Pair<&mut [BVHPrimitiveInfo<f32>]>> {
         let mut mid = primitives_info.len() / 2;
         match split_method {
             SplitMethod::Middle => {
@@ -329,23 +331,7 @@ impl BVH<f32> {
         // let mut _dbg_node_history: Vec<usize> = vec![];
 
         let inv_dir = ray.dir.map(f32::recip);
-        let inv_bounds = vec3!(
-            if ray.dir.x >= 0.0 {
-                AabbBound::Min
-            } else {
-                AabbBound::Max
-            },
-            if ray.dir.y >= 0.0 {
-                AabbBound::Min
-            } else {
-                AabbBound::Max
-            },
-            if ray.dir.z >= 0.0 {
-                AabbBound::Min
-            } else {
-                AabbBound::Max
-            }
-        );
+        let inv_bounds = ray.dir.map(Sign::from);
 
         while let Some(node_id) = stack.pop() {
             // #[cfg(debug_assertions)]
@@ -392,9 +378,6 @@ impl BVH<f32> {
                 }
             }
         }
-        // #[cfg(debug_assertions)]
-        // debug!("BVH hit in {_dbg_counter}");
-
         closest
     }
 }
@@ -408,7 +391,7 @@ mod tests {
         math::{Normed, Transform},
         point3,
         shapes::sphere::Sphere,
-        vec3,
+        unit3, vec3,
     };
 
     extern crate test;
@@ -416,32 +399,16 @@ mod tests {
     #[bench]
     fn bench_hit(b: &mut Bencher) {
         let aabb = Sphere::new(1., Transform::id()).bound();
-        let ray = Ray::new(point3!(10., 10., 10.), vec3!(-1., -1., -1.).to_unit());
+        let ray = Ray::new(point3!(10., 10., 10.), unit3!(-1., -1., -1.));
         b.iter(|| aabb.hit(&ray, f32::INFINITY));
     }
 
     #[bench]
     fn bench_hit_fast(b: &mut Bencher) {
         let aabb = Sphere::new(1., Transform::id()).bound();
-        let ray = Ray::new(point3!(10., 10., 10.), vec3!(-1., -1., -1.).to_unit());
+        let ray = Ray::new(point3!(10., 10., 10.), unit3!(-1., -1., -1.));
         let inv_dir = ray.dir.map(f32::recip);
-        let inv_bounds = vec3!(
-            if ray.dir.x >= 0.0 {
-                AabbBound::Min
-            } else {
-                AabbBound::Max
-            },
-            if ray.dir.y >= 0.0 {
-                AabbBound::Min
-            } else {
-                AabbBound::Max
-            },
-            if ray.dir.z >= 0.0 {
-                AabbBound::Min
-            } else {
-                AabbBound::Max
-            }
-        );
+        let inv_bounds = ray.dir.map(Sign::from);
         b.iter(|| aabb.hit_fast(&ray, inv_dir, inv_bounds, f32::INFINITY));
     }
 

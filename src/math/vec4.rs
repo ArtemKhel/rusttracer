@@ -1,8 +1,9 @@
 use std::{
     fmt::{Debug, Display},
-    ops::{Add, Deref, Div, Index, IndexMut, Mul, Neg, Sub},
+    ops::{Deref, Index, IndexMut},
 };
 
+use derive_more::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use derive_new::new;
 use gen_ops::gen_ops;
 use num_traits::{One, Pow, Zero};
@@ -17,7 +18,8 @@ use crate::{
     vec3,
 };
 
-#[derive(Debug, Default, Clone, Copy, PartialEq, new)]
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
+#[derive(new, Neg, Add, Sub, Mul, Div, AddAssign, SubAssign, MulAssign, DivAssign)]
 pub struct Vec4<T> {
     pub x: T,
     pub y: T,
@@ -25,12 +27,10 @@ pub struct Vec4<T> {
     pub w: T,
 }
 
-pub type Vec4f = Vec4<f32>;
-
 #[macro_export]
 macro_rules! vec4 {
     ($x:expr, $y:expr, $z:expr, $w:expr) => {
-        Vec4 {
+        $crate::math::Vec4 {
             x: $x,
             y: $y,
             z: $z,
@@ -38,7 +38,7 @@ macro_rules! vec4 {
         }
     };
     ($x:expr) => {
-        Vec4 {
+        $crate::math::Vec4 {
             x: $x,
             y: $x,
             z: $x,
@@ -114,57 +114,6 @@ impl<T: Number> IndexMut<Axis4> for Vec4<T> {
     }
 }
 
-gen_ops!(
-    <T>;
-    types Vec4<T>, Vec4<T> => Vec4<T>;
-
-    for + call |a: &Vec4<T>, b: &Vec4<T>| {
-        vec4!(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w)
-    };
-
-    for - call |a: &Vec4<T>, b: &Vec4<T>| {
-        vec4!(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w)
-    };
-
-    where T:Number
-);
-
-gen_ops!(
-    <T>;
-    types Vec4<T>, T => Vec4<T>;
-
-    for * call |a: &Vec4<T>, b: &T| {
-        vec4!(a.x * *b, a.y * *b, a.z * *b, a.w * *b)
-    };
-
-    for / call |a: &Vec4<T>, b: &T| {
-        vec4!(a.x / *b, a.y / *b, a.z / *b, a.w / *b)
-    };
-
-    where T:Number
-);
-
-gen_ops!(
-    <T>;
-    types Vec4<T>, Vec4<T>;
-
-    for += call |a: &mut Vec4<T>, b: &Vec4<T>| {
-        a.x = a.x + b.x;
-        a.y = a.y + b.y;
-        a.z = a.z + b.z;
-        a.w = a.w + b.w;
-    };
-
-    for -= call |a: &mut Vec4<T>, b: &Vec4<T>| {
-        a.x = a.x - b.x;
-        a.y = a.y - b.y;
-        a.z = a.z - b.z;
-        a.w = a.w - b.w;
-    };
-
-    where T:Number
-);
-
 macro_rules! gen_mul {
     ($( $T:ty ),*) => {$(
         impl Mul<Vec4<$T>> for $T{
@@ -175,16 +124,6 @@ macro_rules! gen_mul {
     )*};
 }
 gen_mul!(f32 /*, f64*/);
-
-gen_ops!(
-    <T>;
-    types Vec4<T> => Vec4<T>;
-
-    for - call |a: &Vec4<T>| {
-        vec4!(-a.x, -a.y, -a.z, -a.w)
-    };
-    where T:Number
-);
 
 impl<T: Number> Dot<Vec4<T>> for Vec4<T> {
     type Output = T;

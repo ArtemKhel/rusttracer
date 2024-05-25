@@ -1,9 +1,15 @@
 #![allow(unused)]
 
+use std::{
+    iter::repeat,
+    sync::atomic::{AtomicU32, Ordering::Relaxed},
+};
+
 use image::{buffer::ConvertBuffer, RgbImage};
 use rusttracer::{
     rendering::{AAType::RegularGrid, RayTracer, Renderer, Resolution},
     test_scenes::*,
+    CALLS, SKIP,
 };
 
 fn main() {
@@ -36,11 +42,15 @@ fn main() {
         },
         // antialiasing: AAType::None.into(),
         antialiasing: RegularGrid(3).into(),
-        max_reflections: 5,
+        max_reflections: 3,
     };
 
     let image = raytracer.render();
 
     let image: RgbImage = image.convert();
-    image.save("./images/_image.png").unwrap()
+    image.save("./images/_image.png").unwrap();
+
+    let c: u32 = CALLS.swap(0, Relaxed);
+    let s: u32 = SKIP.swap(0, Relaxed);
+    println!("calls {c}, skips {s}, ratio {}", s as f32 / c as f32);
 }
