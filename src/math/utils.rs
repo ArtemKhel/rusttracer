@@ -1,64 +1,12 @@
 use std::{fmt::Debug, ops::Deref};
 
-use rand::{
-    distributions::{uniform::SampleUniform, Standard},
-    prelude::Distribution,
-    random, Rng,
-};
-use strum::IntoEnumIterator;
-use strum_macros::EnumIter;
+use rand::{distributions::uniform::SampleUniform, random};
 
 use crate::{
     core::Ray,
     math::{dot, unit::Unit, Dot, Normal3, Normed, Number, Vec3},
     Vec3f,
 };
-
-macro_rules! gen_axis_enums {
-    ($name:ident { $( $axis:ident ),* }) => {
-        #[derive(Copy, Clone, Debug)]
-        #[derive(EnumIter)]
-        pub enum $name {
-            $( $axis ),*
-        }
-    }
-}
-
-gen_axis_enums!(Axis2 { X, Y });
-gen_axis_enums!(Axis3 { X, Y, Z });
-gen_axis_enums!(Axis4 { X, Y, Z, W });
-
-impl Distribution<Axis2> for Standard {
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Axis2 {
-        match random::<u32>() % 2 {
-            0 => Axis2::X,
-            1 => Axis2::Y,
-            _ => unreachable!(),
-        }
-    }
-}
-impl Distribution<Axis3> for Standard {
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Axis3 {
-        match random::<u32>() % 3 {
-            0 => Axis3::X,
-            1 => Axis3::Y,
-            2 => Axis3::Z,
-            _ => unreachable!(),
-        }
-    }
-}
-
-impl Distribution<Axis4> for Standard {
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Axis4 {
-        match random::<u32>() % 4 {
-            0 => Axis4::X,
-            1 => Axis4::Y,
-            2 => Axis4::Z,
-            3 => Axis4::W,
-            _ => unreachable!(),
-        }
-    }
-}
 
 pub fn random_unit<T: Number + SampleUniform>() -> Unit<Vec3<T>> {
     loop {
@@ -107,5 +55,31 @@ pub fn local_normal(normal: Vec3f, ray: &Ray) -> Vec3f {
         normal
     } else {
         -normal
+    }
+}
+
+pub mod spherical_coordinates {
+    use std::f32::consts::{FRAC_1_PI, PI};
+
+    use crate::{math::Vec3, vec3, Vec3f};
+
+    pub fn spherical_theta(vec: Vec3<f32>) -> f32 { vec.z.acos() * FRAC_1_PI }
+
+    pub fn spherical_phi(vec: Vec3<f32>) -> f32 {
+        let p = f32::atan2(vec.y, vec.x);
+        if p < 0. {
+            p + 2. * PI
+        } else {
+            p
+        }
+    }
+
+    pub fn spherical_direction(sin_theta: f32, cos_theta: f32, phi: f32) -> Vec3f {
+        // TODO: is clamp needed?
+        vec3!(
+            sin_theta.clamp(-1., 1.) * phi.cos(),
+            sin_theta.clamp(-1., 1.) * phi.sin(),
+            cos_theta.clamp(-1., 1.)
+        )
     }
 }

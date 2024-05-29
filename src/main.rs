@@ -2,55 +2,121 @@
 
 use std::{
     iter::repeat,
-    sync::atomic::{AtomicU32, Ordering::Relaxed},
+    sync::{
+        atomic::{AtomicU32, Ordering::Relaxed},
+        Arc,
+    },
 };
 
-use image::{buffer::ConvertBuffer, RgbImage};
+use image::{buffer::ConvertBuffer, Rgb, RgbImage};
+use itertools::Itertools;
+use log::debug;
 use rusttracer::{
-    rendering::{AAType::RegularGrid, RayTracer, Renderer, Resolution},
+    aggregates::BVH,
+    colors,
+    integrators::{normal::NormalIntegrator, Integrator},
+    material::{matte::Matte, MaterialsEnum},
+    math::Transform,
+    point2,
+    scene::{
+        cameras::{
+            base::BaseCameraConfig,
+            orthographic::{OrthographicCamera, OrthographicCameraConfig},
+            projective::ScreenWindow,
+            CameraType::Orthographic,
+        },
+        film::{BaseFilm, Resolution},
+        PrimitiveEnum, Scene, SimplePrimitive,
+    },
+    shapes::sphere::Sphere,
     test_scenes::*,
-    CALLS, SKIP,
+    textures::constant::ConstantTexture,
+    vec3, Point2u, CALLS, SKIP,
 };
 
 fn main() {
     env_logger::init();
-    // let scene = spheres();
-    let scene = cornell_box();
-    // let scene = cubes();
-    // let scene = teapot();
 
-    let raytracer = RayTracer {
-        scene,
-        resolution: Resolution {
-            width: 640,
-            height: 640,
-            //
-            // width: 1280,
-            // height: 1280,
-            //
-            // width: 1920,
-            // height: 1920,
-            //
-            // width: 640,
-            // height: 360,
-            //
-            // width: 1280,
-            // height: 720,
-            //
-            // width: 1920,
-            // height: 1080,
+    let camera = Orthographic(OrthographicCamera::from(OrthographicCameraConfig {
+        base_config: BaseCameraConfig {
+            transform: Transform::translate(vec3!(0., 0., -1.)),
+            film: BaseFilm {
+                resolution: point2!(300u32, 300u32),
+            },
         },
-        // antialiasing: AAType::None.into(),
-        antialiasing: RegularGrid(3).into(),
-        max_reflections: 3,
+        screen_window: ScreenWindow {
+            min: point2!(-1., -1.),
+            max: point2!(1., 1.),
+        },
+        lens_radius: 0.0,
+        focal_distance: 0.0,
+    }));
+
+    let primitives = vec![PrimitiveEnum::Simple(SimplePrimitive {
+        shape: Arc::new(Sphere {
+            radius: 0.5,
+            transform: Default::default(),
+        }),
+        material: Arc::new(
+            (MaterialsEnum::Matte(Matte {
+                reflectance: Arc::new(ConstantTexture { value: colors::GREEN }),
+            })),
+        ),
+    })]
+    .into_iter()
+    .map(Arc::new)
+    .collect();
+
+    let objects = PrimitiveEnum::BVH(BVH::new(primitives, 1));
+
+    let scene = Scene {
+        camera,
+        objects,
+        background_color: Rgb([0.25, 0.25, 0.25]),
     };
 
-    let image = raytracer.render();
-
+    let integrator = NormalIntegrator { scene };
+    let image = integrator.render();
     let image: RgbImage = image.convert();
     image.save("./images/_image.png").unwrap();
 
+    // // let scene = spheres();
+    // let scene = cornell_box();
+    // // let scene = cubes();
+    // // let scene = teapot();
+    //
+    // let raytracer = RayTracer {
+    //     scene,
+    //     resolution: Resolution {
+    //         width: 640,
+    //         height: 640,
+    //         //
+    //         // width: 1280,
+    //         // height: 1280,
+    //         //
+    //         // width: 1920,
+    //         // height: 1920,
+    //         //
+    //         // width: 640,
+    //         // height: 360,
+    //         //
+    //         // width: 1280,
+    //         // height: 720,
+    //         //
+    //         // width: 1920,
+    //         // height: 1080,
+    //     },
+    //     // antialiasing: AAType::None.into(),
+    //     antialiasing: RegularGrid(5).into(),
+    //     max_reflections: 5,
+    // };
+    //
+    // let image = raytracer.render();
+    //
+    // let image: RgbImage = image.convert();
+    // image.save("./images/_image.png").unwrap();
+
     let c: u32 = CALLS.swap(0, Relaxed);
     let s: u32 = SKIP.swap(0, Relaxed);
-    println!("calls {c}, skips {s}, ratio {}", s as f32 / c as f32);
+    debug!("calls {c}, skips {s}, ratio {}", s as f32 / c as f32);
 }

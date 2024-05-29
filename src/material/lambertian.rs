@@ -18,6 +18,7 @@ impl Material for Lambertian {
         let ray = Ray::new(
             intersection.hit.point + **intersection.hit.normal * 0.01,
             scattered_direction,
+            None,
         );
         Some(Scatter {
             ray,

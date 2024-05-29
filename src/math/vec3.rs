@@ -13,11 +13,14 @@ use rand::{
     Rng,
 };
 
-use crate::math::{
-    transform::{Transform, Transformable},
-    unit::Unit,
-    utils::Axis3,
-    Cross, Dot, Normal3, Normed, Number, Vec4,
+use crate::{
+    impl_axis_index,
+    math::{
+        axis::Axis3,
+        transform::{Transform, Transformable},
+        unit::Unit,
+        Cross, Dot, Normal3, Normed, Number, Vec2, Vec4,
+    },
 };
 
 // TODO: generate base structs using macro
@@ -36,6 +39,12 @@ macro_rules! vec3 {
     };
     ($x:expr) => {
         $crate::math::Vec3 { x: $x, y: $x, z: $x }
+    };
+}
+#[macro_export]
+macro_rules! unit_vec3 {
+    ($x:expr, $y:expr, $z:expr) => {
+        $crate::math::Unit::from($crate::vec3!($x, $y, $z))
     };
 }
 
@@ -71,7 +80,7 @@ impl<T: Number> Normed for Vec3<T> {
 
     fn to_unit(self) -> Unit<Self> { self.into() }
 
-    fn len(&self) -> T { T::pow(self.dot(self), 0.5) }
+    fn len(&self) -> T { self.dot(self).sqrt() }
 
     fn len_squared(&self) -> T { self.dot(self) }
 }
@@ -87,27 +96,7 @@ impl<T: Number + SampleUniform> Distribution<Vec3<T>> for Standard {
     }
 }
 
-impl<T> Index<Axis3> for Vec3<T> {
-    type Output = T;
-
-    fn index(&self, index: Axis3) -> &Self::Output {
-        match index {
-            Axis3::X => &self.x,
-            Axis3::Y => &self.y,
-            Axis3::Z => &self.z,
-        }
-    }
-}
-
-impl<T> IndexMut<Axis3> for Vec3<T> {
-    fn index_mut(&mut self, index: Axis3) -> &mut Self::Output {
-        match index {
-            Axis3::X => &mut self.x,
-            Axis3::Y => &mut self.y,
-            Axis3::Z => &mut self.z,
-        }
-    }
-}
+impl_axis_index!(Vec3, Axis3, T, (X, x), (Y, y), (Z, z));
 
 macro_rules! gen_mul {
     ($( $T:ty ),*) => {$(
@@ -125,7 +114,7 @@ where T: Copy
 {
     type Output = Vec3<T>;
 
-    fn cross(&self, rhs: Vec3<T>) -> Self::Output {
+    fn cross(&self, rhs: &Vec3<T>) -> Self::Output {
         vec3!(
             self.y * rhs.z - self.z * rhs.y,
             self.z * rhs.x - self.x * rhs.z,
@@ -176,64 +165,9 @@ impl<T: Number> Transformable<T> for Vec3<T> {
     }
 }
 
-// gen_ops!(
-//     <T>;
-//     types Vec3<T>, Vec3<T> => Vec3<T>;
-//
-//     for + call |a: &Vec3<T>, b: &Vec3<T>| {
-//         vec3!(a.x + b.x, a.y + b.y, a.z + b.z)
-//     };
-//
-//     for - call |a: &Vec3<T>, b: &Vec3<T>| {
-//         vec3!(a.x - b.x, a.y - b.y, a.z - b.z)
-//     };
-//
-//     where T:Number
-// );
-//
-// gen_ops!(
-//     <T>;
-//     types Vec3<T>, T => Vec3<T>;
-//
-//     for * call |a: &Vec3<T>, b: &T| {
-//         vec3!(a.x * *b, a.y * *b, a.z * *b)
-//     };
-//
-//     for / call |a: &Vec3<T>, b: &T| {
-//         vec3!(a.x / *b, a.y / *b, a.z / *b)
-//     };
-//
-//     where T:Number
-// );
-//
-// gen_ops!(
-//     <T>;
-//     types Vec3<T>, Vec3<T>;
-//
-//     for += call |a: &mut Vec3<T>, b: &Vec3<T>| {
-//         a.x = a.x + b.x;
-//         a.y = a.y + b.y;
-//         a.z = a.z + b.z;
-//     };
-//
-//     for -= call |a: &mut Vec3<T>, b: &Vec3<T>| {
-//         a.x = a.x - b.x;
-//         a.y = a.y - b.y;
-//         a.z = a.z - b.z;
-//     };
-//
-//     where T:Number
-// );
-//
-// gen_ops!(
-//     <T>;
-//     types Vec3<T> => Vec3<T>;
-//
-//     for - call |a: &Vec3<T>| {
-//         vec3!(-a.x, -a.y, -a.z)
-//     };
-//     where T:Number
-// );
+impl<T: Zero> From<Vec2<T>> for Vec3<T> {
+    fn from(vec: Vec2<T>) -> Self { vec3!(vec.x, vec.y, T::zero()) }
+}
 
 #[cfg(test)]
 mod tests {
@@ -253,8 +187,8 @@ mod tests {
     fn test_cross() {
         let u = vec3!(1., 0., 0.);
         let v = vec3!(0., 1., 0.);
-        let r = u.cross(v);
-        let r2 = cross(u, v);
+        let r = u.cross(&v);
+        let r2 = cross(&u, &v);
 
         assert_eq!(r, vec3!(0., 0., 1.));
         assert_eq!(r2, vec3!(0., 0., 1.));

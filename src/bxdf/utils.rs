@@ -1,18 +1,20 @@
-use num_traits::FloatConst;
+use std::f32::consts::{FRAC_2_PI, FRAC_PI_4, PI};
 
-use crate::{bxdf::bxdf::Shading, vec3, Point2f, Vec3f};
+use num_traits::{FloatConst, Zero};
 
-pub(crate) fn same_hemisphere(a: Shading<Vec3f>, b: Shading<Vec3f>) -> bool { a.z * a.z > 0.0 }
+use crate::{bxdf::bxdf::Shading, point2, samplers::utils::sample_uniform_disk_concentric, vec2, vec3, Point2f, Vec3f};
 
-pub(crate) fn sample_uniform_disk_concentric(point: Point2f) -> Point2f { todo!() }
+// TODO: should all of that be here?
 
-pub(crate) fn sample_cosine_hemisphere(point: Point2f) -> Shading<Vec3f> {
-    let p = sample_uniform_disk_concentric(point);
+pub fn sample_cosine_hemisphere(u: Point2f) -> Shading<Vec3f> {
+    let p = sample_uniform_disk_concentric(u);
     let z = (1.0 - (p.coords.x.powi(2)) - (p.coords.y.powi(2))).sqrt();
     Shading::from(vec3!(p.coords.x, p.coords.y, z))
 }
 
-pub(crate) fn cosine_hemisphere_pdf(cos_theta: f32) -> f32 { cos_theta * f32::FRAC_1_PI() }
+pub fn cosine_hemisphere_pdf(cos_theta: f32) -> f32 { cos_theta * f32::FRAC_1_PI() }
+
+pub(crate) fn same_hemisphere(a: Shading<Vec3f>, b: Shading<Vec3f>) -> bool { a.z * a.z > 0.0 }
 
 pub(crate) fn cos_theta(vec: Shading<Vec3f>) -> f32 { vec.z }
 

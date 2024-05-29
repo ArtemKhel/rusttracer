@@ -17,6 +17,9 @@ pub use vec2::Vec2;
 pub use vec3::Vec3;
 pub use vec4::Vec4;
 
+use crate::{normal3, unit3, unit_normal3};
+
+pub mod axis;
 mod frame;
 mod matrix;
 mod matrix4;
@@ -62,21 +65,60 @@ pub trait Dot<RHS> {
     fn dot(&self, rhs: &RHS) -> Self::Output;
 }
 
-impl<T, U, Out: Number> Dot<U> for T
+// TODO: how it dereferences rhs???
+impl<Lhs, Rhs, Ref, Out> Dot<Rhs> for Lhs
 where
-    U: Deref<Target = T>,
-    T: Dot<T, Output = Out>,
+    Lhs: Deref<Target = Ref>,
+    Ref: Dot<Rhs, Output = Out>,
 {
     type Output = Out;
 
-    fn dot(&self, rhs: &U) -> Self::Output { self.dot(rhs) }
+    fn dot(&self, rhs: &Rhs) -> Self::Output { self.deref().dot(rhs) }
 }
 
-pub fn dot<T: Dot<U>, U>(lhs: &T, rhs: &U) -> T::Output { lhs.dot(rhs) }
+// impl<T, U, Out: Number> Dot<U> for T
+// where
+//     U: Deref<Target = T>,
+//     T: Dot<T, Output = Out>,
+// {
+//     type Output = Out;
+//
+//     fn dot(&self, rhs: &U) -> Self::Output { self.dot(rhs) }
+// }
+
+pub fn dot<LHS: Dot<RHS>, RHS>(lhs: &LHS, rhs: &RHS) -> LHS::Output { lhs.dot(rhs) }
 
 pub trait Cross<RHS = Self> {
     type Output;
-    fn cross(&self, rhs: RHS) -> Self::Output;
+    fn cross(&self, rhs: &RHS) -> Self::Output;
 }
 
-pub fn cross<T: Cross>(lhs: T, rhs: T) -> T::Output { lhs.cross(rhs) }
+pub fn cross<T: Cross>(lhs: &T, rhs: &T) -> T::Output { lhs.cross(rhs) }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::vec3;
+
+    #[test]
+    fn test_deref() {
+        let v = vec3!(1., 2., 3.);
+        let nv = normal3!(1., 2., 3.);
+        let uv = unit3!(1., 2., 3.);
+        let unv = unit_normal3!(1., 2., 3.);
+
+        dot(&v, &v);
+        dot(&v, &nv);
+        dot(&v, &uv);
+        dot(&v, &unv);
+
+        dot(&nv, &nv);
+        dot(&nv, &uv);
+        dot(&nv, &unv);
+
+        dot(&uv, &uv);
+        dot(&uv, &unv);
+
+        dot(&unv, &unv);
+    }
+}

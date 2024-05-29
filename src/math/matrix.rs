@@ -3,7 +3,7 @@ use std::ops::Mul;
 use num_traits::Zero;
 
 use crate::{
-    math::{utils::Axis3, Number, Vec3},
+    math::{axis::Axis3, Number, Vec3},
     vec3,
 };
 

@@ -14,19 +14,19 @@ pub struct Normal3<T> {
 #[macro_export]
 macro_rules! normal3 {
     ($x:expr, $y:expr, $z:expr) => {
-        Normal3::from($crate::vec3!($x, $y, $z))
+        $crate::math::Normal3::from($crate::vec3!($x, $y, $z))
     };
 }
 #[macro_export]
 macro_rules! unit_normal3 {
     ($x:expr, $y:expr, $z:expr) => {
-        Unit::from($crate::vec3!($x, $y, $z)).cast::<Normal3<_>>()
+        $crate::math::Unit::from($crate::vec3!($x, $y, $z)).cast::<$crate::math::Normal3<_>>()
     };
 }
 
 impl<T: Number> Transformable<T> for Normal3<T> {
     fn transform(&self, trans: &Transform<T>) -> Self {
-        let vec = Vec4::from(self.deref());
+        let vec = Vec4::from(self.value);
         let px = vec.dot(&trans.inv.x);
         let py = vec.dot(&trans.inv.y);
         let pz = vec.dot(&trans.inv.z);
@@ -34,7 +34,7 @@ impl<T: Number> Transformable<T> for Normal3<T> {
     }
 
     fn inv_transform(&self, trans: &Transform<T>) -> Self {
-        let vec = Vec4::from(self.deref());
+        let vec = Vec4::from(self.value);
         let mat = trans.mat.transpose();
         let px = vec.dot(&mat.x);
         let py = vec.dot(&mat.y);

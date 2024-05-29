@@ -2,23 +2,24 @@ use image::Rgb;
 
 use crate::{
     aggregates::BVH,
-    core::Ray,
+    core::{Ray, SurfaceInteraction},
     material::Material,
-    scene::{Intersection, SimpleCamera},
+    scene::{cameras::CameraType, PrimitiveEnum},
+    shapes::Intersectable,
 };
 
 pub struct Scene {
-    pub camera: SimpleCamera,
+    pub camera: CameraType,
     // pub objects: Vec<Primitive>,
-    pub objects: BVH<f32>,
-    pub materials: Vec<Box<dyn Material>>,
+    pub objects: PrimitiveEnum,
+    // pub materials: Vec<Box<dyn Material>>,
     // lights:
     pub background_color: Rgb<f32>,
 }
 
 impl Scene {
-    pub fn cast_ray(&self, ray: &Ray) -> Option<Intersection> {
-        self.objects.hit(ray)
+    pub fn cast_ray(&self, ray: &Ray) -> Option<SurfaceInteraction> {
+        self.objects.intersect(ray, f32::INFINITY)
         // self.objects
         //     .iter()
         //     .filter_map(|obj| obj.shape.hit(ray).map(|hit| Intersection { hit, object: obj }))

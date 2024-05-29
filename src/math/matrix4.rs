@@ -1,13 +1,23 @@
-use std::ops::{Add, Index, Mul};
+use std::{
+    iter::Skip,
+    ops::{Index, IndexMut, Mul},
+};
 
+use derive_more::Add;
 use num_traits::Zero;
+use strum::IntoEnumIterator;
 
 use crate::{
-    math::{dot, utils::Axis4, vec4, Matrix3, Number, Vec4},
+    impl_axis_index,
+    math::{
+        axis::{Axis4, Axis4Iter},
+        dot, Matrix3, Number, Vec4,
+    },
     vec4,
 };
 
 #[derive(Debug, Copy, Clone)]
+#[derive(Add)]
 pub struct Matrix4<T> {
     pub x: Vec4<T>,
     pub y: Vec4<T>,
@@ -142,19 +152,6 @@ impl<T: Number> Mul for Matrix4<T> {
     }
 }
 
-impl<T: Number> Add<Self> for Matrix4<T> {
-    type Output = Self;
-
-    fn add(self, rhs: Self) -> Self::Output {
-        Matrix4 {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z,
-            w: self.w + rhs.w,
-        }
-    }
-}
-
 impl<T: Number> Zero for Matrix4<T> {
     fn zero() -> Self {
         Matrix4 {
@@ -167,3 +164,5 @@ impl<T: Number> Zero for Matrix4<T> {
 
     fn is_zero(&self) -> bool { self.x.is_zero() && self.y.is_zero() && self.z.is_zero() && self.w.is_zero() }
 }
+
+impl_axis_index!(Matrix4, Axis4, Vec4<T>, (X, x), (Y, y), (Z, z), (W, w));

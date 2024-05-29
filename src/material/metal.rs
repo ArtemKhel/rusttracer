@@ -22,6 +22,7 @@ impl Material for Metal {
         let ray = Ray::new(
             intersection.hit.point + **intersection.hit.normal * 0.01,
             reflected_direction,
+            None,
         );
         Some(Scatter {
             ray,

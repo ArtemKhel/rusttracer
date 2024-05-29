@@ -18,7 +18,7 @@ pub struct Ray<T: Number> {
     // TODO: normalize if needed?
     pub dir: Unit<Vec3<T>>,
     // pub medium: Option<M>
-    // pub diff: Option<RayDifferential>, // TODO: scale
+    pub diff: Option<RayDifferential<T>>, // TODO: scale
 }
 
 #[macro_export]
@@ -27,6 +27,7 @@ macro_rules! ray {
         Ray {
             origin: $origin,
             dir: $dir,
+            diff: None,
         }
     };
 }

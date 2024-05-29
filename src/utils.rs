@@ -17,6 +17,7 @@ pub(crate) fn degrees_to_radians(degrees: f32) -> f32 { PI * degrees / 180.0 }
 #[macro_export]
 macro_rules! breakpoint {
     () => {
+        #[cfg(debug_assertions)]
         unsafe {
             std::intrinsics::breakpoint();
             #[allow(clippy::unused_unit)]

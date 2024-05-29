@@ -1,11 +1,22 @@
 use std::{fmt::Debug, iter::Iterator};
 
-use crate::math::{matrix4::Matrix4, utils::Axis3, Dot, Number, Vec3};
+use itertools::Itertools;
+use strum::IntoEnumIterator;
+
+use crate::{
+    math::{
+        axis::{Axis3, Axis4},
+        dot,
+        matrix4::Matrix4,
+        Dot, Number, Vec3,
+    },
+    vec3, Vec3f,
+};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Transform<T> {
-    pub(crate) mat: Matrix4<T>,
-    pub(crate) inv: Matrix4<T>,
+    pub mat: Matrix4<T>,
+    pub inv: Matrix4<T>,
 }
 
 pub trait Transformable<T> {
@@ -15,14 +26,14 @@ pub trait Transformable<T> {
 }
 
 impl<T: Number> Transform<T> {
-    pub fn id() -> Transform<T> {
+    pub fn id() -> Self {
         Transform {
             mat: Matrix4::id(),
             inv: Matrix4::id(),
         }
     }
 
-    pub fn from_matrix(mat: Matrix4<T>) -> Transform<T> {
+    pub fn from_matrix(mat: Matrix4<T>) -> Self {
         // TODO: unwraps
         Transform {
             inv: mat.inverse().unwrap(),
@@ -92,6 +103,13 @@ impl<T: Number> Transform<T> {
         }
     }
 
+    pub fn orthographic(z_near: T, z_far: T) -> Self {
+        Transform::compose(
+            Transform::translate(vec3!(T::zero(), T::zero(), -z_near)),
+            Transform::scale(T::one(), T::one(), (z_far - z_near).recip()),
+        )
+    }
+
     pub fn compose(a: Transform<T>, b: Transform<T>) -> Self {
         Transform {
             mat: b.mat * a.mat,
@@ -113,6 +131,30 @@ impl<T: Number> Transform<T> {
     pub fn apply_inv_to<R: Transformable<T>>(&self, x: R) -> R { x.inv_transform(self) }
 }
 
+impl Transform<f32> {
+    pub fn rotate_from_to(from: Vec3f, to: Vec3f) -> Self {
+        // Compute intermediate vector for vector reflection
+        let reflection_vec = if (from.x.abs() < 0.72 && to.x.abs() < 0.72) {
+            vec3!(1., 0., 0.)
+        } else if (from.y.abs() < 0.72 && to.y.abs() < 0.72) {
+            vec3!(0., 1., 0.)
+        } else {
+            vec3!(0., 0., 1.)
+        };
+        // Initialize matrix r for rotation
+        let u = reflection_vec - from;
+        let v = reflection_vec - to;
+        let mut matrix = Matrix4::<f32>::id();
+        for (row, col) in Axis3::iter().cartesian_product(Axis3::iter()) {
+            matrix[row.into()][col.into()] = (if row == col { 1. } else { 0. }
+                - 2. / dot(&u, &u) * u[row] * u[col]
+                - 2. / dot(&v, &v) * v[row] * v[col]
+                + 4. * dot(&u, &v) / (dot(&u, &u) * dot(&v, &v)) * v[row] * u[col])
+        }
+        Transform::from_matrix(matrix)
+    }
+}
+
 impl<T: Number> Default for Transform<T> {
     fn default() -> Self { Transform::id() }
 }
@@ -121,6 +163,7 @@ impl<T: Number> Default for Transform<T> {
 pub struct TransformBuilder<T: Number> {
     result: Transform<T>,
 }
+
 impl<T: Number> TransformBuilder<T> {
     pub fn build(self) -> Transform<T> { self.result }
 
@@ -215,5 +258,19 @@ mod tests {
 
         assert_abs_diff_eq!(comp.apply_to(p), ep);
         assert_abs_diff_eq!(comp.apply_inv_to(p), eip);
+    }
+
+    #[test]
+    fn test_orthographic() {
+        let orthographic = Transform::orthographic(0., 10.);
+        let v1 = vec3!(1., 2., 5.);
+        let v2 = vec3!(1., 2., -5.);
+        let v3 = vec3!(1., 2., 10.);
+        let v4 = vec3!(1., 2., 15.);
+
+        assert_eq!(v1.transform(&orthographic), vec3!(1., 2., 0.5));
+        assert_eq!(v2.transform(&orthographic), vec3!(1., 2., -0.5));
+        assert_eq!(v3.transform(&orthographic), vec3!(1., 2., 1.));
+        assert_eq!(v4.transform(&orthographic), vec3!(1., 2., 1.5));
     }
 }

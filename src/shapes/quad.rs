@@ -4,9 +4,8 @@ use crate::{
     aggregates::Aabb,
     core::{Hit, Ray},
     math::{
-        cross, dot,
-        utils::{local_normal, Axis3},
-        Cross, Dot, Normed, Number, Point3, Transform, Transformable, Unit, Vec3,
+        axis::Axis3, cross, dot, utils::local_normal, Cross, Dot, Normed, Number, Point3, Transform, Transformable,
+        Unit, Vec3,
     },
     point3,
     shapes::{Bounded, Intersectable},

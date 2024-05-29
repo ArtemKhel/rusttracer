@@ -4,7 +4,8 @@ use derive_new::new;
 
 use crate::{
     core::ray::Ray,
-    math::{Dot, Normal3, Normed, Number, Point3, Transform, Transformable, Unit},
+    math::{dot, Dot, Normal3, Normed, Number, Point3, Transform, Transformable, Unit},
+    Vec3f,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, new)]
@@ -12,11 +13,12 @@ pub struct Hit<T: Number> {
     pub point: Point3<T>,
     pub normal: Unit<Normal3<T>>,
     pub t: T,
-    // pub medium: Option<M>
+    // pub medium: Option<M>,
+    // pub outgoing: Vec3f,
 }
 
 impl<T: Number> Hit<T> {
-    pub fn on_front_side(&self, ray: &Ray<T>) -> bool { self.normal.dot(&ray.dir) < T::zero() }
+    pub fn on_front_side(&self, ray: &Ray<T>) -> bool { dot(&self.normal, &ray.dir) < T::zero() }
 }
 
 impl<T: Number> Eq for Hit<T> {}

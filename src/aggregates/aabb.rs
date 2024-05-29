@@ -1,7 +1,6 @@
 use std::{
     mem::swap,
     ops::{Add, AddAssign, Index, Not},
-    sync::atomic::{Ordering, Ordering::Relaxed},
 };
 
 use approx::AbsDiffEq;
@@ -9,11 +8,10 @@ use num_traits::{Float, Signed};
 use strum::IntoEnumIterator;
 
 use crate::{
+    aggregates::Bounded,
     core::ray::Ray,
-    math::{utils::Axis3, Number, Point3, Transform, Transformable, Vec3},
+    math::{axis::Axis3, Number, Point3, Transform, Transformable, Vec3},
     point3,
-    shapes::Bounded,
-    CALLS, SKIP,
 };
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -27,7 +25,7 @@ impl<T: Number> Aabb<T> {
     const PADDING: f32 = 1e-4;
 
     pub fn center(&self) -> Point3<T> {
-        Point3::new(self.min.coords + (self.max.coords - self.min.coords) / T::from(2).unwrap())
+        Point3::new(self.min.coords + (self.max.coords - self.min.coords) / (T::one() + T::one()))
     }
 
     pub fn max_dimension(&self) -> Axis3 {
@@ -88,20 +86,18 @@ impl<T: Number> Aabb<T> {
     pub fn hit_fast(&self, ray: &Ray<T>, inv_dir: Vec3<T>, inv_bounds: Vec3<Sign>, ray_t_max: T) -> bool {
         let mut t_min = T::neg_infinity();
         let mut t_max = T::infinity();
-        CALLS.fetch_add(1, Relaxed);
+        // CALLS.fetch_add(1, Relaxed);
         for axis in Axis3::iter() {
             let t0 = (self[inv_bounds[axis]][axis] - ray.origin[axis]) * inv_dir[axis];
             let t1 = (self[!inv_bounds[axis]][axis] - ray.origin[axis]) * inv_dir[axis];
             if t_min > t1 || t0 > t_max {
-                SKIP.fetch_add(1, Relaxed);
+                // SKIP.fetch_add(1, Relaxed);
                 return false;
             }
             t_min = T::max(t0, t_min);
             t_max = T::min(t1, t_max);
         }
-        if t_min > ray_t_max || t_max < T::zero() {
-            SKIP.fetch_add(1, Relaxed);
-        }
+        // if t_min > ray_t_max || t_max < T::zero() { SKIP.fetch_add(1, Relaxed); }
         t_min < ray_t_max && t_max > T::zero()
     }
 
@@ -239,7 +235,7 @@ mod tests {
     use approx::assert_abs_diff_eq;
 
     use super::*;
-    use crate::{math::utils::Axis3, unit3};
+    use crate::{ray, unit3};
 
     #[test]
     fn test_aabb() {
@@ -248,14 +244,14 @@ mod tests {
             max: point3!(2., 1., 1.),
         };
 
-        let ray = Ray::new(Point3::default(), unit3!(1., 0., 0.));
+        let ray = ray!(Point3::default(), unit3!(1., 0., 0.));
         assert!(bbox.hit(&ray, 10.));
         assert!(!bbox.hit(&ray, 0.5));
 
-        let ray = Ray::new(Point3::default(), unit3!(1., 2., 0.));
+        let ray = ray!(Point3::default(), unit3!(1., 2., 0.));
         assert!(!bbox.hit(&ray, 10.));
 
-        let ray = Ray::new(point3!(0., 1., 0.), unit3!(1., 0., 0.));
+        let ray = ray!(point3!(0., 1., 0.), unit3!(1., 0., 0.));
         assert!(bbox.hit(&ray, 10.));
     }
 

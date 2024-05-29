@@ -56,6 +56,7 @@ impl Material for Dielectric {
                         **intersection.hit.normal * -0.01
                     },
                 direction,
+                None,
             ),
             attenuation: self.attenuation,
         })

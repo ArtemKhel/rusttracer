@@ -24,6 +24,14 @@ pub struct BSDFSample<T> {
 }
 
 impl BSDF {
+    // TODO: shading
+    pub fn new(shading_normal: Vec3f, shading_dp_du: Vec3f, bxdf: Box<dyn BxDF>) -> Self {
+        Self {
+            bxdf,
+            shading_frame: Frame::from_x_y(shading_normal, shading_dp_du),
+        }
+    }
+
     pub fn eval(&self, incoming: Vec3f, outgoing: Vec3f) -> Rgb<f32> {
         // TODO: normalized?
         let s_in = self.render_to_shading(incoming);
@@ -69,8 +77,8 @@ impl BSDF {
     }
 
     fn render_to_shading(&self, vec3f: Vec3f) -> Shading<Vec3f> {
-        self.shading_frame.to_local::<Shading<Vec3f>>(vec3f as _)
+        self.shading_frame.to_local_wrap::<Shading<Vec3f>>(vec3f as _)
     }
 
-    fn shading_to_render(&self, vec3f: Shading<Vec3f>) -> Vec3f { self.shading_frame.from_local(vec3f) }
+    fn shading_to_render(&self, vec3f: Shading<Vec3f>) -> Vec3f { self.shading_frame.from_local_unwrap(vec3f) }
 }

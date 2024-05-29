@@ -15,7 +15,7 @@ pub struct Isotropic {
 impl Material for Isotropic {
     fn scattered(&self, ray: &Ray, intersection: &Intersection) -> Option<Scatter> {
         Some(Scatter {
-            ray: Ray::new(intersection.hit.point, random_unit()),
+            ray: Ray::new(intersection.hit.point, random_unit(), None),
             attenuation: self.color,
         })
     }

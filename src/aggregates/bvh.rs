@@ -2,7 +2,7 @@ use std::{
     cmp::max,
     fmt::Debug,
     ops::{AddAssign, Deref, DerefMut},
-    rc::Rc,
+    sync::Arc,
 };
 
 use derive_new::new;
@@ -12,20 +12,21 @@ use num_traits::{Float, Zero};
 use rayon::join;
 
 use crate::{
-    aggregates::{aabb::Sign, Aabb},
+    aggregates::{aabb::Sign, Aabb, Bounded},
     breakpoint,
-    core::Ray,
-    math::{utils::Axis3, Normed, Number, Point3},
-    scene::{Intersection, Primitive},
-    shapes::{Bounded, Intersectable},
-    vec3,
+    core::{hit::Hit, Ray, SurfaceInteraction},
+    math::{axis::Axis3, Normed, Number, Point3},
+    normal3, point3,
+    scene::{Primitive, PrimitiveEnum},
+    shapes::Intersectable,
+    unit_normal3, vec3,
 };
 
 type Pair<T> = (T, T);
 
 #[derive(Debug)]
 pub struct BVH<T: Number> {
-    primitives: Vec<Rc<Primitive>>,
+    primitives: Vec<Arc<PrimitiveEnum>>,
     nodes: Vec<BVHLinearNode<T>>,
     height: usize,
 }
@@ -82,7 +83,7 @@ struct BVHSplitBucket<T: Number> {
 
 // TODO: generic
 impl BVH<f32> {
-    pub fn new(primitives: Vec<Rc<Primitive>>, mut max_in_node: usize) -> BVH<f32> {
+    pub fn new(primitives: Vec<Arc<PrimitiveEnum>>, mut max_in_node: usize) -> BVH<f32> {
         // TODO: allocators
         let bounds = primitives.iter().fold(Aabb::default(), |acc, p| acc + p.bound());
 
@@ -96,7 +97,7 @@ impl BVH<f32> {
             })
         }
 
-        let mut ordered_primitives: Vec<Rc<Primitive>> = Vec::with_capacity(primitives.len());
+        let mut ordered_primitives: Vec<Arc<PrimitiveEnum>> = Vec::with_capacity(primitives.len());
         let mut total_nodes = 0_usize; // TODO: atomic (+parallel)
         max_in_node = max_in_node.min(255);
         let root = Self::recursive_build(
@@ -120,9 +121,9 @@ impl BVH<f32> {
     }
 
     fn recursive_build(
-        primitives: &Vec<Rc<Primitive>>,
+        primitives: &Vec<Arc<PrimitiveEnum>>,
         primitives_info: &mut [BVHPrimitiveInfo<f32>],
-        ordered_primitives: &mut Vec<Rc<Primitive>>,
+        ordered_primitives: &mut Vec<Arc<PrimitiveEnum>>,
         total_nodes: &mut usize,
         split_method: SplitMethod,
         max_in_node: usize,
@@ -248,9 +249,9 @@ impl BVH<f32> {
     }
 
     fn build_leaf(
-        primitives: &[Rc<Primitive>],
+        primitives: &[Arc<PrimitiveEnum>],
         primitives_info: &[BVHPrimitiveInfo<f32>],
-        ordered_primitives: &mut Vec<Rc<Primitive>>,
+        ordered_primitives: &mut Vec<Arc<PrimitiveEnum>>,
         bounds: Aabb<f32>,
     ) -> BVHBuildNode<f32> {
         let first_offset = ordered_primitives.len();
@@ -316,16 +317,16 @@ impl BVH<f32> {
 //     }
 // }
 
-impl BVH<f32> {
-    pub fn hit(&self, ray: &Ray) -> Option<Intersection> {
+impl Intersectable for BVH<f32> {
+    fn intersect(&self, ray: &Ray, t_max: f32) -> Option<SurfaceInteraction> {
         if self.nodes.is_empty() {
             return None;
         }
         let mut stack = Vec::with_capacity(self.height * 2);
         stack.push(0);
 
-        let mut t_max = f32::max_value();
-        let mut closest: Option<Intersection> = None;
+        let mut t_max = t_max;
+        let mut closest: Option<SurfaceInteraction> = None;
 
         // let mut _dbg_counter = 0;
         // let mut _dbg_node_history: Vec<usize> = vec![];
@@ -340,8 +341,7 @@ impl BVH<f32> {
             //     _dbg_node_history.push(node_id);
             //     breakpoint!(_dbg_counter >= 20);
             // }
-            let node = &self.nodes[node_id];
-            match *node {
+            match self.nodes[node_id] {
                 BVHLinearNode::Interior {
                     bounds,
                     axis,
@@ -358,6 +358,7 @@ impl BVH<f32> {
                         }
                     }
                 }
+
                 BVHLinearNode::Leaf {
                     bounds,
                     first_offset,
@@ -367,12 +368,12 @@ impl BVH<f32> {
                     if bounds.hit_fast(ray, inv_dir, inv_bounds, t_max) {
                         let curr_closest = self.primitives[first_offset..first_offset + n_primitives]
                             .iter()
-                            .filter_map(|obj| obj.hit(ray).map(|hit| Intersection { hit, object: obj }))
+                            .filter_map(|obj| obj.intersect(ray, t_max))
                             .min();
 
                         if curr_closest.is_some() && (closest.is_none() || curr_closest < closest) {
+                            t_max = curr_closest.as_ref().unwrap().interaction.t;
                             closest = curr_closest;
-                            t_max = curr_closest.unwrap().hit.t;
                         }
                     }
                 }
@@ -382,31 +383,34 @@ impl BVH<f32> {
     }
 }
 
+impl<T: Number> Bounded<T> for BVH<T> {
+    fn bound(&self) -> Aabb<T> {
+        match self.nodes.first().unwrap() {
+            BVHLinearNode::Interior { bounds, .. } | BVHLinearNode::Leaf { bounds, .. } => *bounds,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use test::Bencher;
 
     use super::*;
-    use crate::{
-        math::{Normed, Transform},
-        point3,
-        shapes::sphere::Sphere,
-        unit3, vec3,
-    };
+    use crate::{math::Transform, point3, ray, shapes::sphere::Sphere, unit3};
 
     extern crate test;
 
     #[bench]
     fn bench_hit(b: &mut Bencher) {
         let aabb = Sphere::new(1., Transform::id()).bound();
-        let ray = Ray::new(point3!(10., 10., 10.), unit3!(-1., -1., -1.));
+        let ray = ray!(point3!(10., 10., 10.), unit3!(-1., -1., -1.));
         b.iter(|| aabb.hit(&ray, f32::INFINITY));
     }
 
     #[bench]
     fn bench_hit_fast(b: &mut Bencher) {
         let aabb = Sphere::new(1., Transform::id()).bound();
-        let ray = Ray::new(point3!(10., 10., 10.), unit3!(-1., -1., -1.));
+        let ray = ray!(point3!(10., 10., 10.), unit3!(-1., -1., -1.));
         let inv_dir = ray.dir.map(f32::recip);
         let inv_bounds = ray.dir.map(Sign::from);
         b.iter(|| aabb.hit_fast(&ray, inv_dir, inv_bounds, f32::INFINITY));
@@ -414,7 +418,7 @@ mod tests {
 
     // #[test]
     // fn test_bvh() {
-    //     let mut world: Vec<Rc<Primitive>> = vec![
+    //     let mut world: Vec<Arc<Primitive>> = vec![
     //         Primitive {
     //             shape: Box::new(Sphere::new(point3!(0., 0., 0.), 1.0)),
     //             material: Box::new(Lambertian {
@@ -441,7 +445,7 @@ mod tests {
     //         },
     //     ]
     //     .into_iter()
-    //     .map(Rc::new)
+    //     .map(Arc::new)
     //     .collect();
     //
     //     let bvh = BVH::new(world, 1);

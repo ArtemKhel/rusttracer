@@ -7,12 +7,13 @@ use gen_ops::gen_ops;
 use num_traits::{float::FloatCore, Float, One};
 
 use crate::math::{
+    axis::Axis3,
     transform::{Transform, Transformable},
-    utils::Axis3,
-    Dot, Number, Vec3, Vec4,
+    Dot, Number, Point2, Vec3, Vec4,
 };
 
-#[derive(Debug, Default, Clone, Copy, PartialEq, new, Div, Mul)] // Deref
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
+#[derive(new, Div, Mul, Deref)]
 pub struct Point3<T> {
     pub coords: Vec3<T>,
 }
@@ -107,6 +108,14 @@ gen_ops!(
 
 impl<T: Number> From<Vec3<T>> for Point3<T> {
     fn from(coords: Vec3<T>) -> Self { Point3 { coords } }
+}
+
+impl<T: Number> From<Point2<T>> for Point3<T> {
+    fn from(point: Point2<T>) -> Self {
+        Point3 {
+            coords: point.coords.into(),
+        }
+    }
 }
 
 impl<T: Float + AbsDiffEq<Epsilon = T>> AbsDiffEq for Point3<T> {

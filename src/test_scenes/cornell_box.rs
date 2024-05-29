@@ -12,7 +12,7 @@ use crate::{
         dielectric::Dielectric, diffuse_light::DiffuseLight, isotropic::Isotropic, lambertian::Lambertian,
         metal::Metal, Material,
     },
-    math::{utils::Axis3, Transform, TransformBuilder},
+    math::{axis::Axis3, Transform, TransformBuilder},
     mediums::Medium,
     point3,
     scene::{CameraConfig, Composite, Primitive, Scene, SimpleCamera},
@@ -195,12 +195,12 @@ pub fn cornell_box() -> Scene {
         transform: TransformBuilder::default()
             .rotate(Axis3::Y, PI)
             // .rotate(Axis3::Z, FRAC_PI_4)
-            .translate(vec3!(278., 278., -800.))
+            .translate(vec3!(278., 278., -750.))
             .build(),
         aspect_ratio: 1.0,
         vertical_fov: 40.0,
-        defocus_angle: 0.01,
-        focus_dist: 950.0,
+        defocus_angle: 1.,
+        focus_dist: 1000.0,
     });
 
     Scene {

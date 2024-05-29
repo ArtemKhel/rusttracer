@@ -3,6 +3,7 @@ use rayon::prelude::*;
 
 use crate::{
     core::Ray,
+    material::{Material, MaterialsEnum, Scatter},
     rendering::{antialiasing::AntiAliasing, PixelCoord, Renderer, Resolution},
     scene::{Camera, Scene},
     utils::linear_to_gamma,
@@ -31,7 +32,7 @@ impl Renderer for RayTracer {
 
             for offset in self.antialiasing.offsets.iter() {
                 let coord = self.map_pixel_coords(x, y, offset);
-                let ray = self.scene.camera.create_ray(coord);
+                let ray = self.scene.camera.generate_ray(coord);
                 color.apply2(&self.ray_color(&ray, 0), |x, y| x + y);
             }
             *pixel = linear_to_gamma(color.map(|x| x / self.antialiasing.offsets.len() as f32));
@@ -64,8 +65,12 @@ impl RayTracer {
         if let Some(intersection) = closest_hit {
             // TODO: Note the third option: we could scatter with some fixed probability p and have attenuation be albedo
 
-            let emitted = intersection.object.material.emitted();
-            let scatter_direction = intersection.object.material.scattered(ray, &intersection);
+            // match &intersection.object.material { MaterialsEnum::Matte(material) => {material.get_bsdf()} }
+
+            // let emitted = intersection.object.material.emitted();
+            // let scatter_direction = intersection.object.material.scattered(ray, &intersection);
+            let emitted: Option<Rgb<f32>> = None;
+            let scatter_direction: Option<Scatter> = None;
             return if let Some(scatter) = scatter_direction {
                 let color = self.ray_color(&scatter.ray, reflection_depth + 1);
                 scatter.attenuation.map2(&color, |x, y| x * y)

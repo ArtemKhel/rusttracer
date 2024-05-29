@@ -10,12 +10,12 @@ use crate::{
 
 #[derive(Debug)]
 pub struct Medium {
-    shape: Box<dyn BoundedIntersectable<f32>>,
+    shape: Box<dyn BoundedIntersectable>,
     inv_density: f32,
 }
 
 impl Medium {
-    pub fn new(shape: Box<dyn BoundedIntersectable<f32>>, density: f32) -> Self {
+    pub fn new(shape: Box<dyn BoundedIntersectable>, density: f32) -> Self {
         Medium {
             shape,
             inv_density: -1. / density,
@@ -23,13 +23,13 @@ impl Medium {
     }
 }
 
-impl Intersectable<f32> for Medium {
+impl Intersectable for Medium {
     fn hit(&self, ray: &Ray) -> Option<Hit> {
         // TODO: assuming convex shape and ray starting outside a medium
         match self.shape.hit(ray) {
             None => None,
             Some(first_hit) => {
-                let inside_ray = Ray::new(ray.at(first_hit.t + 0.001), ray.dir);
+                let inside_ray = Ray::new(ray.at(first_hit.t + 0.001), ray.dir, None);
                 if let Some(second_hit) = self.shape.hit(&inside_ray) {
                     let dist_inside = (second_hit.point - first_hit.point).len();
                     let hit_distance = self.inv_density * f32::ln(random());

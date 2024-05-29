@@ -23,13 +23,14 @@ impl From<AAType> for AntiAliasing {
             AAType::RegularGrid(n) => {
                 assert!(n > 0);
                 let offset = 1.0 / n as f32;
-                let half = offset / 2.;
+                // let half = offset / 2.;
                 AntiAliasing {
-                    offsets: Vec::from_iter(
-                        (0..n)
-                            .cartesian_product(0..n)
-                            .map(|(x, y)| [x as f32 * offset + half, y as f32 * offset + half]),
-                    ),
+                    offsets: Vec::from_iter((0..n).cartesian_product(0..n).map(|(x, y)| {
+                        [
+                            x as f32 * offset + offset * random::<f32>(),
+                            y as f32 * offset + offset * random::<f32>(),
+                        ]
+                    })),
                 }
             }
         }

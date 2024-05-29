@@ -13,7 +13,6 @@ impl<'a> Eq for Intersection<'a> {}
 impl<'a> PartialEq<Self> for Intersection<'a> {
     fn eq(&self, other: &Self) -> bool { self.hit.t.eq(&other.hit.t) }
 }
-
 impl<'a> PartialOrd<Self> for Intersection<'a> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> { Some(self.hit.cmp(&other.hit)) }
 }

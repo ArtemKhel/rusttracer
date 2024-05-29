@@ -1,6 +1,7 @@
+use std::f32::consts::FRAC_1_PI;
+
 use derive_new::new;
-use image::Rgb;
-use num_traits::Zero;
+use image::{Pixel, Rgb};
 
 use crate::{
     bxdf::{
@@ -13,8 +14,8 @@ use crate::{
 
 #[derive(Debug, Copy, Clone)]
 #[derive(new)]
-struct DiffuseBxDF {
-    color: Rgb<f32>,
+pub struct DiffuseBxDF {
+    reflectance: Rgb<f32>,
 }
 
 impl BxDF for DiffuseBxDF {
@@ -22,7 +23,7 @@ impl BxDF for DiffuseBxDF {
 
     fn eval(&self, incoming: Shading<Vec3f>, outgoing: Shading<Vec3f>) -> Rgb<f32> {
         if same_hemisphere(incoming, outgoing) {
-            self.color //TODO: * FRAC_1_PI
+            self.reflectance.map(|x| x * FRAC_1_PI)
         } else {
             colors::BLACK
         }
@@ -34,7 +35,7 @@ impl BxDF for DiffuseBxDF {
         incoming.z *= outgoing.z.signum();
         let pdf = cosine_hemisphere_pdf(abs_cos_theta(incoming));
         Some(BSDFSample {
-            color: self.color, //TODO: * FRAC_1_PI
+            color: self.reflectance.map(|x| x * FRAC_1_PI),
             incoming,
             pdf,
         })

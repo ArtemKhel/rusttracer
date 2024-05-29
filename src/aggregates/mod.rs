@@ -4,5 +4,6 @@ pub use bvh::BVH;
 mod aabb;
 mod bvh;
 
-// TODO: refactor
-// pub type Aabb = aabb::Aabb<F>;
+pub trait Bounded<T> {
+    fn bound(&self) -> Aabb<T>;
+}

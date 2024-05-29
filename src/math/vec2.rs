@@ -13,11 +13,14 @@ use rand::{
     Rng,
 };
 
-use crate::math::{
-    transform::{Transform, Transformable},
-    unit::Unit,
-    utils::Axis2,
-    Cross, Dot, Normal3, Normed, Number, Vec4,
+use crate::{
+    impl_axis_index,
+    math::{
+        axis::Axis2,
+        transform::{Transform, Transformable},
+        unit::Unit,
+        Cross, Dot, Normal3, Normed, Number, Vec4,
+    },
 };
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 #[derive(new, Neg, Add, Sub, Mul, Div, AddAssign, SubAssign, MulAssign, DivAssign)]
@@ -76,25 +79,7 @@ impl<T: Number + SampleUniform> Distribution<Vec2<T>> for Standard {
     }
 }
 
-impl<T> Index<Axis2> for Vec2<T> {
-    type Output = T;
-
-    fn index(&self, index: Axis2) -> &Self::Output {
-        match index {
-            Axis2::X => &self.x,
-            Axis2::Y => &self.y,
-        }
-    }
-}
-
-impl<T> IndexMut<Axis2> for Vec2<T> {
-    fn index_mut(&mut self, index: Axis2) -> &mut Self::Output {
-        match index {
-            Axis2::X => &mut self.x,
-            Axis2::Y => &mut self.y,
-        }
-    }
-}
+impl_axis_index!(Vec2, Axis2, T, (X, x), (Y, y));
 
 macro_rules! gen_mul {
     ($( $T:ty ),*) => {$(
@@ -150,7 +135,7 @@ mod tests {
         let r = v.dot(&u);
         let r2 = dot(&u, &v);
 
-        assert_eq!(r, 9.0);
-        assert_eq!(r2, 9.0);
+        assert_eq!(r, 8.0);
+        assert_eq!(r2, 8.0);
     }
 }

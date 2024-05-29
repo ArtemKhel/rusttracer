@@ -14,7 +14,8 @@ use rand::{
 };
 
 use crate::{
-    math::{utils::Axis4, Cross, Dot, Number, Point3, Vec3},
+    impl_axis_index,
+    math::{axis::Axis4, Cross, Dot, Number, Point3, Vec3},
     vec3,
 };
 
@@ -90,29 +91,7 @@ impl<T: Number + SampleUniform> Distribution<Vec4<T>> for Standard {
     }
 }
 
-impl<T: Number> Index<Axis4> for Vec4<T> {
-    type Output = T;
-
-    fn index(&self, index: Axis4) -> &Self::Output {
-        match index {
-            Axis4::X => &self.x,
-            Axis4::Y => &self.y,
-            Axis4::Z => &self.z,
-            Axis4::W => &self.w,
-        }
-    }
-}
-
-impl<T: Number> IndexMut<Axis4> for Vec4<T> {
-    fn index_mut(&mut self, index: Axis4) -> &mut Self::Output {
-        match index {
-            Axis4::X => &mut self.x,
-            Axis4::Y => &mut self.y,
-            Axis4::Z => &mut self.z,
-            Axis4::W => &mut self.w,
-        }
-    }
-}
+impl_axis_index!(Vec4, Axis4, T, (X, x), (Y, y), (Z, z), (W, w));
 
 macro_rules! gen_mul {
     ($( $T:ty ),*) => {$(
@@ -149,6 +128,6 @@ impl<T: Number> From<Point3<T>> for Vec4<T> {
     fn from(v: Point3<T>) -> Self { vec4!(v.coords.x, v.coords.y, v.coords.z, T::one()) }
 }
 
-impl<Ref: Deref<Target = Vec3<T>>, T: Number> From<Ref> for Vec4<T> {
-    fn from(value: Ref) -> Self { Self::from(*value) }
-}
+// impl<Ref: Deref<Target = Vec3<T>>, T: Number> From<Ref> for Vec4<T> {
+//     fn from(value: Ref) -> Self { Self::from(*value) }
+// }
