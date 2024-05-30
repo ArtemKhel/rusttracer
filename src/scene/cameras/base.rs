@@ -1,3 +1,4 @@
+use std::ops::Deref;
 use crate::{
     core::{ray::RayDifferential, Ray},
     math::{dot, Normed, Transform, Transformable},
@@ -33,12 +34,12 @@ impl BaseCamera {
         let rx = camera.generate_ray({
             let mut s: CameraSample = sample.clone();
             // TODO: what?
-            s.p_film.coords.x += 0.05;
+            s.p_film.x += 0.05;
             s
         });
         let ry = camera.generate_ray({
             let mut s: CameraSample = sample.clone();
-            s.p_film.coords.y += 0.05;
+            s.p_film.y += 0.05;
             s
         });
 
@@ -57,7 +58,7 @@ impl BaseCamera {
         // TODO:
         let z = vec3!(0., 0., 1.);
         let p_camera = p.inv_transform(&self.camera_to_world);
-        let down_z_from_camera = Transform::rotate_from_to(p_camera.to_unit().coords, z);
+        let down_z_from_camera = Transform::rotate_from_to(&p_camera.to_unit(), &z);
         let p_down_z = p_camera.transform(&down_z_from_camera);
         let n_down_z = n.inv_transform(&self.camera_to_world).transform(&down_z_from_camera);
         let d = n_down_z.z * p_down_z.z;

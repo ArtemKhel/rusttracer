@@ -19,6 +19,7 @@ pub struct Triangle {
     w: Vec3f,
 }
 
+// TODO: .coords
 impl Triangle {
     const PADDING: f32 = 1e-4;
 
@@ -29,7 +30,7 @@ impl Triangle {
 
         let n = ab.cross(ac);
         let normal = n.to_unit();
-        let d = normal.dot(&a.coords);
+        let d = normal.dot(&a);
         let w = -n / n.len_squared();
         Triangle {
             a,

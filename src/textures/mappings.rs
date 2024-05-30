@@ -1,4 +1,5 @@
 use std::f32::consts::FRAC_1_PI;
+use std::ops::Deref;
 
 use crate::{
     core::SurfaceInteraction,
@@ -48,8 +49,8 @@ impl TextureMapping2D for UVMapping {
         let dt_dy = self.sv * surf_int.dv_dy;
 
         let st = point2!(
-            self.su * surf_int.interaction.uv.coords.x + self.du,
-            self.sv * surf_int.interaction.uv.coords.y + self.dv
+            self.su * surf_int.interaction.uv.x + self.du,
+            self.sv * surf_int.interaction.uv.y + self.dv
         );
         TextureCoords2D { st } //, ds_dx, ds_dy, dt_dx, dt_dy };
     }
@@ -62,7 +63,7 @@ pub struct SphericalMapping {
 impl TextureMapping2D for SphericalMapping {
     fn map(&self, surf_int: SurfaceInteraction) -> TextureCoords2D {
         let texture_point = surf_int.interaction.point.transform(&self.render_to_texture);
-        let vec = texture_point.coords.to_unit();
+        let vec = texture_point.deref().to_unit();
         let st = point2!(spherical_theta(*vec) * FRAC_1_PI, spherical_phi(*vec) * FRAC_1_PI / 2.);
         TextureCoords2D { st }
     }

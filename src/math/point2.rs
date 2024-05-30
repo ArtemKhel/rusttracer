@@ -1,10 +1,11 @@
-use derive_more::{Deref, Div, Mul};
+use derive_more::{Add, AddAssign, Deref, DerefMut, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use derive_new::new;
 
 use crate::math::vec2::Vec2;
 
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
-#[derive(new, Div, Mul, Deref)] // Deref
+#[derive(Deref, DerefMut)]
+#[derive(new, Neg, Add, Sub, Mul, Div, AddAssign, SubAssign, MulAssign, DivAssign)]
 pub struct Point2<T> {
     pub coords: Vec2<T>,
 }

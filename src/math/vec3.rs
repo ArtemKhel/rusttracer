@@ -2,6 +2,7 @@ use std::{
     fmt::{Debug, Display},
     ops::{Deref, Index, IndexMut},
 };
+use std::mem::transmute;
 
 use approx::AbsDiffEq;
 use derive_more::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};

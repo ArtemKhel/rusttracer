@@ -125,7 +125,7 @@ impl<T: Number> From<Vec3<T>> for Vec4<T> {
 }
 
 impl<T: Number> From<Point3<T>> for Vec4<T> {
-    fn from(v: Point3<T>) -> Self { vec4!(v.coords.x, v.coords.y, v.coords.z, T::one()) }
+    fn from(v: Point3<T>) -> Self { vec4!(v.x, v.y, v.z, T::one()) }
 }
 
 // impl<Ref: Deref<Target = Vec3<T>>, T: Number> From<Ref> for Vec4<T> {

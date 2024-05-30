@@ -308,15 +308,6 @@ impl BVH<f32> {
     }
 }
 
-// impl Bounded for BVH {
-//     fn bound(&self) -> Aabb {
-//         match self.nodes.first() {
-//             None => Aabb::default(),
-//             Some(BVHLinearNode::Leaf { bounds, .. }) | Some(BVHLinearNode::Interior { bounds, .. }) => *bounds,
-//         }
-//     }
-// }
-
 impl Intersectable for BVH<f32> {
     fn intersect(&self, ray: &Ray, t_max: f32) -> Option<SurfaceInteraction> {
         if self.nodes.is_empty() {

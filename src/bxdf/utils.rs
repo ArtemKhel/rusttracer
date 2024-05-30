@@ -8,8 +8,8 @@ use crate::{bxdf::bxdf::Shading, point2, samplers::utils::sample_uniform_disk_co
 
 pub fn sample_cosine_hemisphere(u: Point2f) -> Shading<Vec3f> {
     let p = sample_uniform_disk_concentric(u);
-    let z = (1.0 - (p.coords.x.powi(2)) - (p.coords.y.powi(2))).sqrt();
-    Shading::from(vec3!(p.coords.x, p.coords.y, z))
+    let z = (1.0 - (p.x.powi(2)) - (p.y.powi(2))).sqrt();
+    Shading::from(vec3!(p.x, p.y, z))
 }
 
 pub fn cosine_hemisphere_pdf(cos_theta: f32) -> f32 { cos_theta * f32::FRAC_1_PI() }

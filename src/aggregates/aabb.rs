@@ -4,6 +4,7 @@ use std::{
 };
 
 use approx::AbsDiffEq;
+use derive_new::new;
 use num_traits::{Float, Signed};
 use strum::IntoEnumIterator;
 
@@ -15,6 +16,7 @@ use crate::{
 };
 
 #[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(new)]
 pub struct Aabb<T> {
     pub min: Point3<T>,
     pub max: Point3<T>,
@@ -25,7 +27,7 @@ impl<T: Number> Aabb<T> {
     const PADDING: f32 = 1e-4;
 
     pub fn center(&self) -> Point3<T> {
-        Point3::new(self.min.coords + (self.max.coords - self.min.coords) / (T::one() + T::one()))
+        Point3::new(*self.min + (self.max - self.min) / (T::one() + T::one()))
     }
 
     pub fn max_dimension(&self) -> Axis3 {
@@ -40,19 +42,13 @@ impl<T: Number> Aabb<T> {
     }
 
     pub fn from_points(p1: Point3<T>, p2: Point3<T>) -> Self {
-        let mut aabb = Aabb {
-            min: Point3::min_coords(p1, p2),
-            max: Point3::max_coords(p1, p2),
-        };
+        let mut aabb = Aabb::new(Point3::min_coords(p1, p2), Point3::max_coords(p1, p2));
         Self::pad(&mut aabb);
         aabb
     }
 
     pub fn union(&self, p: Point3<T>) -> Self {
-        Aabb {
-            min: Point3::min_coords(self.min, p),
-            max: Point3::max_coords(self.max, p),
-        }
+        Aabb::new(Point3::min_coords(self.min, p), Point3::max_coords(self.max, p))
     }
 
     fn pad(aabb: &mut Aabb<T>) {
@@ -138,6 +134,7 @@ pub enum Sign {
     Neg,
     Pos,
 }
+
 impl From<f32> for Sign {
     fn from(value: f32) -> Self {
         if value.is_negative() {
@@ -147,6 +144,7 @@ impl From<f32> for Sign {
         }
     }
 }
+
 impl Not for Sign {
     type Output = Self;
 
@@ -180,7 +178,7 @@ impl<T: Number, B: Bounded<T>> Add<B> for Aabb<T> {
         let rhs = rhs.bound();
         let min = Point3::min_coords(self.min, rhs.min);
         let max = Point3::max_coords(self.max, rhs.max);
-        Aabb { min, max }
+        Aabb::new(min, max)
     }
 }
 
@@ -195,10 +193,7 @@ impl<T: Number> Default for Aabb<T> {
     fn default() -> Self {
         let max = T::max_value();
         let min = T::min_value();
-        Aabb {
-            min: point3!(max, max, max),
-            max: point3!(min, min, min),
-        }
+        Aabb::new(point3!(max, max, max), point3!(min, min, min))
     }
 }
 
@@ -218,7 +213,7 @@ impl<T: Number> Transformable<T> for Aabb<T> {
     }
 }
 
-impl<T: Number + AbsDiffEq<Epsilon = T>> AbsDiffEq for Aabb<T> {
+impl<T: Number + AbsDiffEq<Epsilon=T>> AbsDiffEq for Aabb<T> {
     type Epsilon = T;
 
     fn default_epsilon() -> Self::Epsilon { T::epsilon() }
@@ -234,15 +229,13 @@ mod tests {
 
     use approx::assert_abs_diff_eq;
 
-    use super::*;
     use crate::{ray, unit3};
+
+    use super::*;
 
     #[test]
     fn test_aabb() {
-        let bbox = Aabb {
-            min: point3!(1., -1., -1.),
-            max: point3!(2., 1., 1.),
-        };
+        let bbox = Aabb::new(point3!(1., -1., -1.), point3!(2., 1., 1.));
 
         let ray = ray!(Point3::default(), unit3!(1., 0., 0.));
         assert!(bbox.hit(&ray, 10.));
@@ -257,15 +250,9 @@ mod tests {
 
     #[test]
     fn test_rotate() {
-        let bbox = Aabb {
-            min: point3!(0., 0., 0.),
-            max: point3!(1., 2., 3.),
-        };
+        let bbox = Aabb::new(point3!(0., 0., 0.), point3!(1., 2., 3.));
         let t = Transform::rotate(Axis3::Z, FRAC_PI_4);
-        let expected = Aabb {
-            min: point3!(0., -SQRT_2 / 2., 0.),
-            max: point3!(SQRT_2 + SQRT_2 / 2., SQRT_2, 3.),
-        };
+        let expected = Aabb::new(point3!(0., -SQRT_2 / 2., 0.), point3!(SQRT_2 + SQRT_2 / 2., SQRT_2, 3.));
 
         assert_abs_diff_eq!(bbox.transform(&t), expected)
     }

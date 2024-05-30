@@ -73,7 +73,7 @@ pub fn spheres() -> Scene {
                     })
                 };
                 world.push(Primitive {
-                    shape: Box::new(Sphere::new(center, center.coords.y)),
+                    shape: Box::new(Sphere::new(center, center.y)),
                     material: sphere_material,
                 });
             }

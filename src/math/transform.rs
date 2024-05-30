@@ -132,7 +132,7 @@ impl<T: Number> Transform<T> {
 }
 
 impl Transform<f32> {
-    pub fn rotate_from_to(from: Vec3f, to: Vec3f) -> Self {
+    pub fn rotate_from_to(from: &Vec3f, to: &Vec3f) -> Self {
         // Compute intermediate vector for vector reflection
         let reflection_vec = if (from.x.abs() < 0.72 && to.x.abs() < 0.72) {
             vec3!(1., 0., 0.)
@@ -142,8 +142,8 @@ impl Transform<f32> {
             vec3!(0., 0., 1.)
         };
         // Initialize matrix r for rotation
-        let u = reflection_vec - from;
-        let v = reflection_vec - to;
+        let u = reflection_vec - *from;
+        let v = reflection_vec - *to;
         let mut matrix = Matrix4::<f32>::id();
         for (row, col) in Axis3::iter().cartesian_product(Axis3::iter()) {
             matrix[row.into()][col.into()] = (if row == col { 1. } else { 0. }

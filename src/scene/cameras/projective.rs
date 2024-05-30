@@ -45,19 +45,19 @@ impl From<ProjectiveCameraConfig> for ProjectiveCamera {
     fn from(config: ProjectiveCameraConfig) -> Self {
         let screen_to_ndc = Transform::compose(
             Transform::translate(vec3!(
-                -config.screen_window.min.coords.x,
-                -config.screen_window.max.coords.y,
+                -config.screen_window.min.x,
+                -config.screen_window.max.y,
                 0.
             )),
             Transform::scale(
-                (config.screen_window.max.coords.x - config.screen_window.min.coords.x).recip(),
-                (config.screen_window.max.coords.y - config.screen_window.min.coords.y).recip(),
+                (config.screen_window.max.x - config.screen_window.min.x).recip(),
+                (config.screen_window.max.y - config.screen_window.min.y).recip(),
                 1.,
             ),
         );
         let ndc_to_raster = Transform::scale(
-            config.base_config.film.resolution.coords.x as f32,
-            -(config.base_config.film.resolution.coords.y as f32),
+            config.base_config.film.resolution.x as f32,
+            -(config.base_config.film.resolution.y as f32),
             1.,
         );
         let screen_to_raster = Transform::compose(screen_to_ndc, ndc_to_raster);

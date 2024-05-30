@@ -13,7 +13,7 @@ use crate::{
     point2, point3, ray,
     samplers::utils::{sample_uniform_cone, sample_uniform_sphere},
     shapes::{Intersectable, Samplable, ShapeSample},
-    vec3, Point2f, Point3f,
+    vec3, Point2f, Point3f, Vec3f,
 };
 
 #[derive(Default, Debug, Clone, Copy, new)]
@@ -27,7 +27,7 @@ impl Sphere {
     /// Checks if ray hits the sphere. Assume that ray is in object space.
     /// Returns [Interaction] that is also in object space.
     fn basic_intersect(&self, ray: Ray, t_max: f32) -> Option<Interaction> {
-        let o = ray.origin.coords;
+        let o = *ray.origin;
         let h = dot(ray.dir.deref(), &o);
         let c = o.len_squared() - self.radius.powi(2);
         let disc = h.powi(2) - c;
@@ -52,7 +52,7 @@ impl Sphere {
         let point = ray.at(root);
         Some(Interaction {
             point,
-            normal: point.coords.to_normal().to_unit(),
+            normal: point.to_normal().to_unit(),
             t: root,
             outgoing: -ray.dir,
             uv: point2!(),
@@ -64,8 +64,8 @@ impl Sphere {
         let point = interaction.point;
 
         // uv coordinates of interaction
-        let phi = spherical_phi(point.coords);
-        let cos_theta = point.coords.z / self.radius;
+        let phi = spherical_phi(*point);
+        let cos_theta = point.z / self.radius;
         let theta = cos_theta.acos();
         let u = phi / (2. * PI);
         let v = theta / PI;
@@ -119,10 +119,10 @@ impl Intersectable for Sphere {
 impl Samplable for Sphere {
     fn sample(&self, sample: Point2f) -> Option<ShapeSample> {
         let point_obj = point3!(self.radius * sample_uniform_sphere(sample));
-        let normal = point_obj.coords.to_normal().transform(&self.transform).to_unit();
+        let normal = point_obj.to_normal().transform(&self.transform).to_unit();
 
-        let phi = spherical_phi(point_obj.coords);
-        let theta = (point_obj.coords.z / self.radius).acos();
+        let phi = spherical_phi(*point_obj);
+        let theta = (point_obj.z / self.radius).acos();
         let u = phi / (2. * PI);
         let v = theta / PI;
 
@@ -140,7 +140,7 @@ impl Samplable for Sphere {
     }
 
     fn sample_from_point(&self, point: Point3f, sample: Point2f) -> Option<ShapeSample> {
-        if point.coords.len_squared() < self.radius.powi(2) + 1e-4 {
+        if point.len_squared() < self.radius.powi(2) + 1e-4 {
             // todo: corner cases, rounding error
             let mut ss = self.sample(sample).unwrap();
             let incoming = ss.interaction.point - point;
@@ -148,7 +148,7 @@ impl Samplable for Sphere {
             return if ss.pdf.is_infinite() { None } else { Some(ss) };
         }
 
-        let max_sin_theta = self.radius / point.coords.len();
+        let max_sin_theta = self.radius / point.len();
         let max_cos_theta = (1. - max_sin_theta.powi(2)).sqrt();
         let sampled_dir = sample_uniform_cone(sample, max_cos_theta).to_unit();
         let interaction = self.basic_intersect(ray!(point, sampled_dir), f32::INFINITY).unwrap();

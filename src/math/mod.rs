@@ -1,6 +1,7 @@
 use std::{
     fmt::Debug,
-    ops::{Add, Deref, Mul, Neg},
+    marker::PhantomData,
+    ops::{Add, AddAssign, Deref, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign},
     os::fd::IntoRawFd,
 };
 
@@ -20,6 +21,7 @@ pub use vec4::Vec4;
 use crate::{normal3, unit3, unit_normal3};
 
 pub mod axis;
+mod bounds;
 mod frame;
 mod matrix;
 mod matrix4;

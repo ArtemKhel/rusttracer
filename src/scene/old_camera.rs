@@ -70,7 +70,7 @@ impl Camera for SimpleCamera {
         // TODO: this
         let z = vec3!(0., 0., 1.);
         let p_camera = p.inv_transform(&self.transform);
-        let down_z_from_camera = Transform::rotate_from_to(p_camera.to_unit().coords, z);
+        let down_z_from_camera = Transform::rotate_from_to(p_camera.to_unit(), z);
         let p_down_z = p_camera.transform(&down_z_from_camera);
         let n_down_z = n.inv_transform(&self.transform).transform(&down_z_from_camera);
         let d = n_down_z.z * p_down_z.z;
