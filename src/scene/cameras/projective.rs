@@ -44,11 +44,7 @@ impl From<OrthographicCameraConfig> for ProjectiveCameraConfig {
 impl From<ProjectiveCameraConfig> for ProjectiveCamera {
     fn from(config: ProjectiveCameraConfig) -> Self {
         let screen_to_ndc = Transform::compose(
-            Transform::translate(vec3!(
-                -config.screen_window.min.x,
-                -config.screen_window.max.y,
-                0.
-            )),
+            Transform::translate(vec3!(-config.screen_window.min.x, -config.screen_window.max.y, 0.)),
             Transform::scale(
                 (config.screen_window.max.x - config.screen_window.min.x).recip(),
                 (config.screen_window.max.y - config.screen_window.min.y).recip(),

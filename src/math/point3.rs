@@ -1,23 +1,26 @@
 use std::{
+    cmp::{max, min},
     fmt::Debug,
     ops::{Add, Index, IndexMut},
 };
-use std::cmp::{max, min};
 
 use approx::AbsDiffEq;
-use derive_more::{Deref, DerefMut, Div, Mul};
+use derive_more::{Deref, DerefMut, Div, From, Mul};
 use derive_new::new;
 use gen_ops::gen_ops;
-use num_traits::{Float, float::FloatCore, One};
+use num_traits::{float::FloatCore, Float, One};
 
-use crate::math::{
-    axis::Axis3,
-    Dot,
-    Number, Point2, transform::{Transform, Transformable}, Vec3, Vec4,
+use crate::{
+    impl_axis_index,
+    math::{
+        axis::Axis3,
+        transform::{Transform, Transformable},
+        Dot, Number, Point2, Vec3, Vec4,
+    },
 };
 
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
-#[derive(new, Div, Mul, Deref, DerefMut)]
+#[derive(new, Div, Mul, Deref, DerefMut, From)]
 pub struct Point3<T> {
     pub coords: Vec3<T>,
 }
@@ -39,43 +42,15 @@ macro_rules! point3 {
 
 impl<T: Number> Point3<T> {
     pub fn min_coords(lhs: Point3<T>, rhs: Point3<T>) -> Point3<T> {
-        point3!(
-            lhs.x.min(rhs.x),
-            lhs.y.min(rhs.y),
-            lhs.z.min(rhs.z)
-        )
+        point3!(lhs.x.min(rhs.x), lhs.y.min(rhs.y), lhs.z.min(rhs.z))
     }
 
     pub fn max_coords(lhs: Point3<T>, rhs: Point3<T>) -> Point3<T> {
-        point3!(
-            lhs.x.max(rhs.x),
-            lhs.y.max(rhs.y),
-            lhs.z.max(rhs.z)
-        )
+        point3!(lhs.x.max(rhs.x), lhs.y.max(rhs.y), lhs.z.max(rhs.z))
     }
 }
 
-impl<T: Number> Index<Axis3> for Point3<T> {
-    type Output = T;
-
-    fn index(&self, index: Axis3) -> &Self::Output {
-        match index {
-            Axis3::X => &self.x,
-            Axis3::Y => &self.y,
-            Axis3::Z => &self.z,
-        }
-    }
-}
-
-impl<T: Number> IndexMut<Axis3> for Point3<T> {
-    fn index_mut(&mut self, index: Axis3) -> &mut Self::Output {
-        match index {
-            Axis3::X => &mut self.x,
-            Axis3::Y => &mut self.x,
-            Axis3::Z => &mut self.z,
-        }
-    }
-}
+impl_axis_index!(Point3, Axis3, T, (X, x), (Y, y), (Z, z));
 
 gen_ops!(
     <T>;
@@ -110,10 +85,6 @@ gen_ops!(
     where T: Number
 );
 
-impl<T: Number> From<Vec3<T>> for Point3<T> {
-    fn from(coords: Vec3<T>) -> Self { Point3 { coords } }
-}
-
 impl<T: Number> From<Point2<T>> for Point3<T> {
     fn from(point: Point2<T>) -> Self {
         Point3 {
@@ -122,14 +93,12 @@ impl<T: Number> From<Point2<T>> for Point3<T> {
     }
 }
 
-impl<T: Float + AbsDiffEq<Epsilon=T>> AbsDiffEq for Point3<T> {
+impl<T: Float + AbsDiffEq<Epsilon = T>> AbsDiffEq for Point3<T> {
     type Epsilon = T;
 
     fn default_epsilon() -> Self::Epsilon { T::epsilon() }
 
-    fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
-        self.abs_diff_eq(&other, epsilon)
-    }
+    fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool { self.deref().abs_diff_eq(other, epsilon) }
 }
 
 impl<T: Number> Transformable<T> for Point3<T> {
@@ -162,9 +131,8 @@ impl<T: Number> Transformable<T> for Point3<T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::vec3;
-
     use super::*;
+    use crate::vec3;
 
     #[test]
     fn test_from_add() {

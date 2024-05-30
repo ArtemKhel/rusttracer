@@ -1,4 +1,5 @@
 use std::ops::Deref;
+
 use crate::{
     core::{ray::RayDifferential, Ray},
     math::{dot, Normed, Transform, Transformable},
@@ -23,7 +24,6 @@ pub struct BaseCamera {
 
 pub struct BaseCameraConfig {
     pub transform: Transform<f32>,
-    // TODO: move to film when it's done
     pub film: BaseFilm, // pub medium: ???
 }
 

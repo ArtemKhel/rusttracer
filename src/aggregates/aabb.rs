@@ -26,9 +26,7 @@ impl<T: Number> Aabb<T> {
     // TODO:
     const PADDING: f32 = 1e-4;
 
-    pub fn center(&self) -> Point3<T> {
-        Point3::new(*self.min + (self.max - self.min) / (T::one() + T::one()))
-    }
+    pub fn center(&self) -> Point3<T> { Point3::new(*self.min + (self.max - self.min) / (T::one() + T::one())) }
 
     pub fn max_dimension(&self) -> Axis3 {
         let diag = self.max - self.min;
@@ -213,7 +211,7 @@ impl<T: Number> Transformable<T> for Aabb<T> {
     }
 }
 
-impl<T: Number + AbsDiffEq<Epsilon=T>> AbsDiffEq for Aabb<T> {
+impl<T: Number + AbsDiffEq<Epsilon = T>> AbsDiffEq for Aabb<T> {
     type Epsilon = T;
 
     fn default_epsilon() -> Self::Epsilon { T::epsilon() }
@@ -229,9 +227,8 @@ mod tests {
 
     use approx::assert_abs_diff_eq;
 
-    use crate::{ray, unit3};
-
     use super::*;
+    use crate::{ray, unit3};
 
     #[test]
     fn test_aabb() {

@@ -1,5 +1,4 @@
-use std::f32::consts::FRAC_1_PI;
-use std::ops::Deref;
+use std::{f32::consts::FRAC_1_PI, ops::Deref};
 
 use crate::{
     core::SurfaceInteraction,

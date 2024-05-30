@@ -7,7 +7,7 @@ use std::{
 
 use approx::AbsDiffEq;
 pub use frame::Frame;
-pub use matrix::*;
+pub use matrix3::*;
 pub use normal::Normal3;
 use num_traits::{Float, Num, NumAssignOps, One, Pow, Signed};
 pub use point2::Point2;
@@ -23,7 +23,7 @@ use crate::{normal3, unit3, unit_normal3};
 pub mod axis;
 mod bounds;
 mod frame;
-mod matrix;
+mod matrix3;
 mod matrix4;
 mod normal;
 mod point2;

@@ -36,7 +36,7 @@ impl<T: Number> Transform<T> {
     pub fn from_matrix(mat: Matrix4<T>) -> Self {
         // TODO: unwraps
         Transform {
-            inv: mat.inverse().unwrap(),
+            inv: mat.invert().unwrap(),
             mat,
         }
     }
@@ -54,7 +54,7 @@ impl<T: Number> Transform<T> {
         mat.y.w = vec.y;
         mat.z.w = vec.z;
         Transform {
-            inv: mat.inverse().unwrap(),
+            inv: mat.invert().unwrap(),
             mat,
         }
     }
@@ -65,7 +65,7 @@ impl<T: Number> Transform<T> {
         mat.y.y = factor_y;
         mat.z.z = factor_z;
         Transform {
-            inv: mat.inverse().unwrap(),
+            inv: mat.invert().unwrap(),
             mat,
         }
     }
@@ -98,7 +98,7 @@ impl<T: Number> Transform<T> {
             }
         }
         Transform {
-            inv: mat.inverse().unwrap(),
+            inv: mat.invert().unwrap(),
             mat,
         }
     }

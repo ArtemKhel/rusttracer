@@ -1,23 +1,18 @@
-use std::{
-    iter::Skip,
-    ops::{Index, IndexMut, Mul},
-};
+use std::ops::{Index, IndexMut, Mul};
 
-use derive_more::Add;
+use derive_more::{Add, Sub};
 use num_traits::Zero;
 use strum::IntoEnumIterator;
 
 use crate::{
     impl_axis_index,
-    math::{
-        axis::{Axis4, Axis4Iter},
-        dot, Matrix3, Number, Vec4,
-    },
+    math::{axis::Axis4, dot, Matrix3, Number, Vec4},
     vec4,
 };
+use crate::math::axis::Axis4::{W, X, Y, Z};
 
-#[derive(Debug, Copy, Clone)]
-#[derive(Add)]
+#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Add, Sub)]
 pub struct Matrix4<T> {
     pub x: Vec4<T>,
     pub y: Vec4<T>,
@@ -88,39 +83,43 @@ impl<T: Number> Matrix4<T> {
             + m02 * (m10 * (m21 * m33 - m23 * m31) - m11 * (m20 * m33 - m23 * m30) + m13 * (m20 * m31 - m21 * m30))
             - m03 * (m10 * (m21 * m32 - m22 * m31) - m11 * (m20 * m32 - m22 * m30) + m12 * (m20 * m31 - m21 * m30))
     }
+    
+    pub fn minor(&self, row: Axis4, col:Axis4) -> Matrix3<T>{
+        match row {
+            X => Matrix3 { x: self.y.drop(col), y: self.z.drop(col), z: self.w.drop(col) },
+            Y => Matrix3 { x: self.x.drop(col), y: self.z.drop(col), z: self.w.drop(col) },
+            Z => Matrix3 { x: self.x.drop(col), y: self.y.drop(col), z: self.w.drop(col) },
+            W => Matrix3 { x: self.x.drop(col), y: self.y.drop(col), z: self.z.drop(col) },
+        }
+    }
 
-    pub fn inverse(&self) -> Option<Matrix4<T>> {
+    pub fn invert(&self) -> Option<Matrix4<T>> {
         let det = self.determinant();
         if det == T::zero() {
-            None
-        } else {
-            let inv_det = T::one() / det;
-            let t = self.transpose();
-            let cf = |i, j| {
-                #[rustfmt::skip]
-                    let mat = match i {
-                    X => Matrix3 { x: t.y.drop(j), y: t.z.drop(j), z: t.w.drop(j) },
-                    Y => Matrix3 { x: t.x.drop(j), y: t.z.drop(j), z: t.w.drop(j) },
-                    Z => Matrix3 { x: t.x.drop(j), y: t.y.drop(j), z: t.w.drop(j) },
-                    W => Matrix3 { x: t.x.drop(j), y: t.y.drop(j), z: t.z.drop(j) },
-                };
-                let sign = if (i as usize + j as usize) & 1 == 1 {
-                    -T::one()
-                } else {
-                    T::one()
-                };
-                mat.determinant() * sign * inv_det
-            };
-
-            use Axis4::*;
-            #[rustfmt::skip]
-            Some(Matrix4::from_elements(
-                cf(X, X), cf(X, Y), cf(X, Z), cf(X, W),
-                cf(Y, X), cf(Y, Y), cf(Y, Z), cf(Y, W),
-                cf(Z, X), cf(Z, Y), cf(Z, Z), cf(Z, W),
-                cf(W, X), cf(W, Y), cf(W, Z), cf(W, W),
-            ))
+            return None
         }
+        let inv_det = det.recip();
+
+        let t = self.transpose();
+        let cf = |j, i| {
+            #[rustfmt::skip]
+            let mat = self.minor(i, j);
+            let sign = if (i as usize + j as usize) & 1 == 1 {
+                -T::one()
+            } else {
+                T::one()
+            };
+            mat.determinant() * sign * inv_det
+        };
+
+        use Axis4::*;
+        #[rustfmt::skip]
+        Some(Matrix4::from_elements(
+            cf(X, X), cf(X, Y), cf(X, Z), cf(X, W),
+            cf(Y, X), cf(Y, Y), cf(Y, Z), cf(Y, W),
+            cf(Z, X), cf(Z, Y), cf(Z, Z), cf(Z, W),
+            cf(W, X), cf(W, Y), cf(W, Z), cf(W, W),
+        ))
     }
 }
 
@@ -166,3 +165,18 @@ impl<T: Number> Zero for Matrix4<T> {
 }
 
 impl_axis_index!(Matrix4, Axis4, Vec4<T>, (X, x), (Y, y), (Z, z), (W, w));
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_inverse() {
+        let input = Matrix4::from_elements(1., 2., 3., 4., 4., 3., 2., 1., 2., 1., 3., 4., 4., 3., 1., 2.);
+        let expected = Matrix4::from_elements(
+            -18., 2., 15., 5., 22., 2., -25., 5., 2., 22., 5., -25., 2., -18., 5., 15.,
+        ) * (1. / 40.);
+
+        assert_eq!(input.invert().unwrap(), expected)
+    }
+}

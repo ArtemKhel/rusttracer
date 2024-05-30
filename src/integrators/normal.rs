@@ -58,13 +58,17 @@ impl Integrator for NormalIntegrator {
             // breakpoint!(x==150 && y==150);
             // image.par_enumerate_pixels_mut().for_each(|(x, y, pixel)| {
             let mut color = Rgb([0., 0., 0.]);
-            // TODO: why x inverted?
-            let p_film = point2!(300. - x as f32, y as f32);
+            let p_film = point2!(x as f32, y as f32);
             let sample = CameraSample {
                 p_film,
                 p_lens: point2!(rng.gen::<f32>(), rng.gen::<f32>()),
             };
+            breakpoint!(x == 100 && y == 100);
             let ray = self.scene.camera.generate_ray(sample);
+
+            if x == 150 && y == 200 {
+                dbg!(&ray);
+            }
 
             *pixel = linear_to_gamma(self.ray_color(&ray));
         });

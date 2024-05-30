@@ -1,6 +1,6 @@
 use crate::{
     core::{ray::RayDifferential, Ray},
-    math::{Normed, Transformable},
+    math::{Normed, Transform, Transformable},
     ray,
     samplers::utils::sample_uniform_disk_concentric,
     scene::cameras::{
@@ -49,6 +49,7 @@ impl Camera for OrthographicCamera {
     fn generate_ray(&self, sample: CameraSample) -> Ray {
         let ray = self.generate_camera_space_ray(sample);
         ray.transform(&self.projective.base.camera_to_world)
+        // ray.transform(&self.projective.raster_to_camera)
     }
 
     fn generate_differential_ray(&self, sample: CameraSample) -> Ray {
