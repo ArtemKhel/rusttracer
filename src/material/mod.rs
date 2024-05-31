@@ -2,6 +2,7 @@ pub mod matte;
 
 use std::fmt::Debug;
 
+use std::option::Option;
 use image::Rgb;
 
 use crate::{
@@ -9,27 +10,22 @@ use crate::{
     core::{Ray, SurfaceInteraction},
     material::matte::Matte,
 };
-
-// pub mod dielectric;
-// pub mod diffuse_light;
-// pub mod isotropic;
-// pub mod lambertian;
-// pub mod metal;
+use crate::bxdf::{BxDF, BxDFEnum};
 
 pub struct Scatter {
     pub ray: Ray,
     pub attenuation: Rgb<f32>,
 }
 
+#[enum_delegate::register]
 pub trait Material {
+    // #[enum_delegate(unify = "enum_wrap")]
     type BxDF;
     fn get_bsdf(&self, surf_int: &SurfaceInteraction) -> BSDF;
-
-    // fn scattered(&self, ray: &Ray, intersection: &Intersection) -> Option<Scatter> { None }
-    // fn emitted(&self) -> Option<Rgb<f32>> { None }
 }
 
 #[derive(Debug)]
+#[enum_delegate::implement(Material)]
 pub enum MaterialsEnum {
     Matte(Matte<Rgb<f32>>),
 }

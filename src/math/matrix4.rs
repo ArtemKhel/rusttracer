@@ -6,10 +6,15 @@ use strum::IntoEnumIterator;
 
 use crate::{
     impl_axis_index,
-    math::{axis::Axis4, dot, Matrix3, Number, Vec4},
+    math::{
+        axis::{
+            Axis4,
+            Axis4::{W, X, Y, Z},
+        },
+        dot, Matrix3, Number, Vec4,
+    },
     vec4,
 };
-use crate::math::axis::Axis4::{W, X, Y, Z};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 #[derive(Add, Sub)]
@@ -83,20 +88,36 @@ impl<T: Number> Matrix4<T> {
             + m02 * (m10 * (m21 * m33 - m23 * m31) - m11 * (m20 * m33 - m23 * m30) + m13 * (m20 * m31 - m21 * m30))
             - m03 * (m10 * (m21 * m32 - m22 * m31) - m11 * (m20 * m32 - m22 * m30) + m12 * (m20 * m31 - m21 * m30))
     }
-    
-    pub fn minor(&self, row: Axis4, col:Axis4) -> Matrix3<T>{
+
+    pub fn minor(&self, row: Axis4, col: Axis4) -> Matrix3<T> {
         match row {
-            X => Matrix3 { x: self.y.drop(col), y: self.z.drop(col), z: self.w.drop(col) },
-            Y => Matrix3 { x: self.x.drop(col), y: self.z.drop(col), z: self.w.drop(col) },
-            Z => Matrix3 { x: self.x.drop(col), y: self.y.drop(col), z: self.w.drop(col) },
-            W => Matrix3 { x: self.x.drop(col), y: self.y.drop(col), z: self.z.drop(col) },
+            X => Matrix3 {
+                x: self.y.drop(col),
+                y: self.z.drop(col),
+                z: self.w.drop(col),
+            },
+            Y => Matrix3 {
+                x: self.x.drop(col),
+                y: self.z.drop(col),
+                z: self.w.drop(col),
+            },
+            Z => Matrix3 {
+                x: self.x.drop(col),
+                y: self.y.drop(col),
+                z: self.w.drop(col),
+            },
+            W => Matrix3 {
+                x: self.x.drop(col),
+                y: self.y.drop(col),
+                z: self.z.drop(col),
+            },
         }
     }
 
     pub fn invert(&self) -> Option<Matrix4<T>> {
         let det = self.determinant();
         if det == T::zero() {
-            return None
+            return None;
         }
         let inv_det = det.recip();
 

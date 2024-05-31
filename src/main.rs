@@ -1,12 +1,14 @@
 #![allow(unused)]
 
 use std::{
+    f32::consts::PI,
     iter::repeat,
     sync::{
         atomic::{AtomicU32, Ordering::Relaxed},
         Arc,
     },
 };
+use std::f32::consts::FRAC_PI_4;
 
 use image::{buffer::ConvertBuffer, Rgb, RgbImage};
 use itertools::Itertools;
@@ -14,9 +16,9 @@ use log::debug;
 use rusttracer::{
     aggregates::BVH,
     colors,
-    integrators::{normal::NormalIntegrator, Integrator},
+    integrators::{debug_normal::DebugNormalIntegrator, Integrator},
     material::{matte::Matte, MaterialsEnum},
-    math::Transform,
+    math::{axis::Axis3, Transform},
     point2,
     scene::{
         cameras::{
@@ -33,13 +35,18 @@ use rusttracer::{
     textures::constant::ConstantTexture,
     vec3, Point2u, CALLS, SKIP,
 };
+use rusttracer::integrators::random_walk::RandomWalkIntegrator;
 
 fn main() {
     env_logger::init();
 
     let camera = Orthographic(OrthographicCamera::from(OrthographicCameraConfig {
         base_config: BaseCameraConfig {
-            transform: Transform::translate(vec3!(0., 0., -1.)),
+            transform: Transform::id()
+                // .then_rotate_degrees(Axis3::Y, 225.)
+                // .then_rotate_arbitrary_axis(vec3!(-1.,0.,1.), FRAC_PI_4)
+                // .then_translate(vec3!(1., 1., 1.)),
+                .then_translate(vec3!(0., 0., -1.)),
             film: BaseFilm {
                 resolution: point2!(300u32, 300u32),
             },
@@ -75,7 +82,8 @@ fn main() {
         background_color: Rgb([0.25, 0.25, 0.25]),
     };
 
-    let integrator = NormalIntegrator { scene };
+    // let integrator = DebugNormalIntegrator { scene };
+    let integrator = RandomWalkIntegrator { scene, max_depth: 3 };
     let image = integrator.render();
     let image: RgbImage = image.convert();
     image.save("./images/_image.png").unwrap();

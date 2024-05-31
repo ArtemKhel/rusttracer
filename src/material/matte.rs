@@ -27,7 +27,8 @@ impl Material for Matte<Rgb<f32>> {
 
     fn get_bsdf(&self, surf_int: &SurfaceInteraction) -> BSDF {
         let bxdf = self.get_bxdf(surf_int);
-        let bsdf = BSDF::new(**surf_int.interaction.normal, surf_int.dp_du, Box::new(bxdf));
+        // todo: box
+        let bsdf = BSDF::new(**surf_int.hit.normal, surf_int.dp_du, Box::new(bxdf));
         bsdf
     }
 }

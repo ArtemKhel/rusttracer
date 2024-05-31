@@ -4,14 +4,16 @@ use crate::{
     core::{interaction::Interaction, Ray},
     material::MaterialsEnum,
     math::{dot, Dot, Transform, Transformable},
-    scene::cameras::Camera,
-    Normal3f, Point2f, Vec3f,
+    Normal3f,
+    scene::cameras::Camera, Vec3f,
 };
+use crate::bxdf::BSDF;
+use crate::material::Material;
 
 #[derive(Debug)]
 pub struct SurfaceInteraction {
     // TODO: wrap some of them into structs?
-    pub interaction: Interaction,
+    pub hit: Interaction,
     // pub uv: Point2f,
     pub dp_du: Vec3f,
     pub dp_dv: Vec3f,
@@ -39,7 +41,7 @@ impl SurfaceInteraction {
         dn_dv: Normal3f,
     ) -> Self {
         SurfaceInteraction {
-            interaction,
+            hit: interaction,
             // uv,
             //
             dp_du,
@@ -59,34 +61,41 @@ impl SurfaceInteraction {
         }
     }
 
-    pub fn get_bsdf(&mut self, ray: Ray, camera: &dyn Camera, samples_per_pixel: u32) {
+    pub fn get_bsdf(&mut self, ray: &Ray, camera: &dyn Camera, samples_per_pixel: u32) -> Option<BSDF> {
         // TODO: spp, dyn
-        self.calculate_differentials(ray, camera, 1)
+        // FIXME: not needed for now
+        // self.calculate_differentials(ray, camera, 1)
+        if let Some(material) = self.material.as_ref().map(|arc| arc.as_ref()) {
+            let bsdf: BSDF = material.get_bsdf(self);
+            Some(bsdf)
+        } else {
+            None
+        }
     }
 
-    pub fn set_material_properties(&mut self, material: Arc<MaterialsEnum>) { self.material = Some(material) }
+    pub fn set_material_properties(&mut self, material: Arc<MaterialsEnum>) { self.material = Some(material.clone()) }
 
-    pub fn calculate_differentials(&mut self, ray: Ray, camera: &dyn Camera, samples_per_pixel: u32) {
+    pub fn calculate_differentials(&mut self, ray: &Ray, camera: &dyn Camera, samples_per_pixel: u32) {
         if let Some(diff) = ray.diff {
-            if dot(&self.interaction.normal, &diff.rx_direction) != 0.0
-                && dot(&self.interaction.normal, &diff.ry_direction) != 0.0
+            if dot(&self.hit.normal, &diff.rx_direction) != 0.0
+                && dot(&self.hit.normal, &diff.ry_direction) != 0.0
             {
                 // Estimate screen-space change in intersection point using ray differentials
 
                 // Compute auxiliary intersection points with plane
-                let d = -dot(&self.interaction.normal, &self.interaction.point);
-                let tx = (-dot(&self.interaction.normal, &diff.rx_origin) - d)
-                    / dot(&self.interaction.normal, &diff.rx_direction);
+                let d = -dot(&self.hit.normal, &self.hit.point);
+                let tx = (-dot(&self.hit.normal, &diff.rx_origin) - d)
+                    / dot(&self.hit.normal, &diff.rx_direction);
                 let px = diff.rx_origin + tx * *diff.rx_direction;
-                let ty = (-dot(&self.interaction.normal, &diff.ry_origin) - d)
-                    / dot(&self.interaction.normal, &diff.ry_direction);
+                let ty = (-dot(&self.hit.normal, &diff.ry_origin) - d)
+                    / dot(&self.hit.normal, &diff.ry_direction);
                 let py = diff.ry_origin + ty * *diff.ry_direction;
 
-                self.dp_dx = px - self.interaction.point;
-                self.dp_dy = py - self.interaction.point;
+                self.dp_dx = px - self.hit.point;
+                self.dp_dy = py - self.hit.point;
             }
         } else {
-            let approx = camera.approximate_dp_dxy(self.interaction.point, *self.interaction.normal, samples_per_pixel);
+            let approx = camera.approximate_dp_dxy(self.hit.point, *self.hit.normal, samples_per_pixel);
             self.dp_dx = approx.0;
             self.dp_dy = approx.1;
         }
@@ -146,7 +155,7 @@ impl SurfaceInteraction {
 impl Transformable<f32> for SurfaceInteraction {
     fn transform(&self, trans: &Transform<f32>) -> Self {
         SurfaceInteraction {
-            interaction: self.interaction.transform(trans),
+            hit: self.hit.transform(trans),
             dp_du: self.dp_du.transform(trans),
             dp_dv: self.dp_dv.transform(trans),
 
@@ -170,13 +179,13 @@ impl Transformable<f32> for SurfaceInteraction {
 impl Eq for SurfaceInteraction {}
 
 impl PartialEq<Self> for SurfaceInteraction {
-    fn eq(&self, other: &Self) -> bool { self.interaction.eq(&other.interaction) }
+    fn eq(&self, other: &Self) -> bool { self.hit.eq(&other.hit) }
 }
 
 impl PartialOrd<Self> for SurfaceInteraction {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> { self.interaction.partial_cmp(&other.interaction) }
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> { self.hit.partial_cmp(&other.hit) }
 }
 
 impl Ord for SurfaceInteraction {
-    fn cmp(&self, other: &Self) -> Ordering { self.interaction.cmp(&other.interaction) }
+    fn cmp(&self, other: &Self) -> Ordering { self.hit.cmp(&other.hit) }
 }

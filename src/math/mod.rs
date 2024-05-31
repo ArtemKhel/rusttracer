@@ -12,7 +12,7 @@ pub use normal::Normal3;
 use num_traits::{Float, Num, NumAssignOps, One, Pow, Signed};
 pub use point2::Point2;
 pub use point3::Point3;
-pub use transform::{Transform, TransformBuilder, Transformable};
+pub use transform::{Transform, Transformable};
 pub use unit::Unit;
 pub use vec2::Vec2;
 pub use vec3::Vec3;

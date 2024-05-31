@@ -1,4 +1,5 @@
-### Ray Tracing in One Weekend in Rust
+### Ray Tracer in Rust
+Based on Ray Tracing: in one weekend / the next week / the rest of your life and PBRT
 
 ![ ](./images/cornell_transformed.png)
 

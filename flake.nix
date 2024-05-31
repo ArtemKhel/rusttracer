@@ -57,8 +57,8 @@
           mkShell {
             buildInputs = [
               toolchain
+              cargo-expand
 
-              # pkgs.perf-tools
               pkgs.linuxPackages_latest.perf
             ];
             RUST_SRC_PATH = "${toolchain}/lib/rustlib/src/rust/library";

@@ -10,6 +10,7 @@ use crate::{
     },
     unit_vec3, vec3, Normal3f, Point2f, Point3f, Vec3f,
 };
+use crate::scene::film::BaseFilm;
 
 pub struct OrthographicCamera {
     projective: ProjectiveCamera,
@@ -72,6 +73,8 @@ impl Camera for OrthographicCamera {
             .base
             .approximate_dp_dxy(point, normal, samples_per_pixel)
     }
+
+    fn get_film(&self) -> &BaseFilm { &self.projective.base.film }
 }
 
 impl From<OrthographicCameraConfig> for OrthographicCamera {

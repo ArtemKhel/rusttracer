@@ -2,10 +2,7 @@ use std::cmp::Ordering;
 
 use derive_new::new;
 
-use crate::{
-    math::{Normed, Transform, Transformable, Unit},
-    Normal3f, Point2f, Point3f, Vec3f,
-};
+use crate::{F, math::{Normed, Transform, Transformable, Unit}, Normal3f, Point2f, Point3f, Vec3f};
 
 #[derive(Debug, Clone, Copy)]
 #[derive(new)]
@@ -18,8 +15,8 @@ pub struct Interaction {
     // pub medium: Option<M>,
 }
 
-impl Transformable<f32> for Interaction {
-    fn transform(&self, trans: &Transform<f32>) -> Self {
+impl Transformable<F> for Interaction {
+    fn transform(&self, trans: &Transform<F>) -> Self {
         // TODO: don't normalize normals and outgoings?
         Interaction {
             point: self.point.transform(trans),
@@ -30,7 +27,7 @@ impl Transformable<f32> for Interaction {
         }
     }
 
-    fn inv_transform(&self, trans: &Transform<f32>) -> Self {
+    fn inv_transform(&self, trans: &Transform<F>) -> Self {
         Interaction {
             point: self.point.inv_transform(trans),
             normal: self.normal.inv_transform(trans).to_unit(),

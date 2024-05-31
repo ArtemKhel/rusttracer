@@ -18,14 +18,15 @@ pub struct BSDF {
 
 #[derive(Debug, Copy, Clone)]
 pub struct BSDFSample<T> {
-    pub(crate) color: Rgb<f32>,
-    pub(crate) incoming: T,
-    pub(crate) pdf: f32,
+    pub color: Rgb<f32>,
+    pub incoming: T,
+    pub pdf: f32,
 }
 
 impl BSDF {
     // TODO: shading
     pub fn new(shading_normal: Vec3f, shading_dp_du: Vec3f, bxdf: Box<dyn BxDF>) -> Self {
+        // TODO: frame sometimes with NaNs
         Self {
             bxdf,
             shading_frame: Frame::from_x_y(shading_normal, shading_dp_du),

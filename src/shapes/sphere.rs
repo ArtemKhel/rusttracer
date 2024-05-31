@@ -118,7 +118,7 @@ impl Intersectable for Sphere {
 
 impl Samplable for Sphere {
     fn sample(&self, sample: Point2f) -> Option<ShapeSample> {
-        let point_obj = point3!(self.radius * sample_uniform_sphere(sample));
+        let point_obj = point3!(self.radius * *sample_uniform_sphere(sample));
         let normal = point_obj.to_normal().transform(&self.transform).to_unit();
 
         let phi = spherical_phi(*point_obj);

@@ -6,6 +6,7 @@ use image::Rgb;
 use num_traits::Zero;
 
 use crate::{bxdf::bsdf::BSDFSample, Point2f, Vec3f};
+use crate::bxdf::diffuse::DiffuseBxDF;
 
 bitflags! {
     pub struct BxDFType: u32 {
@@ -18,13 +19,13 @@ bitflags! {
 }
 
 impl BxDFType {
-    const All: BxDFType = Self::Diffuse | Self::Glossy | Self::Specular | Self::Reflection | Self::Transmission;
-    const DiffuseTransmission: BxDFType = Self::Diffuse | Self::Transmission;
-    const Diffuse_reflection: BxDFType = (Self::Diffuse | Self::Reflection);
-    const GlossyReflection: BxDFType = Self::Glossy | Self::Reflection;
-    const GlossyTransmission: BxDFType = Self::Glossy | Self::Transmission;
-    const SpecularReflection: BxDFType = Self::Specular | Self::Reflection;
-    const SpecularTransmission: BxDFType = Self::Specular | Self::Transmission;
+    pub const All: BxDFType = Self::Diffuse | Self::Glossy | Self::Specular | Self::Reflection | Self::Transmission;
+    pub const DiffuseTransmission: BxDFType = Self::Diffuse | Self::Transmission;
+    pub const Diffuse_reflection: BxDFType = (Self::Diffuse | Self::Reflection);
+    pub const GlossyReflection: BxDFType = Self::Glossy | Self::Reflection;
+    pub const GlossyTransmission: BxDFType = Self::Glossy | Self::Transmission;
+    pub const SpecularReflection: BxDFType = Self::Specular | Self::Reflection;
+    pub const SpecularTransmission: BxDFType = Self::Specular | Self::Transmission;
 }
 
 bitflags! {
@@ -43,10 +44,16 @@ pub struct Shading<T> {
     vec: T,
 }
 
+#[enum_delegate::register]
 pub trait BxDF {
     fn bxdf_type(&self) -> BxDFType;
     fn eval(&self, incoming: Shading<Vec3f>, outgoing: Shading<Vec3f>) -> Rgb<f32>;
     fn sample(&self, point: Point2f, outgoing: Shading<Vec3f>) -> Option<BSDFSample<Shading<Vec3f>>>;
     fn pdf(&self, incoming: Shading<Vec3f>, outgoing: Shading<Vec3f>) -> f32;
     // TODO:  fn rho()
+}
+
+#[enum_delegate::implement(BxDF)]
+pub enum BxDFEnum{
+    Diffuse(DiffuseBxDF)
 }

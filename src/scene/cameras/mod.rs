@@ -9,9 +9,9 @@ use crate::{
     math::{utils::random_in_unit_disk, *},
     point3,
     scene::cameras::{orthographic::OrthographicCamera, projective::ProjectiveCamera},
-    utils::degrees_to_radians,
     vec3, Normal3f, Point2f, Point3f, Vec3f,
 };
+use crate::scene::film::BaseFilm;
 
 pub type PixelCoord = [f32; 2];
 
@@ -25,7 +25,7 @@ pub trait Camera {
     /// Returns an approximation for dp_dx, dp_dy for a point in the scene
     fn approximate_dp_dxy(&self, point: Point3f, normal: Normal3f, samples_per_pixel: u32) -> (Vec3f, Vec3f);
 
-    // fn film(&self) -> &Film;
+    fn get_film(&self) -> &BaseFilm;
 }
 
 #[enum_delegate::implement(Camera)]

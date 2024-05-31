@@ -363,7 +363,7 @@ impl Intersectable for BVH<f32> {
                             .min();
 
                         if curr_closest.is_some() && (closest.is_none() || curr_closest < closest) {
-                            t_max = curr_closest.as_ref().unwrap().interaction.t;
+                            t_max = curr_closest.as_ref().unwrap().hit.t;
                             closest = curr_closest;
                         }
                     }

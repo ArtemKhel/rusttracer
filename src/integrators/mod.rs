@@ -1,10 +1,10 @@
 use image::{ImageBuffer, Rgb};
 use rayon::iter::ParallelIterator;
 
-use crate::integrators::normal::NormalIntegrator;
+use crate::integrators::debug_normal::DebugNormalIntegrator;
 
-mod idk;
-pub mod normal;
+pub mod random_walk;
+pub mod debug_normal;
 
 // #[enum_delegate::register]
 pub trait Integrator {

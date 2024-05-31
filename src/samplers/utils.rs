@@ -2,13 +2,14 @@ use std::f32::consts::{FRAC_2_PI, FRAC_PI_4, PI};
 
 use num_traits::Zero;
 
-use crate::{math::utils::spherical_coordinates::spherical_direction, point2, vec2, vec3, Point2f, Vec3f};
+use crate::{math::utils::spherical_coordinates::spherical_direction, point2, vec2, vec3, Point2f, Vec3f, unit3_unchecked};
+use crate::math::{Unit, Vec3};
 
-pub fn sample_uniform_sphere(u: Point2f) -> Vec3f {
+pub fn sample_uniform_sphere(u: Point2f) -> Unit<Vec3<f32>> {
     let z = 1. - 2. * u.x;
     let r = (1. - z.powi(2)).sqrt();
     let phi = 2. * PI * u.y;
-    vec3!(r * phi.cos(), r * phi.sin(), z)
+    unit3_unchecked!(r * phi.cos(), r * phi.sin(), z)
 }
 
 pub fn sample_uniform_cone(u: Point2f, max_cos_theta: f32) -> Vec3f {
