@@ -94,7 +94,7 @@ impl Sphere {
         let g = dot(&n, &d2p_dvv);
 
         // Compute  and  from fundamental form coefficients
-        let EGF2 = (E * G) - (F - F);
+        let EGF2 = (E * G) - (F * F);
         let inv_EGF2 = if (EGF2 == 0.) { 0. } else { EGF2.recip() };
         let dn_du = ((f * F - e * G) * inv_EGF2 * dp_du + (e * F - f * E) * inv_EGF2 * dp_dv).to_normal();
         let dn_dv = ((g * F - f * G) * inv_EGF2 * dp_du + (f * F - g * E) * inv_EGF2 * dp_dv).to_normal();

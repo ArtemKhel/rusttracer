@@ -6,6 +6,7 @@
 #![feature(test)]
 #![feature(const_trait_impl, effects)]
 #![feature(trait_alias)]
+#![feature(get_mut_unchecked)]
 
 use std::{ops::DerefMut, sync::atomic::AtomicU32};
 
@@ -17,6 +18,7 @@ pub mod math;
 // pub mod mediums;
 pub mod integrators;
 // pub mod rendering;
+pub mod light;
 mod samplers;
 pub mod scene;
 pub mod shapes;
@@ -24,17 +26,21 @@ pub mod test_scenes;
 pub mod textures;
 pub mod utils;
 
-type F = f32;
-type I = i32;
-type U = u32;
-pub type Point2f = math::Point2<F>;
-pub type Point2i = math::Point2<I>;
-pub type Point2u = math::Point2<U>;
-pub type Point3f = math::Point3<F>;
-pub type Point3i = math::Point3<I>;
-pub type Point3u = math::Point3<U>;
-pub type Vec3f = math::Vec3<F>;
-pub type Normal3f = math::Normal3<F>;
+type Float = f32;
+type Int = i32;
+type UInt = u32;
+pub type Point2f = math::Point2<Float>;
+pub type Point2i = math::Point2<Int>;
+pub type Point2u = math::Point2<UInt>;
+pub type Point2us = math::Point2<usize>;
+pub type Point3f = math::Point3<Float>;
+pub type Point3i = math::Point3<Int>;
+pub type Point3u = math::Point3<UInt>;
+pub type Vec3f = math::Vec3<Float>;
+pub type Normal3f = math::Normal3<Float>;
+pub type Bounds2f = math::Bounds2<Float>;
+pub type Bounds2i = math::Bounds2<Int>;
+pub type Bounds2u = math::Bounds2<UInt>;
 
 pub static CALLS: AtomicU32 = AtomicU32::new(0);
 pub static SKIP: AtomicU32 = AtomicU32::new(0);
@@ -47,4 +53,6 @@ pub mod colors {
     pub const GREEN: Rgb<f32> = Rgb([0.12, 0.45, 0.15]);
     pub const RED: Rgb<f32> = Rgb([0.65, 0.05, 0.05]);
     pub const LIGHT_GRAY: Rgb<f32> = Rgb([0.73, 0.73, 0.73]);
+    pub const LIGHT_BLUE: Rgb<f32> = Rgb([0.5, 0.8, 0.95]);
+    pub const DARK_BLUE: Rgb<f32> = Rgb([0.2, 0.3, 0.5]);
 }

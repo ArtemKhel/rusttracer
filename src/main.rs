@@ -1,22 +1,13 @@
 #![allow(unused)]
 
-use std::{
-    f32::consts::PI,
-    iter::repeat,
-    sync::{
-        atomic::{AtomicU32, Ordering::Relaxed},
-        Arc,
-    },
-};
-use std::f32::consts::FRAC_PI_4;
+use std::sync::Arc;
 
-use image::{buffer::ConvertBuffer, Rgb, RgbImage};
+use image::{buffer::ConvertBuffer, Rgb};
 use itertools::Itertools;
-use log::debug;
 use rusttracer::{
     aggregates::BVH,
     colors,
-    integrators::{debug_normal::DebugNormalIntegrator, Integrator},
+    integrators::{random_walk::RandomWalkIntegrator, Integrator},
     material::{matte::Matte, MaterialsEnum},
     math::{axis::Axis3, Transform},
     point2,
@@ -27,15 +18,13 @@ use rusttracer::{
             projective::ScreenWindow,
             CameraType::Orthographic,
         },
-        film::{BaseFilm, Resolution},
+        film::RGBFilm,
         PrimitiveEnum, Scene, SimplePrimitive,
     },
     shapes::sphere::Sphere,
-    test_scenes::*,
-    textures::constant::ConstantTexture,
-    vec3, Point2u, CALLS, SKIP,
+    textures::checkerboard::CheckerboardTexture,
+    vec3,
 };
-use rusttracer::integrators::random_walk::RandomWalkIntegrator;
 
 fn main() {
     env_logger::init();
@@ -46,10 +35,9 @@ fn main() {
                 // .then_rotate_degrees(Axis3::Y, 225.)
                 // .then_rotate_arbitrary_axis(vec3!(-1.,0.,1.), FRAC_PI_4)
                 // .then_translate(vec3!(1., 1., 1.)),
-                .then_translate(vec3!(0., 0., -1.)),
-            film: BaseFilm {
-                resolution: point2!(300u32, 300u32),
-            },
+                .then_rotate_degrees(Axis3::X, 45.)
+                .then_translate(vec3!(0., 1., -1.)),
+            film: RGBFilm::new(point2!(300u32, 300u32)),
         },
         screen_window: ScreenWindow {
             min: point2!(-1., -1.),
@@ -65,9 +53,16 @@ fn main() {
             transform: Default::default(),
         }),
         material: Arc::new(
-            (MaterialsEnum::Matte(Matte {
-                reflectance: Arc::new(ConstantTexture { value: colors::GREEN }),
-            })),
+            MaterialsEnum::Matte(Matte {
+                reflectance: Arc::new(
+                    // ConstantTexture { value: colors::GREEN }
+                    CheckerboardTexture {
+                        light: colors::GREEN,
+                        dark: colors::RED,
+                        size: 0.1,
+                    },
+                ),
+            }),
         ),
     })]
     .into_iter()
@@ -83,48 +78,52 @@ fn main() {
     };
 
     // let integrator = DebugNormalIntegrator { scene };
-    let integrator = RandomWalkIntegrator { scene, max_depth: 3 };
-    let image = integrator.render();
-    let image: RgbImage = image.convert();
-    image.save("./images/_image.png").unwrap();
+    let mut integrator = RandomWalkIntegrator::new(scene, 5, 1);
+    integrator.render();
+}
 
-    // // let scene = spheres();
-    // let scene = cornell_box();
-    // // let scene = cubes();
-    // // let scene = teapot();
-    //
-    // let raytracer = RayTracer {
-    //     scene,
-    //     resolution: Resolution {
-    //         width: 640,
-    //         height: 640,
-    //         //
-    //         // width: 1280,
-    //         // height: 1280,
-    //         //
-    //         // width: 1920,
-    //         // height: 1920,
-    //         //
-    //         // width: 640,
-    //         // height: 360,
-    //         //
-    //         // width: 1280,
-    //         // height: 720,
-    //         //
-    //         // width: 1920,
-    //         // height: 1080,
-    //     },
-    //     // antialiasing: AAType::None.into(),
-    //     antialiasing: RegularGrid(5).into(),
-    //     max_reflections: 5,
-    // };
-    //
-    // let image = raytracer.render();
-    //
-    // let image: RgbImage = image.convert();
-    // image.save("./images/_image.png").unwrap();
+#[cfg(test)]
+mod tests {
+    use std::cmp::min;
 
-    let c: u32 = CALLS.swap(0, Relaxed);
-    let s: u32 = SKIP.swap(0, Relaxed);
-    debug!("calls {c}, skips {s}, ratio {}", s as f32 / c as f32);
+    use ndarray::{Array2, ArrayViewMut2, Axis};
+    use rusttracer::math::Bounds2;
+
+    // keep it for now, may be useful for filters or something
+    fn split_into_chunks<T>(array: &mut Array2<T>, chunk_rows: usize, chunk_cols: usize) -> Vec<ArrayViewMut2<T>> {
+        let n_rows = array.nrows();
+        let n_cols = array.ncols();
+        let mut chunks = Vec::new();
+
+        unsafe {
+            let raw = array.raw_view_mut();
+            let mut row_rest = raw;
+            for row_start in (0..n_rows).step_by(chunk_rows) {
+                let row_end = min(row_start + chunk_rows, n_rows);
+                let (row_head, row_tail) = row_rest.split_at(Axis(0), row_end - row_start);
+
+                let mut col_rest = row_head;
+                for col_start in (0..n_cols).step_by(chunk_cols) {
+                    let col_end = min(col_start + chunk_cols, n_cols);
+                    let (mut col_head, col_tail) = col_rest.split_at(Axis(1), col_end - col_start);
+                    chunks.push(col_head.deref_into_view_mut());
+                    col_rest = col_tail;
+                }
+                row_rest = row_tail
+            }
+        }
+
+        chunks
+    }
+
+    #[test]
+    fn test_() {
+        let mut array = Array2::from_elem((10, 10), [0.]);
+
+        let chunks = unsafe { split_into_chunks(&mut array, 3, 6) };
+
+        for chunk in chunks {
+            println!("{:?}\n", chunk);
+        }
+    }
 }

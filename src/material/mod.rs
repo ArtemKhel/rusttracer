@@ -1,16 +1,14 @@
 pub mod matte;
 
-use std::fmt::Debug;
+use std::{fmt::Debug, option::Option};
 
-use std::option::Option;
 use image::Rgb;
 
 use crate::{
-    bxdf::BSDF,
+    bxdf::{BxDF, BxDFEnum, BSDF},
     core::{Ray, SurfaceInteraction},
     material::matte::Matte,
 };
-use crate::bxdf::{BxDF, BxDFEnum};
 
 pub struct Scatter {
     pub ray: Ray,

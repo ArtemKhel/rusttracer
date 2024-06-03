@@ -1,16 +1,20 @@
+use std::sync::Arc;
+
 use crate::{
     core::{ray::RayDifferential, Ray},
     math::{Normed, Transform, Transformable},
     ray,
     samplers::utils::sample_uniform_disk_concentric,
-    scene::cameras::{
-        base::BaseCameraConfig,
-        projective::{ProjectiveCamera, ProjectiveCameraConfig, ScreenWindow},
-        Camera, CameraSample,
+    scene::{
+        cameras::{
+            base::BaseCameraConfig,
+            projective::{ProjectiveCamera, ProjectiveCameraConfig, ScreenWindow},
+            Camera, CameraSample,
+        },
+        film::RGBFilm,
     },
     unit_vec3, vec3, Normal3f, Point2f, Point3f, Vec3f,
 };
-use crate::scene::film::BaseFilm;
 
 pub struct OrthographicCamera {
     projective: ProjectiveCamera,
@@ -74,7 +78,8 @@ impl Camera for OrthographicCamera {
             .approximate_dp_dxy(point, normal, samples_per_pixel)
     }
 
-    fn get_film(&self) -> &BaseFilm { &self.projective.base.film }
+    fn get_film(&self) -> Arc<RGBFilm> { self.projective.base.film.clone() }
+    // fn get_film_mut(&mut self) -> &mut RGBFilm { &mut self.projective.base.film }
 }
 
 impl From<OrthographicCameraConfig> for OrthographicCamera {

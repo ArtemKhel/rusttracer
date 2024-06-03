@@ -70,8 +70,8 @@ impl<T: Number> Vec3<T> {
         }
     }
 
-    pub fn map<F, Out>(&self, f: F) -> Vec3<Out>
-    where F: Fn<(T,), Output = Out> {
+    pub fn map<F, Out>(&self, mut f: F) -> Vec3<Out>
+    where F: FnMut(T) -> Out {
         vec3!(f(self.x), f(self.y), f(self.z))
     }
 }
@@ -108,7 +108,7 @@ macro_rules! gen_mul {
         }
     )*};
 }
-gen_mul!(f32 /*, f64*/);
+gen_mul!(f32 /* , f64 */);
 
 impl<T: Number> Cross<Vec3<T>> for Vec3<T>
 where T: Copy

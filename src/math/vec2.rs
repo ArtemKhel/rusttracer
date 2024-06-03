@@ -4,7 +4,7 @@ use std::{
 };
 
 use approx::AbsDiffEq;
-use derive_more::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+use derive_more::{Add, AddAssign, Div, DivAssign, From, Mul, MulAssign, Neg, Sub, SubAssign};
 use derive_new::new;
 use num_traits::{Float, Num, One, Pow, Signed, Zero};
 use rand::{
@@ -15,14 +15,10 @@ use rand::{
 
 use crate::{
     impl_axis_index,
-    math::{
-        axis::Axis2,
-        transform::{Transform, Transformable},
-        unit::Unit,
-        Cross, Dot, Normal3, Normed, Number, Vec4,
-    },
+    math::{axis::Axis2, transform::Transformable, unit::Unit, Cross, Dot, Normed, Number},
 };
-#[derive(Debug, Default, Clone, Copy, PartialEq)]
+
+#[derive(Debug, Default, Clone, Copy, PartialEq, Hash)]
 #[derive(new, Neg, Add, Sub, Mul, Div, AddAssign, SubAssign, MulAssign, DivAssign)]
 pub struct Vec2<T> {
     pub x: T,
@@ -55,9 +51,10 @@ impl<T: Number> Vec2<T> {
             Axis2::Y => vec2!(T::zero(), self.y),
         }
     }
-
-    pub fn map<F, Out>(&self, f: F) -> Vec2<Out>
-    where F: Fn<(T,), Output = Out> {
+}
+impl<T: Copy> Vec2<T> {
+    pub fn map<F, Out>(&self, mut f: F) -> Vec2<Out>
+    where F: FnMut(T) -> Out {
         vec2!(f(self.x), f(self.y))
     }
 }
@@ -90,7 +87,7 @@ macro_rules! gen_mul {
         }
     )*};
 }
-gen_mul!(f32 /*, f64*/);
+gen_mul!(f32 /* , f64 */);
 
 impl<T: Number> Dot<Vec2<T>> for Vec2<T> {
     type Output = T;
@@ -117,7 +114,7 @@ impl<T: Float + AbsDiffEq<Epsilon = T>> AbsDiffEq for Vec2<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::math::{cross, dot};
+    use crate::math::dot;
 
     #[test]
     fn test() {

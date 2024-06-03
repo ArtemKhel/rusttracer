@@ -61,7 +61,10 @@ pub fn local_normal(normal: Vec3f, ray: &Ray) -> Vec3f {
 pub mod spherical_coordinates {
     use std::f32::consts::{FRAC_1_PI, PI};
 
-    use crate::{math::Vec3, vec3, Vec3f};
+    use crate::{
+        math::{Point3, Vec3},
+        vec3, Vec3f,
+    };
 
     pub fn spherical_theta(vec: Vec3<f32>) -> f32 { vec.z.acos() * FRAC_1_PI }
 

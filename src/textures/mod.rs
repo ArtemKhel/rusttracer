@@ -2,6 +2,7 @@ use std::fmt::Debug;
 
 use crate::core::SurfaceInteraction;
 
+pub mod checkerboard;
 pub mod constant;
 pub mod mappings;
 

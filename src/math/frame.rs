@@ -7,7 +7,8 @@ use crate::{
     vec3,
 };
 
-// Represents a rotation that aligns three orthonormal vectors in a coordinate system with the x, y, z axes.
+// Represents a rotation that aligns three orthonormal vectors in a coordinate
+// system with the x, y, z axes.
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Frame<T> {
     x: Unit<Vec3<T>>,
@@ -15,6 +16,7 @@ pub struct Frame<T> {
     z: Unit<Vec3<T>>,
 }
 
+#[allow(clippy::wrong_self_convention)]
 impl<T: Number> Frame<T> {
     fn new(x: Vec3<T>, y: Vec3<T>, z: Vec3<T>) -> Self {
         // TODO
@@ -41,11 +43,8 @@ impl<T: Number> Frame<T> {
         let sign = T::one().copysign(v1.z);
         let a = -T::one() / (sign + v1.z);
         let b = v1.x * v1.y * a;
-        //                      (1        + sign * Sqr(v1.x)    * a, sign * b, -sign * v1.x);
         let v2 = vec3!(T::one() + sign * v1.x.powi(2) * a, sign * b, -sign * v1.x);
-        //                      (b, sign + Sqr(v1.y)    * a, -v1.y);
         let v3 = vec3!(b, sign + v1.y.powi(2) * a, -v1.y);
-
         Frame::new(v1, v2, v3)
     }
 

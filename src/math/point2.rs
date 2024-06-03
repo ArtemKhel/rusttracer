@@ -1,8 +1,15 @@
 use std::ops::{Index, IndexMut};
 
+use approx::AbsDiffEq;
 use derive_more::{Add, AddAssign, Deref, DerefMut, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use derive_new::new;
 use gen_ops::gen_ops;
+use num_traits::Float;
+use rand::{
+    distributions::{uniform::SampleUniform, Standard},
+    prelude::Distribution,
+    Rng,
+};
 
 use crate::{
     impl_axis_index,
@@ -10,7 +17,7 @@ use crate::{
     point3,
 };
 
-#[derive(Debug, Default, Clone, Copy, PartialEq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Hash)]
 #[derive(Deref, DerefMut)]
 #[derive(new, Neg, Mul, Div, AddAssign, SubAssign, MulAssign, DivAssign)]
 pub struct Point2<T> {
@@ -31,6 +38,13 @@ impl<T: Number> Point2<T> {
     pub fn min_coords(lhs: Point2<T>, rhs: Point2<T>) -> Point2<T> { point2!(lhs.x.min(rhs.x), lhs.y.min(rhs.y)) }
 
     pub fn max_coords(lhs: Point2<T>, rhs: Point2<T>) -> Point2<T> { point2!(lhs.x.max(rhs.x), lhs.y.max(rhs.y)) }
+}
+
+impl<T: Copy> Point2<T> {
+    pub fn map<F, Out>(&self, f: F) -> Point2<Out>
+    where F: FnMut(T) -> Out {
+        Point2::new(self.coords.map(f))
+    }
 }
 
 impl_axis_index!(Point2, Axis2, T, (X, x), (Y, y));
@@ -67,3 +81,14 @@ gen_ops!(
 
     where T: Number
 );
+
+impl<T: Number + SampleUniform> Distribution<Point2<T>> for Standard {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Point2<T> { Point2::new(rng.gen()) }
+}
+impl<T: Float + AbsDiffEq<Epsilon = T>> AbsDiffEq for Point2<T> {
+    type Epsilon = T;
+
+    fn default_epsilon() -> Self::Epsilon { T::epsilon() }
+
+    fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool { self.deref().abs_diff_eq(other, epsilon) }
+}

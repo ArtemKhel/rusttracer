@@ -1,18 +1,12 @@
 use std::f32::consts::PI;
 
 use image::{Pixel, Rgb};
-use crate::F;
 
-pub fn lerp(a: Rgb<f32>, b: Rgb<f32>, t: f32) -> Rgb<f32> {
-    Rgb([
-        (1. - t) * a.0[0] + t * b.0[0],
-        (1. - t) * a.0[1] + t * b.0[1],
-        (1. - t) * a.0[2] + t * b.0[2],
-    ])
-}
+use crate::Float;
+
+pub fn lerp(a: Rgb<f32>, b: Rgb<f32>, t: f32) -> Rgb<f32> { a.map2(&b, |a, b| (1. - t) * a + t * b) }
 
 pub(crate) fn linear_to_gamma(linear: Rgb<f32>) -> Rgb<f32> { linear.map(|x| if x > 0. { x.sqrt() } else { x }) }
-
 
 #[macro_export]
 macro_rules! breakpoint {
@@ -21,7 +15,8 @@ macro_rules! breakpoint {
         unsafe {
             std::intrinsics::breakpoint();
             #[allow(clippy::unused_unit)]
-            ()
+            ();
+            ();
         }
     };
     ($expr:expr) => {

@@ -102,7 +102,7 @@ macro_rules! gen_mul {
         }
     )*};
 }
-gen_mul!(f32 /*, f64*/);
+gen_mul!(f32 /* , f64 */);
 
 impl<T: Number> Dot<Vec4<T>> for Vec4<T> {
     type Output = T;

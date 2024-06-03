@@ -77,8 +77,8 @@ impl Bounded<f32> for SimplePrimitive {
 // }
 //
 // impl Intersectable for Primitive {
-//     fn intersect(&self, ray: &Ray, t_max: f32) -> Option<SurfaceInteraction> { self.shape.intersect(ray, t_max) }
-// }
+//     fn intersect(&self, ray: &Ray, t_max: f32) -> Option<SurfaceInteraction>
+// { self.shape.intersect(ray, t_max) } }
 
 // #[derive(Debug)]
 // pub struct Composite {
@@ -86,9 +86,9 @@ impl Bounded<f32> for SimplePrimitive {
 // }
 //
 // impl Bounded<f32> for Composite {
-//     fn bound(&self) -> Aabb<f32> { self.objects.iter().fold(Aabb::default(), |acc, x| acc + x.bound()) }
-// }
+//     fn bound(&self) -> Aabb<f32> { self.objects.iter().fold(Aabb::default(),
+// |acc, x| acc + x.bound()) } }
 //
 // impl Intersectable for Composite {
-//     fn hit(&self, ray: &Ray) -> Option<Hit> { self.objects.iter().filter_map(|x| x.hit(ray)).min() }
-// }
+//     fn hit(&self, ray: &Ray) -> Option<Hit> {
+// self.objects.iter().filter_map(|x| x.hit(ray)).min() } }

@@ -1,13 +1,15 @@
 unstable_features = true
 
 brace_style = "PreferSameLine"
+comment_width = 120
 fn_single_line = true
 format_strings = true
 group_imports = "StdExternalCrate"
 imports_granularity = "Crate"
 max_width = 120
+merge_derives = false
 reorder_impl_items = true
 use_field_init_shorthand = true
 where_single_line = true
-merge_derives = false
+wrap_comments = true
 

@@ -48,6 +48,11 @@ impl<T: Number> Point3<T> {
     pub fn max_coords(lhs: Point3<T>, rhs: Point3<T>) -> Point3<T> {
         point3!(lhs.x.max(rhs.x), lhs.y.max(rhs.y), lhs.z.max(rhs.z))
     }
+
+    pub fn map<FN>(&self, f: FN) -> Point3<T>
+    where FN: FnMut(T) -> T {
+        point3!(self.coords.map(f))
+    }
 }
 
 impl_axis_index!(Point3, Axis3, T, (X, x), (Y, y), (Z, z));

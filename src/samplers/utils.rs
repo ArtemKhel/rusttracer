@@ -1,12 +1,18 @@
 use std::f32::consts::{FRAC_2_PI, FRAC_PI_4, PI};
 
+use itertools::any;
 use num_traits::Zero;
 
-use crate::{math::utils::spherical_coordinates::spherical_direction, point2, vec2, vec3, Point2f, Vec3f, unit3_unchecked};
-use crate::math::{Unit, Vec3};
+use crate::{
+    breakpoint,
+    math::{utils::spherical_coordinates::spherical_direction, Unit, Vec3},
+    point2, unit3_unchecked, vec2, vec3, Point2f, Vec3f,
+};
 
+/// Generate vectors to a uniformly distributed points on a unit sphere
 pub fn sample_uniform_sphere(u: Point2f) -> Unit<Vec3<f32>> {
-    let z = 1. - 2. * u.x;
+    // TODO: should check all math-y things and do them properly. Finding NaNs in random places isn't funny
+    let z = (1. - 2. * u.x).clamp(0., 1.);
     let r = (1. - z.powi(2)).sqrt();
     let phi = 2. * PI * u.y;
     unit3_unchecked!(r * phi.cos(), r * phi.sin(), z)

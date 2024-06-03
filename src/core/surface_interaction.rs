@@ -1,14 +1,14 @@
 use std::{cmp::Ordering, sync::Arc};
 
 use crate::{
+    bxdf::BSDF,
     core::{interaction::Interaction, Ray},
-    material::MaterialsEnum,
+    material::{Material, MaterialsEnum},
     math::{dot, Dot, Transform, Transformable},
-    Normal3f,
-    scene::cameras::Camera, Vec3f,
+    samplers::SamplerType,
+    scene::cameras::Camera,
+    Normal3f, Vec3f,
 };
-use crate::bxdf::BSDF;
-use crate::material::Material;
 
 #[derive(Debug)]
 pub struct SurfaceInteraction {
@@ -43,7 +43,6 @@ impl SurfaceInteraction {
         SurfaceInteraction {
             hit: interaction,
             // uv,
-            //
             dp_du,
             dp_dv,
             //
@@ -61,7 +60,7 @@ impl SurfaceInteraction {
         }
     }
 
-    pub fn get_bsdf(&mut self, ray: &Ray, camera: &dyn Camera, samples_per_pixel: u32) -> Option<BSDF> {
+    pub fn get_bsdf(&mut self, ray: &Ray, camera: &dyn Camera, sampler: &mut SamplerType) -> Option<BSDF> {
         // TODO: spp, dyn
         // FIXME: not needed for now
         // self.calculate_differentials(ray, camera, 1)
@@ -77,18 +76,14 @@ impl SurfaceInteraction {
 
     pub fn calculate_differentials(&mut self, ray: &Ray, camera: &dyn Camera, samples_per_pixel: u32) {
         if let Some(diff) = ray.diff {
-            if dot(&self.hit.normal, &diff.rx_direction) != 0.0
-                && dot(&self.hit.normal, &diff.ry_direction) != 0.0
-            {
+            if dot(&self.hit.normal, &diff.rx_direction) != 0.0 && dot(&self.hit.normal, &diff.ry_direction) != 0.0 {
                 // Estimate screen-space change in intersection point using ray differentials
 
                 // Compute auxiliary intersection points with plane
                 let d = -dot(&self.hit.normal, &self.hit.point);
-                let tx = (-dot(&self.hit.normal, &diff.rx_origin) - d)
-                    / dot(&self.hit.normal, &diff.rx_direction);
+                let tx = (-dot(&self.hit.normal, &diff.rx_origin) - d) / dot(&self.hit.normal, &diff.rx_direction);
                 let px = diff.rx_origin + tx * *diff.rx_direction;
-                let ty = (-dot(&self.hit.normal, &diff.ry_origin) - d)
-                    / dot(&self.hit.normal, &diff.ry_direction);
+                let ty = (-dot(&self.hit.normal, &diff.ry_origin) - d) / dot(&self.hit.normal, &diff.ry_direction);
                 let py = diff.ry_origin + ty * *diff.ry_direction;
 
                 self.dp_dx = px - self.hit.point;
@@ -147,8 +142,10 @@ impl SurfaceInteraction {
         };
     }
 
-    /// MaterialsEnum may return an unset BSDF to indicate an interface between two scattering media that does not itself scatter light.
-    /// In this case, it is necessary to spawn a new ray in the same direction, but past the intersection on the surface.
+    /// MaterialsEnum may return an unset BSDF to indicate an interface between
+    /// two scattering media that does not itself scatter light.
+    /// In this case, it is necessary to spawn a new ray in the same direction,
+    /// but past the intersection on the surface.
     pub fn skip_interaction(ray: Ray, t: f32) { todo!() }
 }
 

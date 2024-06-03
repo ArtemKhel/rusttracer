@@ -5,8 +5,10 @@ use derive_more::{Deref, DerefMut, From};
 use image::Rgb;
 use num_traits::Zero;
 
-use crate::{bxdf::bsdf::BSDFSample, Point2f, Vec3f};
-use crate::bxdf::diffuse::DiffuseBxDF;
+use crate::{
+    bxdf::{bsdf::BSDFSample, diffuse::DiffuseBxDF},
+    Point2f, Vec3f,
+};
 
 bitflags! {
     pub struct BxDFType: u32 {
@@ -54,6 +56,6 @@ pub trait BxDF {
 }
 
 #[enum_delegate::implement(BxDF)]
-pub enum BxDFEnum{
-    Diffuse(DiffuseBxDF)
+pub enum BxDFEnum {
+    Diffuse(DiffuseBxDF),
 }

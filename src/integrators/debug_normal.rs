@@ -1,4 +1,4 @@
-use image::{ImageBuffer, Rgb};
+use image::{buffer::ConvertBuffer, ImageBuffer, Rgb, RgbImage};
 use rand::Rng;
 
 use crate::{
@@ -37,7 +37,7 @@ unsafe impl Sync for DebugNormalIntegrator {}
 unsafe impl Send for DebugNormalIntegrator {}
 
 impl Integrator for DebugNormalIntegrator {
-    fn render(&self) -> ImageBuffer<Rgb<f32>, Vec<f32>> {
+    fn render(&self) {
         let resolution = self.scene.camera.get_film().resolution;
         let mut image = ImageBuffer::new(resolution.x, resolution.y);
         let mut rng = rand::thread_rng();
@@ -53,11 +53,14 @@ impl Integrator for DebugNormalIntegrator {
             // breakpoint!(x == 100 && y == 100);
             let ray = self.scene.camera.generate_ray(sample);
 
-            if x == 150 && y == 150 { dbg!(&ray); }
+            if x == 150 && y == 150 {
+                dbg!(&ray);
+            }
 
             *pixel = linear_to_gamma(self.ray_color(&ray));
         });
 
-        image
+        let image: RgbImage = image.convert();
+        image.save("./images/_image.png").unwrap();
     }
 }

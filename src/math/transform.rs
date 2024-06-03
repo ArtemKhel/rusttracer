@@ -5,16 +5,14 @@ use num_traits::Zero;
 use strum::IntoEnumIterator;
 
 use crate::{
-    F,
     math::{
-        axis::Axis3,
+        axis::{Axis3, Axis4},
         dot,
-        Dot,
-        matrix4::Matrix4, Number, Vec3,
-    }, vec3, Vec3f,
+        matrix4::Matrix4,
+        Dot, Normed, Number, Vec3,
+    },
+    vec3, Float, Vec3f,
 };
-use crate::math::axis::Axis4;
-use crate::math::Normed;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Transform<T> {
@@ -58,11 +56,11 @@ impl<T: Number> Transform<T> {
         mat.z.w = vec.z;
         Transform::from_matrix(mat)
     }
+
     pub fn then_translate(mut self, vec: Vec3<T>) -> Self {
         self = Transform::compose(self, Transform::translate(vec));
         self
     }
-
 
     pub fn scale(factor_x: T, factor_y: T, factor_z: T) -> Self {
         let mut mat = Matrix4::id();
@@ -71,12 +69,14 @@ impl<T: Number> Transform<T> {
         mat.z.z = factor_z;
         Transform::from_matrix(mat)
     }
+
     pub fn then_scale(mut self, factor_x: T, factor_y: T, factor_z: T) -> Self {
         self = Transform::compose(self, Transform::scale(factor_x, factor_y, factor_z));
         self
     }
 
     pub fn scale_uniform(factor: T) -> Self { Self::scale(factor, factor, factor) }
+
     pub fn then_scale_uniform(mut self, factor: T) -> Self {
         self = Transform::compose(self, Transform::scale_uniform(factor));
         self
@@ -109,7 +109,7 @@ impl<T: Number> Transform<T> {
         }
         Transform::from_matrix(mat)
     }
-    
+
     /// Clockwise
     pub fn then_rotate(mut self, axis: Axis3, theta: T) -> Self {
         self = Transform::compose(self, Transform::rotate(axis, theta));
@@ -118,34 +118,39 @@ impl<T: Number> Transform<T> {
 
     /// Clockwise
     pub fn rotate_degrees(axis: Axis3, degrees: T) -> Self { Self::rotate(axis, degrees.to_radians()) }
+
     /// Clockwise
     pub fn then_rotate_degrees(mut self, axis: Axis3, degrees: T) -> Self {
         self = Transform::compose(self, Transform::rotate_degrees(axis, degrees));
         self
     }
 
-    pub fn rotate_arbitrary_axis(axis: Vec3<T>, theta: T) -> Self{
+    pub fn rotate_arbitrary_axis(axis: Vec3<T>, theta: T) -> Self {
         let sin = theta.sin();
         let cos = theta.cos();
 
         let axis = axis.to_unit();
         let mut mat = Matrix4::id();
-        
+
         use Axis4::*;
         mat[X][X] = axis.x * axis.x + (T::one() - axis.x.powi(2)) * cos;
         mat[X][Y] = axis.x * axis.y * (T::one() - cos) - axis.z * sin;
         mat[X][Z] = axis.x * axis.z * (T::one() - cos) + axis.y * sin;
-        
+
         mat[Y][X] = axis.y * axis.x * (T::one() - cos) + axis.z * sin;
         mat[Y][Y] = axis.y * axis.y + (T::one() - axis.y.powi(2)) * cos;
         mat[Y][Z] = axis.y * axis.z * (T::one() - cos) - axis.x * sin;
-        
+
         mat[Z][X] = axis.z * axis.x * (T::one() - cos) - axis.y * sin;
         mat[Z][Y] = axis.z * axis.y * (T::one() - cos) + axis.x * sin;
         mat[Z][Z] = axis.z * axis.z + (T::one() - axis.z.powi(2)) * cos;
 
-        Transform{ inv: mat.transpose(), mat }
+        Transform {
+            inv: mat.transpose(),
+            mat,
+        }
     }
+
     pub fn then_rotate_arbitrary_axis(mut self, axis: Vec3<T>, theta: T) -> Self {
         self = Transform::compose(self, Transform::rotate_arbitrary_axis(axis, theta));
         self
@@ -168,8 +173,8 @@ impl<T: Number> Transform<T> {
 
     pub fn compose_iter<Iterable, Iter>(it: Iterable) -> Self
     where
-        Iterable: IntoIterator<Item=Transform<T>, IntoIter=Iter>,
-        Iter: Iterator<Item=Transform<T>>, {
+        Iterable: IntoIterator<Item = Transform<T>, IntoIter = Iter>,
+        Iter: Iterator<Item = Transform<T>>, {
         it.into_iter().reduce(|acc, x| Self::compose(acc, x)).unwrap()
     }
 
@@ -178,7 +183,7 @@ impl<T: Number> Transform<T> {
     pub fn apply_inv_to<R: Transformable<T>>(&self, x: R) -> R { x.inv_transform(self) }
 }
 
-impl Transform<F> {
+impl Transform<Float> {
     pub fn rotate_from_to(from: &Vec3f, to: &Vec3f) -> Self {
         // Compute intermediate vector for vector reflection
         let reflection_vec = if (from.x.abs() < 0.72 && to.x.abs() < 0.72) {
@@ -206,16 +211,14 @@ impl<T: Number> Default for Transform<T> {
     fn default() -> Self { Transform::id() }
 }
 
-
 #[cfg(test)]
 mod tests {
     use std::f32::consts::{FRAC_1_SQRT_2, FRAC_PI_2};
 
     use approx::assert_abs_diff_eq;
 
-    use crate::{point3, vec3, Vec3f};
-
     use super::*;
+    use crate::{point3, vec3, Vec3f};
 
     #[test]
     fn test_translate() {
@@ -267,10 +270,10 @@ mod tests {
 
     #[test]
     fn test_rotate2() {
-        let vec = vec3!(0.,0.,1.);
+        let vec = vec3!(0., 0., 1.);
 
         let rot_y = Transform::rotate_degrees(Axis3::Y, 225.);
-        let exp_rot_y = vec3!(-FRAC_1_SQRT_2, 0.,-FRAC_1_SQRT_2);
+        let exp_rot_y = vec3!(-FRAC_1_SQRT_2, 0., -FRAC_1_SQRT_2);
 
         let rot_x = Transform::rotate_degrees(Axis3::X, 45.);
         let exp_rot_x = vec3!(0., -FRAC_1_SQRT_2, FRAC_1_SQRT_2);
@@ -278,9 +281,8 @@ mod tests {
         let rot_x_y = Transform::compose(rot_x, rot_y);
         let exp_rot_x_y = vec3!(0., -FRAC_1_SQRT_2, FRAC_1_SQRT_2);
 
-        assert_abs_diff_eq!(vec.transform(&rot_y), exp_rot_y, epsilon=1e-5);
-        assert_abs_diff_eq!(vec.transform(&rot_x), exp_rot_x, epsilon=1e-5);
-
+        assert_abs_diff_eq!(vec.transform(&rot_y), exp_rot_y, epsilon = 1e-5);
+        assert_abs_diff_eq!(vec.transform(&rot_x), exp_rot_x, epsilon = 1e-5);
     }
 
     #[test]
@@ -293,7 +295,7 @@ mod tests {
         let ep = point3!(-4., 1., 9.);
         let eip = point3!(-1., -2., -3.);
 
-        assert_abs_diff_eq!(comp.apply_to(p), ep, epsilon=1e-5);
+        assert_abs_diff_eq!(comp.apply_to(p), ep, epsilon = 1e-5);
         assert_abs_diff_eq!(comp.apply_inv_to(p), eip);
     }
 

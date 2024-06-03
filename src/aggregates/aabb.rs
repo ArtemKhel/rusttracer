@@ -248,7 +248,7 @@ mod tests {
     #[test]
     fn test_rotate() {
         let bbox = Aabb::new(point3!(0., 0., 0.), point3!(1., 2., 3.));
-        let t = Transform::rotate(Axis3::Z, FRAC_PI_4);
+        let t = Transform::rotate(Axis3::Z, -FRAC_PI_4);
         let expected = Aabb::new(point3!(0., -SQRT_2 / 2., 0.), point3!(SQRT_2 + SQRT_2 / 2., SQRT_2, 3.));
 
         assert_abs_diff_eq!(bbox.transform(&t), expected)

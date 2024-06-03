@@ -244,7 +244,8 @@ impl BVH<f32> {
                 }
             }
         }
-        // debug!("Split at {mid} out of {} using {split_method:?}", primitives_info.len());
+        // debug!("Split at {mid} out of {} using {split_method:?}",
+        // primitives_info.len());
         Some(primitives_info.split_at_mut(mid))
     }
 

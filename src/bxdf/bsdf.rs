@@ -47,7 +47,7 @@ impl BSDF {
     pub fn sample(&self, point: Point2f, outgoing: Vec3f) -> Option<BSDFSample<Vec3f>> {
         let s_out = self.render_to_shading(outgoing);
         if s_out.z == 0.0
-        /*TODO flags here*/
+        /* TODO flags here */
         {
             return None;
         }

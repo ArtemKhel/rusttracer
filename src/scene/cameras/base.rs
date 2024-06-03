@@ -1,4 +1,4 @@
-use std::ops::Deref;
+use std::{ops::Deref, sync::Arc};
 
 use crate::{
     core::{ray::RayDifferential, Ray},
@@ -6,7 +6,7 @@ use crate::{
     point3,
     scene::{
         cameras::{Camera, CameraSample},
-        film::BaseFilm,
+        film::RGBFilm,
     },
     vec3, Normal3f, Point2u, Point3f, Vec3f,
 };
@@ -14,7 +14,7 @@ use crate::{
 #[derive(Debug)]
 pub struct BaseCamera {
     pub camera_to_world: Transform<f32>,
-    pub film: BaseFilm,
+    pub film: Arc<RGBFilm>,
     // pub medium: ???
     min_pos_differential_x: Vec3f,
     min_pos_differential_y: Vec3f,
@@ -24,7 +24,7 @@ pub struct BaseCamera {
 
 pub struct BaseCameraConfig {
     pub transform: Transform<f32>,
-    pub film: BaseFilm, // pub medium: ???
+    pub film: RGBFilm, // pub medium: ???
 }
 
 impl BaseCamera {
@@ -32,13 +32,13 @@ impl BaseCamera {
         // TODO: camera knows nothing about resolution
 
         let rx = camera.generate_ray({
-            let mut s: CameraSample = sample.clone();
+            let mut s: CameraSample = sample;
             // TODO: what?
             s.p_film.x += 0.05;
             s
         });
         let ry = camera.generate_ray({
-            let mut s: CameraSample = sample.clone();
+            let mut s: CameraSample = sample;
             s.p_film.y += 0.05;
             s
         });
@@ -103,7 +103,7 @@ impl From<BaseCameraConfig> for BaseCamera {
     fn from(config: BaseCameraConfig) -> Self {
         Self {
             camera_to_world: config.transform,
-            film: config.film,
+            film: Arc::new(config.film),
             min_pos_differential_x: Default::default(),
             min_pos_differential_y: Default::default(),
             min_dir_differential_x: Default::default(),

@@ -6,6 +6,7 @@ use std::{
 };
 
 use approx::AbsDiffEq;
+pub use bounds::Bounds2;
 pub use frame::Frame;
 pub use matrix3::*;
 pub use normal::Normal3;

@@ -10,21 +10,22 @@ approx = "0.5.1"
 approx-derive = "0.1.3"
 bitflags = "2.5.0"
 derive-new = "0.6.0"
-#derive-where = "1.2.7"
 derive_more = { version = "1.0.0-beta.6",features = ["full"] }
-#enum_dispatch = "0.3.13"
 enum_delegate = "0.2.0"
 env_logger = "0.11.3"
 gen_ops = "0.4.0"
 image = { version = "0.25.1", features = ["rayon"] }
-indicatif = "0.17.8"
+indicatif = { version = "0.17.8", features = ["rayon"] }
 itertools = "0.12.1"
 log = "0.4.21"
+ndarray = { version = "0.15.6",features = [] }
 num-traits = "0.2.19"
-rand = { version = "0.9.0-alpha.1", features = ["small_rng"] }
+rand = { version = "0.8.5", features = ["small_rng"] }
+rand_seeder = "0.2.3"
 rayon = "1.10.0"
 strum = "0.26.2"
 strum_macros = "0.26.2"
+thread_local = "1.1.8"
 #bytemuck = { version = "1.16.0",features = ["derive"] }
 #zerocopy = { version = "0.7.34", features = ["derive"] }
 

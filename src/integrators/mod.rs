@@ -1,17 +1,27 @@
 use image::{ImageBuffer, Rgb};
 use rayon::iter::ParallelIterator;
 
-use crate::integrators::debug_normal::DebugNormalIntegrator;
+use crate::{math::Point2, scene::Scene, Int, Point2u};
 
+// pub mod debug_normal;
 pub mod random_walk;
-pub mod debug_normal;
-
-// #[enum_delegate::register]
-pub trait Integrator {
-    fn render(&self) -> ImageBuffer<Rgb<f32>, Vec<f32>>;
-}
+mod ray_integrator;
+mod tile_integrator;
 
 // #[enum_delegate::implement(Integrator)]
 // pub enum Integrators{
 //     Normal(NormalIntegrator)
+// }
+// #[enum_delegate::register]
+pub trait Integrator {
+    fn render(&mut self);
+    fn get_state(&self) -> &IState;
+    fn get_state_mut(&mut self) -> &mut IState;
+}
+pub struct IState {
+    pub scene: Scene,
+}
+
+// pub struct BaseIntegrator {
+//     pub scene: Scene,
 // }

@@ -24,11 +24,7 @@ pub struct Ray<T: Number> {
 #[macro_export]
 macro_rules! ray {
     ($origin:expr, $dir:expr) => {
-        Ray {
-            origin: $origin,
-            dir: $dir,
-            diff: None,
-        }
+        Ray::new($origin, $dir, None)
     };
 }
 
