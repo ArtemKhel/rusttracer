@@ -3,13 +3,17 @@ Based on Ray Tracing: in one weekend / the next week / the rest of your life and
 
 <details>
   <summary>Cornell box</summary>
-  ![ ](./images/cornell_transformed.png)
+  <img src="./images/cornell_transformed.png">
 </details>
 
 <details>
   <summary>Teapot</summary>
-  ![ ](./images/teapot.png)
+  <img src="./images/teapot.png">
 </details>
+
+[//]: # (./images/cornell_transformed.png)
+
+[//]: # (./images/teapot.png)
 
 [//]: # (![ ]&#40;./images/cornell.png&#41;)
 
