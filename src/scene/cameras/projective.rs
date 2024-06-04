@@ -4,7 +4,7 @@ use crate::{
         base::{BaseCamera, BaseCameraConfig},
         orthographic::OrthographicCameraConfig,
     },
-    vec3, Point2f, Point2u,
+    vec3, Bounds2f, Point2f, Point2u,
 };
 
 pub struct ProjectiveCamera {
@@ -16,15 +16,10 @@ pub struct ProjectiveCamera {
     pub screen_to_raster: Transform<f32>,
 }
 
-pub struct ScreenWindow {
-    pub min: Point2f,
-    pub max: Point2f,
-}
-
 pub struct ProjectiveCameraConfig {
     pub base_config: BaseCameraConfig,
     pub camera_to_screen: Transform<f32>,
-    pub screen_window: ScreenWindow,
+    pub screen_window: Bounds2f,
     pub lens_radius: f32,
     pub focal_distance: f32,
 }

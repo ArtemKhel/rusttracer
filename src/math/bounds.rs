@@ -29,7 +29,7 @@ impl<T: Number> Bounds2<T> {
     // TODO:
     const PADDING: f32 = 1e-4;
 
-    pub fn center(&self) -> Point2<T> { Point2::new(*self.min + (self.max - self.min) / (T::one() + T::one())) }
+    pub fn center(&self) -> Point2<T> { Point2::from(*self.min + (self.max - self.min) / (T::one() + T::one())) }
 
     pub fn max_dimension(&self) -> Axis2 {
         let diag = self.max - self.min;

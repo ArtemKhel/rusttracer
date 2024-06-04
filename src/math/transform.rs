@@ -11,7 +11,7 @@ use crate::{
         matrix4::Matrix4,
         Dot, Normed, Number, Vec3,
     },
-    vec3, Float, Vec3f,
+    vec3, Vec3f,
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -183,7 +183,7 @@ impl<T: Number> Transform<T> {
     pub fn apply_inv_to<R: Transformable<T>>(&self, x: R) -> R { x.inv_transform(self) }
 }
 
-impl Transform<Float> {
+impl Transform<f32> {
     pub fn rotate_from_to(from: &Vec3f, to: &Vec3f) -> Self {
         // Compute intermediate vector for vector reflection
         let reflection_vec = if (from.x.abs() < 0.72 && to.x.abs() < 0.72) {

@@ -8,12 +8,12 @@ use crate::{
     scene::{
         cameras::{
             base::BaseCameraConfig,
-            projective::{ProjectiveCamera, ProjectiveCameraConfig, ScreenWindow},
+            projective::{ProjectiveCamera, ProjectiveCameraConfig},
             Camera, CameraSample,
         },
         film::RGBFilm,
     },
-    unit_vec3, vec3, Normal3f, Point2f, Point3f, Vec3f,
+    unit_vec3, vec3, Bounds2f, Normal3f, Point2f, Point3f, Vec3f,
 };
 
 pub struct OrthographicCamera {
@@ -24,7 +24,8 @@ pub struct OrthographicCamera {
 
 pub struct OrthographicCameraConfig {
     pub base_config: BaseCameraConfig,
-    pub screen_window: ScreenWindow,
+    /// Screen bounds in film plane. (0,0) is the camera position
+    pub screen_window: Bounds2f,
     pub lens_radius: f32,
     pub focal_distance: f32,
 }

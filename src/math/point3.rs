@@ -1,12 +1,10 @@
 use std::{
-    cmp::{max, min},
     fmt::Debug,
     ops::{Add, Index, IndexMut},
 };
 
 use approx::AbsDiffEq;
 use derive_more::{Deref, DerefMut, Div, From, Mul};
-use derive_new::new;
 use gen_ops::gen_ops;
 use num_traits::{float::FloatCore, Float, One};
 
@@ -20,7 +18,7 @@ use crate::{
 };
 
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
-#[derive(new, Div, Mul, Deref, DerefMut, From)]
+#[derive(Div, Mul, Deref, DerefMut, From)]
 pub struct Point3<T> {
     pub coords: Vec3<T>,
 }
@@ -41,6 +39,12 @@ macro_rules! point3 {
 }
 
 impl<T: Number> Point3<T> {
+    pub fn new(x: T, y: T, z: T) -> Point3<T> {
+        Point3 {
+            coords: Vec3::new(x, y, z),
+        }
+    }
+
     pub fn min_coords(lhs: Point3<T>, rhs: Point3<T>) -> Point3<T> {
         point3!(lhs.x.min(rhs.x), lhs.y.min(rhs.y), lhs.z.min(rhs.z))
     }

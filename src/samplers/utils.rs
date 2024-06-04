@@ -1,8 +1,10 @@
 use std::f32::consts::{FRAC_2_PI, FRAC_PI_4, PI};
 
+use log::warn;
 use num_traits::Zero;
 
 use crate::{
+    breakpoint,
     math::{utils::spherical_coordinates::spherical_direction, Unit, Vec3},
     point2, unit3_unchecked, vec2, Point2f, Vec3f,
 };

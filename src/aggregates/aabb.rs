@@ -26,7 +26,7 @@ impl<T: Number> Aabb<T> {
     // TODO:
     const PADDING: f32 = 1e-4;
 
-    pub fn center(&self) -> Point3<T> { Point3::new(*self.min + (self.max - self.min) / (T::one() + T::one())) }
+    pub fn center(&self) -> Point3<T> { Point3::from(*self.min + (self.max - self.min) / (T::one() + T::one())) }
 
     pub fn max_dimension(&self) -> Axis3 {
         let diag = self.max - self.min;

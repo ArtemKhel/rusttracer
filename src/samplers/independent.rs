@@ -3,7 +3,7 @@ use std::hash::Hash;
 use rand::{rngs::SmallRng, Rng, SeedableRng};
 use rand_seeder::Seeder;
 
-use crate::{samplers::Sampler, Float, Point2f, Point2u, Point2us};
+use crate::{samplers::Sampler, Point2f, Point2u, Point2us};
 
 #[derive(Clone, Debug)]
 pub struct IndependentSampler {
@@ -26,11 +26,11 @@ impl IndependentSampler {
 impl Sampler for IndependentSampler {
     fn samples_per_pixel(&self) -> u32 { self.samples_per_pixel }
 
-    fn start_pixel_sample(&mut self, pixel_coord: Point2us, sample_index: u32) {
-        self.rng = Seeder::from((pixel_coord, sample_index, self.seed)).make_rng::<SmallRng>();
+    fn start_pixel_sample(&mut self, pixel: Point2us, sample_index: u32) {
+        self.rng = Seeder::from((pixel, sample_index, self.seed)).make_rng::<SmallRng>();
     }
 
-    fn get_1d(&mut self) -> Float { self.rng.gen() }
+    fn get_1d(&mut self) -> f32 { self.rng.gen() }
 
     fn get_2d(&mut self) -> Point2f { self.rng.gen() }
 

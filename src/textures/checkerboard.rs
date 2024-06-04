@@ -1,12 +1,12 @@
 use std::fmt::Debug;
 
-use crate::{core::SurfaceInteraction, textures::Texture, Float};
+use crate::{core::SurfaceInteraction, textures::Texture};
 
 #[derive(Debug)]
 pub struct CheckerboardTexture<T> {
     pub dark: T,
     pub light: T,
-    pub size: Float,
+    pub size: f32,
 }
 
 impl<T: Copy + Debug> Texture<T> for CheckerboardTexture<T> {

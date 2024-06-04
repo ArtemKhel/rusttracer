@@ -7,6 +7,7 @@
 #![feature(const_trait_impl, effects)]
 #![feature(trait_alias)]
 #![feature(get_mut_unchecked)]
+#![feature(duration_millis_float)]
 
 use std::{ops::DerefMut, sync::atomic::AtomicU32};
 
@@ -26,19 +27,18 @@ pub mod test_scenes;
 pub mod textures;
 pub mod utils;
 
-type Float = f32;
 type Int = i32;
 type UInt = u32;
-pub type Point2f = math::Point2<Float>;
+pub type Point2f = math::Point2<f32>;
 pub type Point2i = math::Point2<Int>;
 pub type Point2u = math::Point2<UInt>;
 pub type Point2us = math::Point2<usize>;
-pub type Point3f = math::Point3<Float>;
+pub type Point3f = math::Point3<f32>;
 pub type Point3i = math::Point3<Int>;
 pub type Point3u = math::Point3<UInt>;
-pub type Vec3f = math::Vec3<Float>;
-pub type Normal3f = math::Normal3<Float>;
-pub type Bounds2f = math::Bounds2<Float>;
+pub type Vec3f = math::Vec3<f32>;
+pub type Normal3f = math::Normal3<f32>;
+pub type Bounds2f = math::Bounds2<f32>;
 pub type Bounds2i = math::Bounds2<Int>;
 pub type Bounds2u = math::Bounds2<UInt>;
 

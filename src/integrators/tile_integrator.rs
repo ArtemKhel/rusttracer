@@ -6,7 +6,7 @@ use std::{
 
 use image::Rgb;
 use itertools::{iproduct, Itertools};
-use log::debug;
+use log::{debug, info};
 use ndarray::iter::LanesMut;
 use rayon::{current_thread_index, prelude::*};
 use thread_local::ThreadLocal;
@@ -17,6 +17,7 @@ use crate::{
     point2,
     samplers::{Sampler, SamplerType},
     scene::{cameras::Camera, film::Film, Scene},
+    utils::time_it,
     Point2us,
 };
 
@@ -49,28 +50,34 @@ where T: TileIntegrator + Sync + Send
         // their id between waves, it may not always be the case, so who knows?
         let mut thread_local_sampler = ThreadLocal::<RefCell<SamplerType>>::new();
 
-        while start < spp {
-            debug!("Starting wave {}-{}", start, till);
+        let rendering_time = time_it(|| {
+            while start < spp {
+                debug!("Starting wave {}-{}", start, till);
 
-            tiles.par_iter().for_each(|&tile_bounds| {
-                iproduct!(
-                    (tile_bounds.min.y..tile_bounds.max.y),
-                    (tile_bounds.min.x..tile_bounds.max.x),
-                    (start..till)
-                )
-                .for_each(|(y, x, sample_index)| {
-                    let pixel_coords = point2!(x, y);
-                    let mut thread_sampler = thread_local_sampler
-                        .get_or(|| RefCell::new(self.get_ti_state().sampler.clone()))
-                        .borrow_mut();
+                tiles.par_iter().for_each(|&tile_bounds| {
+                    iproduct!(
+                        (tile_bounds.min.y..tile_bounds.max.y),
+                        (tile_bounds.min.x..tile_bounds.max.x),
+                        (start..till)
+                    )
+                    .for_each(|(y, x, sample_index)| {
+                        let pixel_coords = point2!(x, y);
+                        let mut thread_sampler = thread_local_sampler
+                            .get_or(|| RefCell::new(self.get_ti_state().sampler.clone()))
+                            .borrow_mut();
 
-                    thread_sampler.start_pixel_sample(pixel_coords, sample_index);
-                    self.evaluate_pixel(pixel_coords, &mut thread_sampler);
+                        thread_sampler.start_pixel_sample(pixel_coords, sample_index);
+                        self.evaluate_pixel(pixel_coords, &mut thread_sampler);
+                    });
                 });
-            });
-            start = till;
-            till = min(till * 2, spp)
-        }
+                start = till;
+                till = min(till * 2, spp)
+            }
+        });
+        info!(
+            "Rendering time: {rendering_time}s, {}s per sample",
+            rendering_time / spp as f32
+        );
         self.get_state()
             .scene
             .camera

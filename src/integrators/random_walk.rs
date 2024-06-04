@@ -1,9 +1,7 @@
-use std::{f32::consts::PI, intrinsics::breakpoint};
+use std::f32::consts::PI;
 
-use approx::assert_abs_diff_eq;
 use image::{Pixel, Rgb};
 use itertools::any;
-use rand::random;
 
 use crate::{
     breakpoint, colors,
@@ -13,9 +11,9 @@ use crate::{
         tile_integrator::TIState,
         IState, Integrator,
     },
-    math::{dot, Normed},
-    point2, ray,
-    samplers::{utils::sample_uniform_sphere, IndependentSampler, Sampler, SamplerType},
+    math::dot,
+    ray,
+    samplers::{utils::sample_uniform_sphere, IndependentSampler, Sampler, SamplerType, StratifiedSampler},
     scene::Scene,
     utils::lerp,
 };
@@ -43,7 +41,8 @@ impl RandomWalkIntegrator {
                 max_depth,
                 tile: TIState {
                     base: IState { scene },
-                    sampler: SamplerType::Independent(IndependentSampler::new(samples_per_pixel, 42)),
+                    // sampler: SamplerType::Independent(IndependentSampler::new(samples_per_pixel, 42)),
+                    sampler: SamplerType::Stratified(StratifiedSampler::new(4, 4, true, 42)),
                 },
             },
         }
@@ -69,14 +68,12 @@ impl RandomWalkIntegrator {
                 let incoming_ray = ray!(interaction.hit.point + **interaction.hit.normal * 1e-3, incoming);
                 let incoming_radiance = self.random_walk(&incoming_ray, depth + 1, sampler);
 
-                // breakpoint!(any(res_cos.0, f32::is_nan) || any(incoming_radiance.0, f32::is_nan));
-
                 result.map2(&incoming_radiance, |x, y| x * y * (4. * PI))
             } else {
                 colors::BLACK
             }
         } else {
-            lerp(colors::BLACK, colors::LIGHT_BLUE, (ray.dir.y + 1.) / 2.)
+            lerp(colors::DARK_BLUE, colors::LIGHT_BLUE, (ray.dir.y + 1.) / 2.)
         }
     }
 }

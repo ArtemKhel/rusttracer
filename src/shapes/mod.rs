@@ -1,15 +1,11 @@
 use std::fmt::Debug;
 
-use crate::{
-    aggregates::Bounded,
-    core::{Interaction, Ray, SurfaceInteraction},
-    math::Number,
-    Point2f, Point3f,
-};
+use crate::{aggregates::Bounded, core::{Interaction, Ray, SurfaceInteraction}, math::Number, Point2f, Point3f};
 
-// pub mod mesh;
+pub mod mesh;
 // pub mod quad;
 pub mod sphere;
+// mod mesh_new;
 
 pub trait Intersectable {
     fn intersect(&self, ray: &Ray, t_max: f32) -> Option<SurfaceInteraction>;
@@ -30,6 +26,6 @@ pub trait Samplable {
     fn area(&self) -> f32;
 }
 
-pub trait BoundedIntersectable: Bounded<f32> + Intersectable + Debug {}
+pub trait BoundedIntersectable: Bounded<f32> + Intersectable + Debug{}
 
-impl<Shape> BoundedIntersectable for Shape where Shape: Bounded<f32> + Intersectable + Debug {}
+impl<Shape> BoundedIntersectable for Shape where Shape: Bounded<f32> + Intersectable + Debug{}

@@ -2,11 +2,12 @@ use num_traits::Pow;
 
 use crate::{
     aggregates::Aabb,
-    core::{Hit, Ray},
-    math::{utils::local_normal, Cross, Dot, Normed, Number, Point3, Transform, Transformable, Unit, Vec3},
+    core::{Hit, Interaction, Ray, SurfaceInteraction},
+    math::{cross, dot, utils::local_normal, Cross, Dot, Normed, Number, Point3, Transform, Transformable, Unit, Vec3},
     shapes::{Bounded, Intersectable},
-    Point3f, Vec3f,
+    Point2f, Point3f, Vec3f,
 };
+use crate::math::Frame;
 
 #[derive(Debug)]
 pub struct Triangle {
@@ -28,7 +29,7 @@ impl Triangle {
         let ab = ab.transform(&trans);
         let ac = ac.transform(&trans);
 
-        let n = ab.cross(ac);
+        let n = cross(&ab, &ac);
         let normal = n.to_unit();
         let d = normal.dot(&a);
         let w = -n / n.len_squared();
@@ -44,7 +45,7 @@ impl Triangle {
     }
 
     pub fn new_with_normals(a: Point3f, ab: Vec3f, ac: Vec3f, normals: [Unit<Vec3f>; 3]) -> Self {
-        let n = ab.cross(ac);
+        let n = cross(&ab, &ac);
         let normal = n.to_unit();
         let d = normal.dot(&a.coords);
         let w = -n / n.len_squared();
@@ -60,8 +61,8 @@ impl Triangle {
     }
 }
 
-impl Intersectable<f32> for Triangle {
-    fn hit(&self, ray: &Ray) -> Option<Hit> {
+impl Intersectable for Triangle {
+    fn intersect(&self, ray: &Ray, t_max: f32) -> Option<SurfaceInteraction> {
         // let denom = ray.dir.dot(self.normal);
         let denom = self.normal.dot(&ray.dir);
         if denom.abs() < Self::PADDING {
@@ -75,17 +76,33 @@ impl Intersectable<f32> for Triangle {
 
         let hit_point = ray.at(t);
         let planar_hit_point = hit_point - self.a;
-        let alpha = self.w.dot(&planar_hit_point.cross(self.ab));
-        let beta = self.w.dot(&self.ac.cross(planar_hit_point));
+        let alpha = dot(&self.w, &cross(&planar_hit_point, &self.ab));
+        let beta = dot(&self.w, &cross(&self.ac, &planar_hit_point));
 
         if (0.0..=1.0).contains(&alpha) && (0.0..=1.0).contains(&beta) && alpha + beta <= 1.0 {
             let an = 1.0 - alpha - beta;
             let normal = (*self.normals[0] * an + *self.normals[1] * alpha + *self.normals[2] * beta);
-            Some(Hit {
-                point: hit_point,
-                normal: local_normal(normal, ray).to_normal().to_unit(),
-                t,
-            })
+
+            let normal = local_normal(normal, ray).to_normal().to_unit();
+            let f = Frame::from_z(**normal);
+            let si = SurfaceInteraction::new(
+                Interaction::new(
+                    hit_point,
+                    normal,
+                    t,
+                    -ray.dir,
+                    Point2f::default(),
+                ),
+                *f.y,*f.z,
+                Default::default(),
+                Default::default(),
+            );
+            Some(si)
+            // Some(Hit {
+            //     point: hit_point,
+            //     normal: local_normal(normal, ray).to_normal().to_unit(),
+            //     t,
+            // })
         } else {
             None
         }

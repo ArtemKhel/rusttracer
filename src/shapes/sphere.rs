@@ -99,7 +99,6 @@ impl Sphere {
         let dn_du = ((f * F - e * G) * inv_EGF2 * dp_du + (e * F - f * E) * inv_EGF2 * dp_dv).to_normal();
         let dn_dv = ((g * F - f * G) * inv_EGF2 * dp_du + (f * F - g * E) * inv_EGF2 * dp_dv).to_normal();
 
-        // TODO: if something won't work, it would be this
         SurfaceInteraction::new(interaction, dp_du, dp_dv, dn_du, dn_dv)
     }
 }

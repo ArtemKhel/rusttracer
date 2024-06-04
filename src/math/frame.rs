@@ -10,10 +10,11 @@ use crate::{
 // Represents a rotation that aligns three orthonormal vectors in a coordinate
 // system with the x, y, z axes.
 #[derive(Debug, Copy, Clone, PartialEq)]
+// TODO: visibility
 pub struct Frame<T> {
-    x: Unit<Vec3<T>>,
-    y: Unit<Vec3<T>>,
-    z: Unit<Vec3<T>>,
+    pub x: Unit<Vec3<T>>,
+    pub y: Unit<Vec3<T>>,
+    pub z: Unit<Vec3<T>>,
 }
 
 #[allow(clippy::wrong_self_convention)]

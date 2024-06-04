@@ -9,22 +9,43 @@ use rusttracer::{
     colors,
     integrators::{random_walk::RandomWalkIntegrator, Integrator},
     material::{matte::Matte, MaterialsEnum},
-    math::{axis::Axis3, Transform},
-    point2,
+    math::{axis::Axis3, Point3, Transform},
+    point2, point3,
     scene::{
         cameras::{
             base::BaseCameraConfig,
             orthographic::{OrthographicCamera, OrthographicCameraConfig},
-            projective::ScreenWindow,
             CameraType::Orthographic,
         },
         film::RGBFilm,
         PrimitiveEnum, Scene, SimplePrimitive,
     },
-    shapes::sphere::Sphere,
-    textures::checkerboard::CheckerboardTexture,
-    vec3,
+    shapes::{mesh::Triangle, sphere::Sphere},
+    textures::{checkerboard::CheckerboardTexture, constant::ConstantTexture},
+    vec3, Bounds2f, Point3f,
 };
+
+fn teapot_triangles() -> Vec<Triangle> {
+    let obj = obj::Obj::load("./data/teapot.obj").unwrap();
+    let vertices: Vec<Point3f> = obj.data.position.iter().map(|x| point3!(x[0], x[1], x[2])).collect();
+    let normals = obj.data.normal;
+    let group = obj.data.objects.first().unwrap().groups.first().unwrap();
+
+    let mut triangles: Vec<Triangle> = vec![];
+    for x in group.polys.iter() {
+        let a = x.0[0].0;
+        let b = x.0[1].0;
+        let c = x.0[2].0;
+
+        triangles.push(Triangle::new(
+            vertices[a],
+            vertices[b] - vertices[a],
+            vertices[c] - vertices[a],
+            Transform::scale(0.25,0.25,0.25),
+        ));
+    }
+    triangles
+}
 
 fn main() {
     env_logger::init();
@@ -39,33 +60,43 @@ fn main() {
                 .then_translate(vec3!(0., 1., -1.)),
             film: RGBFilm::new(300, 300),
         },
-        screen_window: ScreenWindow {
-            min: point2!(-0.5, -0.5),
-            max: point2!(0.5, 0.5),
-        },
+        screen_window: Bounds2f::from_points(point2!(-1., -1.), point2!(1., 1.)),
         lens_radius: 0.0,
         focal_distance: 0.0,
     }));
 
-    let primitives = vec![PrimitiveEnum::Simple(SimplePrimitive {
-        shape: Arc::new(Sphere {
-            radius: 0.5,
-            transform: Default::default(),
-        }),
-        material: Arc::new(MaterialsEnum::Matte(Matte {
-            reflectance: Arc::new(
-                // ConstantTexture { value: colors::GREEN }
-                CheckerboardTexture {
-                    light: colors::GREEN,
-                    dark: colors::RED,
-                    size: 0.1,
-                },
-            ),
-        })),
-    })]
+    let mut primitives: Vec<Arc<PrimitiveEnum>> = vec![
+    //     PrimitiveEnum::Simple(SimplePrimitive {
+    //     shape: Arc::new(Sphere {
+    //         radius: 0.7,
+    //         transform: Transform::id(),
+    //     }),
+    //     material: Arc::new(MaterialsEnum::Matte(Matte {
+    //         reflectance: Arc::new(
+    //             // ConstantTexture { value: colors::GREEN }
+    //             CheckerboardTexture {
+    //                 light: colors::GREEN,
+    //                 dark: colors::RED,
+    //                 size: 0.001,
+    //             },
+    //         ),
+    //     })),
+    // })
+    ]
     .into_iter()
     .map(Arc::new)
     .collect();
+
+    let teapot_material = Arc::new(MaterialsEnum::Matte(Matte {
+        reflectance: Arc::new(ConstantTexture {
+            value: colors::LIGHT_GRAY,
+        }),
+    }));
+
+    let teapot: Vec<Arc<PrimitiveEnum>> = teapot_triangles().into_iter().map(
+        |t| Arc::new(PrimitiveEnum::Simple(SimplePrimitive{shape: Arc::new(t), material: teapot_material.clone()}))
+    ).collect();
+    primitives.extend(teapot);
 
     let objects = PrimitiveEnum::BVH(BVH::new(primitives, 1));
 
@@ -75,7 +106,7 @@ fn main() {
         background_color: Rgb([0.25, 0.25, 0.25]),
     };
 
-    let mut integrator = RandomWalkIntegrator::new(scene, 5, 10);
+    let mut integrator = RandomWalkIntegrator::new(scene, 5, 8);
     integrator.render();
 }
 
@@ -84,7 +115,6 @@ mod tests {
     use std::cmp::min;
 
     use ndarray::{Array2, ArrayViewMut2, Axis};
-    use rusttracer::math::Bounds2;
 
     // keep it for now, may be useful for filters or something
     fn split_into_chunks<T>(array: &mut Array2<T>, chunk_rows: usize, chunk_cols: usize) -> Vec<ArrayViewMut2<T>> {
