@@ -54,11 +54,11 @@ where T: TileIntegrator + Sync + Send
 
             tiles.par_iter().for_each(|&tile_bounds| {
                 iproduct!(
-                    (tile_bounds.min.x..tile_bounds.max.x),
                     (tile_bounds.min.y..tile_bounds.max.y),
+                    (tile_bounds.min.x..tile_bounds.max.x),
                     (start..till)
                 )
-                .for_each(|(x, y, sample_index)| {
+                .for_each(|(y, x, sample_index)| {
                     let pixel_coords = point2!(x, y);
                     let mut thread_sampler = thread_local_sampler
                         .get_or(|| RefCell::new(self.get_ti_state().sampler.clone()))

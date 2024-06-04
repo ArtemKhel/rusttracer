@@ -27,6 +27,7 @@ pub struct RGBPixel {
     rgb: Rgb<f32>,
     weight: f32,
 }
+
 impl Default for RGBPixel {
     fn default() -> Self {
         RGBPixel {
@@ -38,16 +39,14 @@ impl Default for RGBPixel {
 
 #[derive(Debug)]
 pub struct RGBFilm {
-    pub resolution: Point2u,
+    pub resolution: Point2us,
     pixels: Array2<RGBPixel>,
 }
 
 impl RGBFilm {
-    pub fn new(resolution: Point2u) -> Self {
-        let height = resolution.y as usize;
-        let width = resolution.x as usize;
+    pub fn new(width: usize, height: usize) -> Self {
         RGBFilm {
-            resolution,
+            resolution: point2!(width, height),
             pixels: Array2::from_elem((height, width), RGBPixel::default()),
         }
     }
@@ -59,11 +58,18 @@ impl Film for RGBFilm {
             warn!("Trying to add NaN-valued pixel {color:?} or weight {weight} at {coord:?}, ignoring");
             return;
         }
-        let height = coord.y;
         let width = coord.x;
-        let pixel = unsafe { self.pixels.uget_mut((height, width)) };
-        pixel.rgb.apply2(&color, |a, b| a + b);
-        pixel.weight += weight
+        let height = coord.y;
+        // let pixel = unsafe { self.pixels.uget_mut((width, height)) };
+        if let Some(pixel) = self.pixels.get_mut((height, width)) {
+            pixel.rgb.apply2(&color, |a, b| a + b);
+            pixel.weight += weight
+        } else {
+            warn!(
+                "Trying to access pixel ({height},{width}) out of {:?}",
+                self.pixels.shape()
+            )
+        }
     }
 
     fn write_image(&self, path: &str) -> ImageResult<()> {
@@ -75,21 +81,22 @@ impl Film for RGBFilm {
             .flat_map(|pix| pix.rgb.0.map(|x| x / pix.weight))
             .collect();
         let image =
-            ImageBuffer::<Rgb<f32>, Vec<f32>>::from_vec(self.resolution.x, self.resolution.y, raw_pixels).unwrap();
+            ImageBuffer::<Rgb<f32>, Vec<f32>>::from_vec(self.resolution.x as u32, self.resolution.y as u32, raw_pixels)
+                .unwrap();
         let image: RgbImage = image.convert();
         image.save(path)
     }
 
-    fn tiles(&self, height: usize, width: usize) -> Vec<Bounds2<usize>> {
+    fn tiles(&self, width: usize, height: usize) -> Vec<Bounds2<usize>> {
         let rows = self.pixels.nrows();
         let cols = self.pixels.ncols();
         let mut chunks = Vec::new();
 
         for row_start in (0..rows).step_by(height) {
+            let row_end = min(row_start + width, rows);
             for col_start in (0..cols).step_by(width) {
-                let row_end = min(row_start + width, rows);
                 let col_end = min(col_start + height, cols);
-                chunks.push(Bounds2::new(point2!(row_start, col_start), point2!(row_end, col_end)));
+                chunks.push(Bounds2::new(point2!(col_start, row_start), point2!(col_end, row_end)));
             }
         }
 

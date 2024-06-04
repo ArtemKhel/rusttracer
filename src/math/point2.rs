@@ -82,8 +82,10 @@ gen_ops!(
     where T: Number
 );
 
-impl<T: Number + SampleUniform> Distribution<Point2<T>> for Standard {
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Point2<T> { Point2::new(rng.gen()) }
+impl<T: Number + SampleUniform> Distribution<Point2<T>> for Standard
+where Standard: Distribution<T>
+{
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Point2<T> { Point2::new(rng.gen::<Vec2<T>>()) }
 }
 impl<T: Float + AbsDiffEq<Epsilon = T>> AbsDiffEq for Point2<T> {
     type Epsilon = T;

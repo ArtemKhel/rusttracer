@@ -8,32 +8,33 @@ use crate::{
     Vec3f,
 };
 
-pub fn random_unit<T: Number + SampleUniform>() -> Unit<Vec3<T>> {
-    loop {
-        let rnd: Vec3<T> = random();
-        if rnd.len() <= T::one() {
-            break rnd.to_unit();
-        }
-    }
-}
-
-pub fn random_on_hemisphere<T: Number + SampleUniform>(normal: &Unit<Vec3<T>>) -> Unit<Vec3<T>> {
-    let random = random_unit();
-    if normal.dot(&random) >= T::zero() {
-        random
-    } else {
-        -random
-    }
-}
-
-pub fn random_in_unit_disk<T: Number + SampleUniform>() -> Vec3<T> {
-    loop {
-        let rnd: Vec3<T> = random();
-        if rnd.len_squared() <= T::one() {
-            break rnd;
-        }
-    }
-}
+// Random vectors now in 0..1 range
+// pub fn random_unit<T: Number + SampleUniform>() -> Unit<Vec3<T>> {
+//     loop {
+//         let rnd: Vec3<T> = random();
+//         if rnd.len() <= T::one() {
+//             break rnd.to_unit();
+//         }
+//     }
+// }
+//
+// pub fn random_on_hemisphere<T: Number + SampleUniform>(normal: &Unit<Vec3<T>>) -> Unit<Vec3<T>> {
+//     let random = random_unit();
+//     if normal.dot(&random) >= T::zero() {
+//         random
+//     } else {
+//         -random
+//     }
+// }
+//
+// pub fn random_in_unit_disk<T: Number + SampleUniform>() -> Vec3<T> {
+//     loop {
+//         let rnd: Vec3<T> = random();
+//         if rnd.len_squared() <= T::one() {
+//             break rnd;
+//         }
+//     }
+// }
 
 pub fn reflect<T: Number>(vec: &Vec3<T>, normal: &Vec3<T>) -> Unit<Vec3<T>> {
     (*vec - (*normal * vec.dot(normal) * (T::one() + T::one()))).into()

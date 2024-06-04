@@ -58,8 +58,6 @@ impl RandomWalkIntegrator {
                     return colors::BLACK;
                 }
 
-                // TODO: sampler here
-                // TODO: weird shadows near {0,0,-1} and {*,*,0} normals.
                 let incoming = sample_uniform_sphere(sampler.get_2d());
                 let cos_in_out = dot(&incoming, &interaction.hit.normal).abs();
                 let result = bsdf.eval(*interaction.hit.outgoing, *incoming).map(|x| x * cos_in_out);
@@ -78,7 +76,7 @@ impl RandomWalkIntegrator {
                 colors::BLACK
             }
         } else {
-            lerp(colors::DARK_BLUE, colors::LIGHT_BLUE, (ray.dir.y + 1.) / 2.)
+            lerp(colors::BLACK, colors::LIGHT_BLUE, (ray.dir.y + 1.) / 2.)
         }
     }
 }

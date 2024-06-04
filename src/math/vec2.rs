@@ -69,10 +69,13 @@ impl<T: Number> Normed for Vec2<T> {
     fn len_squared(&self) -> T { self.dot(self) }
 }
 
-impl<T: Number + SampleUniform> Distribution<Vec2<T>> for Standard {
-    /// Random vector with each coordinate varying from -1 to 1
+impl<T: Number + SampleUniform> Distribution<Vec2<T>> for Standard
+where Standard: Distribution<T>
+{
+    /// Random vector with each coordinate varying from 0 to 1
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Vec2<T> {
-        vec2!(rng.gen_range(-T::one()..=T::one()), rng.gen_range(-T::one()..=T::one()))
+        // vec2!(rng.gen_range(-T::one()..=T::one()), rng.gen_range(-T::one()..=T::one()))
+        Vec2::new(rng.gen(), rng.gen())
     }
 }
 

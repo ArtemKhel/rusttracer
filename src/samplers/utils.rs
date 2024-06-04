@@ -1,21 +1,32 @@
 use std::f32::consts::{FRAC_2_PI, FRAC_PI_4, PI};
 
-use itertools::any;
 use num_traits::Zero;
 
 use crate::{
-    breakpoint,
     math::{utils::spherical_coordinates::spherical_direction, Unit, Vec3},
-    point2, unit3_unchecked, vec2, vec3, Point2f, Vec3f,
+    point2, unit3_unchecked, vec2, Point2f, Vec3f,
 };
+
+// TODO: should check all math-y things and do them properly. Finding NaNs in random places isn't funny
 
 /// Generate vectors to a uniformly distributed points on a unit sphere
 pub fn sample_uniform_sphere(u: Point2f) -> Unit<Vec3<f32>> {
-    // TODO: should check all math-y things and do them properly. Finding NaNs in random places isn't funny
-    let z = (1. - 2. * u.x).clamp(0., 1.);
-    let r = (1. - z.powi(2)).sqrt();
-    let phi = 2. * PI * u.y;
-    unit3_unchecked!(r * phi.cos(), r * phi.sin(), z)
+    // This method from PBRT generates uniformly distributed **spherical coordinates**.
+    // When mapped to actual sphere, they are biased towards Z poles.
+    // TODO: check other samplers
+
+    // let z = (1. - 2. * u.x).clamp(-1., 1.);
+    // let r = (1. - z.powi(2)).sqrt();
+    // let phi = 2. * PI * u.y;
+    // unit3_unchecked!(r * phi.cos(), r * phi.sin(), z)
+
+    // from https://github.com/CorySimon/CorySimon.github.io/blob/master/_posts/articles/2015-02-27-uniformdistn-on-sphere.md
+    let theta = 2. * PI * u.x;
+    let phi = (1. - 2. * u.y).acos();
+    let x = phi.sin() * theta.cos();
+    let y = phi.sin() * theta.sin();
+    let z = phi.cos();
+    unit3_unchecked!(x, y, z)
 }
 
 pub fn sample_uniform_cone(u: Point2f, max_cos_theta: f32) -> Vec3f {

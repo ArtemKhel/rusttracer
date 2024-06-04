@@ -37,11 +37,11 @@ fn main() {
                 // .then_translate(vec3!(1., 1., 1.)),
                 .then_rotate_degrees(Axis3::X, 45.)
                 .then_translate(vec3!(0., 1., -1.)),
-            film: RGBFilm::new(point2!(300u32, 300u32)),
+            film: RGBFilm::new(300, 300),
         },
         screen_window: ScreenWindow {
-            min: point2!(-1., -1.),
-            max: point2!(1., 1.),
+            min: point2!(-0.5, -0.5),
+            max: point2!(0.5, 0.5),
         },
         lens_radius: 0.0,
         focal_distance: 0.0,
@@ -52,18 +52,16 @@ fn main() {
             radius: 0.5,
             transform: Default::default(),
         }),
-        material: Arc::new(
-            MaterialsEnum::Matte(Matte {
-                reflectance: Arc::new(
-                    // ConstantTexture { value: colors::GREEN }
-                    CheckerboardTexture {
-                        light: colors::GREEN,
-                        dark: colors::RED,
-                        size: 0.1,
-                    },
-                ),
-            }),
-        ),
+        material: Arc::new(MaterialsEnum::Matte(Matte {
+            reflectance: Arc::new(
+                // ConstantTexture { value: colors::GREEN }
+                CheckerboardTexture {
+                    light: colors::GREEN,
+                    dark: colors::RED,
+                    size: 0.1,
+                },
+            ),
+        })),
     })]
     .into_iter()
     .map(Arc::new)
@@ -77,8 +75,7 @@ fn main() {
         background_color: Rgb([0.25, 0.25, 0.25]),
     };
 
-    // let integrator = DebugNormalIntegrator { scene };
-    let mut integrator = RandomWalkIntegrator::new(scene, 5, 1);
+    let mut integrator = RandomWalkIntegrator::new(scene, 5, 10);
     integrator.render();
 }
 
