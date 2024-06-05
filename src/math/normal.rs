@@ -1,5 +1,6 @@
 use approx::AbsDiffEq;
-use derive_more::{Deref, DerefMut, From, Neg};
+use derive_more::{Add, AddAssign, Deref, DerefMut, Div, DivAssign, From, Mul, MulAssign, Neg, Sub, SubAssign};
+use derive_new::new;
 use num_traits::Float;
 
 use crate::math::{
@@ -7,7 +8,9 @@ use crate::math::{
     Dot, Normed, Number, Vec3, Vec4,
 };
 
-#[derive(Debug, Default, Clone, Copy, PartialEq, Deref, DerefMut, Neg, From)]
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
+#[derive(Neg)]
+#[derive(new, Deref, DerefMut, From)]
 pub struct Normal3<T> {
     pub value: Vec3<T>,
 }
@@ -24,6 +27,12 @@ macro_rules! unit_normal3 {
     };
 }
 
+#[macro_export]
+macro_rules! unit_normal3_unchecked {
+    ($x:expr, $y:expr, $z:expr) => {
+        $crate::math::Unit::from_unchecked($crate::vec3!($x, $y, $z)).cast::<$crate::math::Normal3<_>>()
+    };
+}
 impl<T: Number> Transformable<T> for Normal3<T> {
     fn transform(&self, trans: &Transform<T>) -> Self {
         let vec = Vec4::from(self.value);

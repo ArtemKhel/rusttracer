@@ -1,19 +1,16 @@
-pub mod matte;
-
-use std::{fmt::Debug, option::Option};
+use std::fmt::Debug;
 
 use image::Rgb;
 
 use crate::{
-    bxdf::{BxDF, BxDFEnum, BSDF},
+    bxdf,
+    bxdf::{BxDF, BSDF},
     core::{Ray, SurfaceInteraction},
-    material::matte::Matte,
+    material::{matte::Matte, metal::Metal},
 };
 
-pub struct Scatter {
-    pub ray: Ray,
-    pub attenuation: Rgb<f32>,
-}
+pub mod matte;
+pub mod metal;
 
 #[enum_delegate::register]
 pub trait Material {
@@ -26,4 +23,5 @@ pub trait Material {
 #[enum_delegate::implement(Material)]
 pub enum MaterialsEnum {
     Matte(Matte<Rgb<f32>>),
+    Metal(Metal<Rgb<f32>>),
 }

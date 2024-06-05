@@ -8,6 +8,7 @@
 #![feature(trait_alias)]
 #![feature(get_mut_unchecked)]
 #![feature(duration_millis_float)]
+#![feature(more_float_constants)]
 
 use std::{ops::DerefMut, sync::atomic::AtomicU32};
 

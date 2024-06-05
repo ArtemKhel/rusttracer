@@ -6,7 +6,7 @@ use image::Rgb;
 use num_traits::Zero;
 
 use crate::{
-    bxdf::{bsdf::BSDFSample, diffuse::DiffuseBxDF},
+    bxdf::{bsdf::BSDFSample, conductor::ConductorBxDF, diffuse::DiffuseBxDF},
     Point2f, Vec3f,
 };
 
@@ -17,19 +17,18 @@ bitflags! {
         const Diffuse = 1 << 2;
         const Glossy = 1 << 3;
         const Specular = 1 << 4;
+
+        const All = Self::Diffuse.bits() | Self::Glossy.bits() | Self::Specular.bits() | Self::Reflection.bits() | Self::Transmission.bits();
+        const DiffuseReflection = Self::Diffuse.bits() | Self::Reflection.bits();
+        const DiffuseTransmission = Self::Diffuse.bits() | Self::Transmission.bits();
+        const GlossyReflection = Self::Glossy.bits() | Self::Reflection.bits();
+        const GlossyTransmission = Self::Glossy.bits() | Self::Transmission.bits();
+        const SpecularReflection = Self::Specular.bits() | Self::Reflection.bits();
+        const SpecularTransmission = Self::Specular.bits() | Self::Transmission.bits();
     }
 }
 
-impl BxDFType {
-    pub const All: BxDFType = Self::Diffuse | Self::Glossy | Self::Specular | Self::Reflection | Self::Transmission;
-    pub const DiffuseTransmission: BxDFType = Self::Diffuse | Self::Transmission;
-    pub const Diffuse_reflection: BxDFType = (Self::Diffuse | Self::Reflection);
-    pub const GlossyReflection: BxDFType = Self::Glossy | Self::Reflection;
-    pub const GlossyTransmission: BxDFType = Self::Glossy | Self::Transmission;
-    pub const SpecularReflection: BxDFType = Self::Specular | Self::Reflection;
-    pub const SpecularTransmission: BxDFType = Self::Specular | Self::Transmission;
-}
-
+// TODO:
 bitflags! {
     pub struct BxDFSampleType: u32 {
         const Reflection = 1 << 0;
@@ -42,15 +41,24 @@ impl BxDFSampleType {
 
 #[derive(Debug, Copy, Clone)]
 #[derive(From, Deref, DerefMut)]
+/// Vector in local coordinates for material evaluation. X and Y lie on surface, Z is normal
 pub struct Shading<T> {
     vec: T,
 }
 
 #[enum_delegate::register]
 pub trait BxDF {
+    /// Material properties
     fn bxdf_type(&self) -> BxDFType;
+
+    /// Returns the value of the distribution function for the given pair of directions (in the local reflection
+    /// coordinate system). f() in PBRT
     fn eval(&self, incoming: Shading<Vec3f>, outgoing: Shading<Vec3f>) -> Rgb<f32>;
-    fn sample(&self, point: Point2f, outgoing: Shading<Vec3f>) -> Option<BSDFSample<Shading<Vec3f>>>;
+
+    /// Determines the direction of the incident light and returns the value of BxDF for the pair of directions
+    /// sample_f() in PBRT
+    fn sample(&self, sample_p: Point2f, sample_c: f32, outgoing: Shading<Vec3f>) -> Option<BSDFSample<Shading<Vec3f>>>;
+    ///
     fn pdf(&self, incoming: Shading<Vec3f>, outgoing: Shading<Vec3f>) -> f32;
     // TODO:  fn rho()
 }
@@ -58,4 +66,5 @@ pub trait BxDF {
 #[enum_delegate::implement(BxDF)]
 pub enum BxDFEnum {
     Diffuse(DiffuseBxDF),
+    Conductor(ConductorBxDF),
 }

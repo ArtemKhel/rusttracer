@@ -30,6 +30,10 @@ impl Sampler for IndependentSampler {
         self.rng = Seeder::from((pixel, sample_index, self.seed)).make_rng::<SmallRng>();
     }
 
+    fn start_pixel_sample_with_dim(&mut self, pixel: Point2us, sample_index: u32, dimension: u32) {
+        self.rng = Seeder::from((pixel, sample_index, self.seed)).make_rng::<SmallRng>();
+    }
+
     fn get_1d(&mut self) -> f32 { self.rng.gen() }
 
     fn get_2d(&mut self) -> Point2f { self.rng.gen() }
@@ -52,6 +56,10 @@ mod tests {
 
         for p in (0..5) {
             for i in (0..5) {
+                sampler2.start_pixel_sample(point2!(0, 3), i);
+                sampler2.get_2d();
+                sampler2.get_1d();
+
                 sampler1.start_pixel_sample(point2!(0, p), i);
                 sampler2.start_pixel_sample(point2!(0, p), i);
 

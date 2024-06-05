@@ -8,7 +8,7 @@ use rusttracer::{
     aggregates::BVH,
     colors,
     integrators::{random_walk::RandomWalkIntegrator, Integrator},
-    material::{matte::Matte, MaterialsEnum},
+    material::{matte::Matte, metal::Metal, MaterialsEnum},
     math::{axis::Axis3, Point3, Transform},
     point2, point3,
     scene::{
@@ -41,7 +41,7 @@ fn teapot_triangles() -> Vec<Triangle> {
             vertices[a],
             vertices[b] - vertices[a],
             vertices[c] - vertices[a],
-            Transform::scale(0.25,0.25,0.25),
+            Transform::scale(0.25, 0.25, 0.25),
         ));
     }
     triangles
@@ -65,40 +65,55 @@ fn main() {
         focal_distance: 0.0,
     }));
 
-    let mut primitives: Vec<Arc<PrimitiveEnum>> = vec![
-    //     PrimitiveEnum::Simple(SimplePrimitive {
-    //     shape: Arc::new(Sphere {
-    //         radius: 0.7,
-    //         transform: Transform::id(),
-    //     }),
-    //     material: Arc::new(MaterialsEnum::Matte(Matte {
-    //         reflectance: Arc::new(
-    //             // ConstantTexture { value: colors::GREEN }
-    //             CheckerboardTexture {
-    //                 light: colors::GREEN,
-    //                 dark: colors::RED,
-    //                 size: 0.001,
-    //             },
-    //         ),
-    //     })),
-    // })
-    ]
+    let const_gray = Arc::new(ConstantTexture {
+        value: colors::LIGHT_GRAY,
+    });
+
+    let mut primitives: Vec<Arc<PrimitiveEnum>> = vec![PrimitiveEnum::Simple(SimplePrimitive {
+        shape: Arc::new(Sphere {
+            radius: 0.7,
+            transform: Transform::id(),
+        }),
+        material: Arc::new(
+            //     MaterialsEnum::Matte(Matte {
+            //     reflectance: Arc::new(
+            //         ConstantTexture { value: colors::LIGHT_GRAY }
+            //         // CheckerboardTexture {
+            //         //     light: colors::GREEN,
+            //         //     dark: colors::RED,
+            //         //     size: 0.001,
+            //         // },
+            //     ),
+            // })
+            MaterialsEnum::Metal(Metal {
+                reflectance: const_gray.clone(),
+                eta: const_gray.clone(),
+                k: const_gray.clone(),
+            }),
+        ),
+    })]
     .into_iter()
     .map(Arc::new)
     .collect();
 
-    let teapot_material = Arc::new(MaterialsEnum::Matte(Matte {
-        reflectance: Arc::new(ConstantTexture {
-            value: colors::LIGHT_GRAY,
-        }),
-    }));
+    // let teapot_material = Arc::new(MaterialsEnum::Matte(Matte {
+    //     reflectance: Arc::new(ConstantTexture {
+    //         value: colors::LIGHT_GRAY,
+    //     }),
+    // }));
+    //
+    // let teapot: Vec<Arc<PrimitiveEnum>> = teapot_triangles()
+    //     .into_iter()
+    //     .map(|t| {
+    //         Arc::new(PrimitiveEnum::Simple(SimplePrimitive {
+    //             shape: Arc::new(t),
+    //             material: teapot_material.clone(),
+    //         }))
+    //     })
+    //     .collect();
+    // primitives.extend(teapot);
 
-    let teapot: Vec<Arc<PrimitiveEnum>> = teapot_triangles().into_iter().map(
-        |t| Arc::new(PrimitiveEnum::Simple(SimplePrimitive{shape: Arc::new(t), material: teapot_material.clone()}))
-    ).collect();
-    primitives.extend(teapot);
-
-    let objects = PrimitiveEnum::BVH(BVH::new(primitives, 1));
+    let objects = PrimitiveEnum::BVH(BVH::new(primitives, 8));
 
     let scene = Scene {
         camera,

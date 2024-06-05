@@ -54,6 +54,14 @@ impl Sampler for StratifiedSampler {
     fn samples_per_pixel(&self) -> u32 { self.samples_per_pixel }
 
     fn start_pixel_sample(&mut self, pixel: Point2us, sample_index: u32) {
+        self.dimension = 0;
+        self.current_pixel = pixel;
+        self.sample_index = sample_index;
+        self.rng = Seeder::from((pixel, sample_index, self.seed)).make_rng::<SmallRng>();
+    }
+
+    fn start_pixel_sample_with_dim(&mut self, pixel: Point2us, sample_index: u32, dimension: u32) {
+        self.dimension = dimension;
         self.current_pixel = pixel;
         self.sample_index = sample_index;
         self.rng = Seeder::from((pixel, sample_index, self.seed)).make_rng::<SmallRng>();
@@ -81,4 +89,49 @@ impl Sampler for StratifiedSampler {
     }
 
     fn get_pixel(&mut self) -> Point2f { self.get_2d() }
+}
+#[cfg(test)]
+mod tests {
+    use approx::{assert_abs_diff_eq, assert_abs_diff_ne};
+
+    use super::*;
+    use crate::point2;
+
+    #[test]
+    fn test_reproducibility() {
+        let seed = 42;
+        let mut sampler1 = StratifiedSampler::new(5, 5, true, seed);
+        let mut sampler2 = StratifiedSampler::new(5, 5, true, seed);
+
+        for p in (0..5) {
+            for i in (0..5) {
+                sampler2.start_pixel_sample(point2!(0, 3), i);
+                sampler2.get_2d();
+                sampler2.get_1d();
+
+                sampler1.start_pixel_sample(point2!(0, p), i);
+                sampler2.start_pixel_sample(point2!(0, p), i);
+
+                assert_abs_diff_eq!(sampler1.get_1d(), sampler2.get_1d());
+                assert_abs_diff_eq!(sampler1.get_2d(), sampler2.get_2d());
+                assert_abs_diff_eq!(sampler1.get_1d(), sampler2.get_1d());
+                assert_abs_diff_eq!(sampler1.get_pixel(), sampler2.get_pixel());
+            }
+        }
+    }
+
+    #[test]
+    fn test_different_seeds() {
+        let seed = 42;
+        let mut sampler1 = StratifiedSampler::new(5, 5, true, seed);
+        let mut sampler2 = StratifiedSampler::new(5, 5, true, seed + 1);
+
+        sampler1.start_pixel_sample(point2!(0, 0), 0);
+        sampler2.start_pixel_sample(point2!(0, 0), 0);
+
+        assert_abs_diff_ne!(sampler1.get_1d(), sampler2.get_1d());
+        assert_abs_diff_ne!(sampler1.get_2d(), sampler2.get_2d());
+        assert_abs_diff_ne!(sampler1.get_1d(), sampler2.get_1d());
+        assert_abs_diff_ne!(sampler1.get_pixel(), sampler2.get_pixel());
+    }
 }

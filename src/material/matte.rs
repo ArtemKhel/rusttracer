@@ -3,7 +3,7 @@ use std::sync::Arc;
 use image::{Pixel, Rgb};
 
 use crate::{
-    bxdf::{DiffuseBxDF, BSDF},
+    bxdf::{BxDFEnum, DiffuseBxDF, BSDF},
     core::SurfaceInteraction,
     material::Material,
     textures::Texture,
@@ -18,12 +18,15 @@ pub struct Matte<T> {
 impl Matte<Rgb<f32>> {
     fn get_bxdf(&self, surf_int: &SurfaceInteraction) -> <Matte<Rgb<f32>> as Material>::BxDF {
         let reflectance = self.reflectance.evaluate(surf_int).map(|x| x.clamp(0., 1.));
-        DiffuseBxDF::new(reflectance)
+        BxDFEnum::Diffuse(DiffuseBxDF::new(reflectance))
+        // DiffuseBxDF::new(reflectance)
     }
 }
 
 impl Material for Matte<Rgb<f32>> {
-    type BxDF = DiffuseBxDF;
+    type BxDF = BxDFEnum;
+
+    // type BxDF = DiffuseBxDF;
 
     fn get_bsdf(&self, surf_int: &SurfaceInteraction) -> BSDF {
         let bxdf = self.get_bxdf(surf_int);

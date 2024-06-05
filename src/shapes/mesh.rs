@@ -3,11 +3,13 @@ use num_traits::Pow;
 use crate::{
     aggregates::Aabb,
     core::{Hit, Interaction, Ray, SurfaceInteraction},
-    math::{cross, dot, utils::local_normal, Cross, Dot, Normed, Number, Point3, Transform, Transformable, Unit, Vec3},
+    math::{
+        cross, dot, utils::local_normal, Cross, Dot, Frame, Normed, Number, Point3, Transform, Transformable, Unit,
+        Vec3,
+    },
     shapes::{Bounded, Intersectable},
     Point2f, Point3f, Vec3f,
 };
-use crate::math::Frame;
 
 #[derive(Debug)]
 pub struct Triangle {
@@ -86,23 +88,13 @@ impl Intersectable for Triangle {
             let normal = local_normal(normal, ray).to_normal().to_unit();
             let f = Frame::from_z(**normal);
             let si = SurfaceInteraction::new(
-                Interaction::new(
-                    hit_point,
-                    normal,
-                    t,
-                    -ray.dir,
-                    Point2f::default(),
-                ),
-                *f.y,*f.z,
+                Interaction::new(hit_point, normal, t, -ray.dir, Point2f::default()),
+                *f.y,
+                *f.z,
                 Default::default(),
                 Default::default(),
             );
             Some(si)
-            // Some(Hit {
-            //     point: hit_point,
-            //     normal: local_normal(normal, ray).to_normal().to_unit(),
-            //     t,
-            // })
         } else {
             None
         }

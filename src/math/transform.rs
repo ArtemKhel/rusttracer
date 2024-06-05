@@ -85,8 +85,7 @@ impl<T: Number> Transform<T> {
     /// Clockwise
     pub fn rotate(axis: Axis3, theta: T) -> Self {
         let mut mat = Matrix4::id();
-        let sin = theta.sin();
-        let cos = theta.cos();
+        let (sin, cos) = theta.sin_cos();
         match axis {
             Axis3::X => {
                 mat.y.y = cos;

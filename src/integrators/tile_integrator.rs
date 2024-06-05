@@ -52,7 +52,7 @@ where T: TileIntegrator + Sync + Send
 
         let rendering_time = time_it(|| {
             while start < spp {
-                debug!("Starting wave {}-{}", start, till);
+                info!("Starting wave {}-{}", start, till);
 
                 tiles.par_iter().for_each(|&tile_bounds| {
                     iproduct!(
@@ -75,7 +75,7 @@ where T: TileIntegrator + Sync + Send
             }
         });
         info!(
-            "Rendering time: {rendering_time}s, {}s per sample",
+            "Rendering time: {rendering_time:.3}s, {:.3}s per sample",
             rendering_time / spp as f32
         );
         self.get_state()

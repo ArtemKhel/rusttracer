@@ -1,8 +1,6 @@
-use std::ops::{Deref, DerefMut};
+use std::ops::Deref;
 
-use env_logger::Target;
 use image::Rgb;
-use num_traits::Zero;
 
 use crate::{
     bxdf::bxdf::{BxDF, Shading},
@@ -21,6 +19,18 @@ pub struct BSDFSample<T> {
     pub color: Rgb<f32>,
     pub incoming: T,
     pub pdf: f32,
+    pub eta: f32,
+}
+
+impl<T> BSDFSample<T> {
+    pub(crate) fn new(color: Rgb<f32>, incoming: T, pdf: f32) -> Self {
+        BSDFSample {
+            color,
+            incoming,
+            pdf,
+            eta: 1.0,
+        }
+    }
 }
 
 impl BSDF {
@@ -43,25 +53,20 @@ impl BSDF {
         self.bxdf.eval(s_in, s_out)
     }
 
-    // TODO: zero-valued instead of Option?
-    pub fn sample(&self, point: Point2f, outgoing: Vec3f) -> Option<BSDFSample<Vec3f>> {
+    pub fn sample(&self, sample_p: Point2f, sample_c: f32, outgoing: Vec3f) -> Option<BSDFSample<Vec3f>> {
         let s_out = self.render_to_shading(outgoing);
         if s_out.z == 0.0
         /* TODO flags here */
         {
             return None;
         }
-        if let Some(mut sample) = self.bxdf.sample(point, s_out) {
+        if let Some(mut sample) = self.bxdf.sample(sample_p, sample_c, s_out) {
             if sample.pdf == 0.0 || sample.incoming.z == 0.0
-            /* || RGB==0?! */
+            /* || RGB==0 */
             {
                 None
             } else {
-                Some(BSDFSample {
-                    color: sample.color,
-                    incoming: self.shading_to_render(sample.incoming),
-                    pdf: sample.pdf,
-                })
+                Some(BSDFSample::new(sample.color, self.shading_to_render(sample.incoming), sample.pdf))
             }
         } else {
             None

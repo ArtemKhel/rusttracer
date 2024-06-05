@@ -29,16 +29,12 @@ impl BxDF for DiffuseBxDF {
         }
     }
 
-    fn sample(&self, point: Point2f, outgoing: Shading<Vec3f>) -> Option<BSDFSample<Shading<Vec3f>>> {
+    fn sample(&self, sample_p: Point2f, sample_c: f32, outgoing: Shading<Vec3f>) -> Option<BSDFSample<Shading<Vec3f>>> {
         // TODO: flags
-        let mut incoming = sample_cosine_hemisphere(point);
+        let mut incoming = sample_cosine_hemisphere(sample_p);
         incoming.z *= outgoing.z.signum();
         let pdf = cosine_hemisphere_pdf(abs_cos_theta(incoming));
-        Some(BSDFSample {
-            color: self.reflectance.map(|x| x * FRAC_1_PI),
-            incoming,
-            pdf,
-        })
+        Some(BSDFSample::new(self.reflectance.map(|x| x * FRAC_1_PI), incoming, pdf))
     }
 
     fn pdf(&self, incoming: Shading<Vec3f>, outgoing: Shading<Vec3f>) -> f32 {

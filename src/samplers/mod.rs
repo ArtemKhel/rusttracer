@@ -14,6 +14,7 @@ pub trait Sampler {
     // const ONE_MINUS_EPS: Float = Float::one() - Self::EPS;
     fn samples_per_pixel(&self) -> u32;
     fn start_pixel_sample(&mut self, pixel: Point2us, sample_index: u32);
+    fn start_pixel_sample_with_dim(&mut self, pixel: Point2us, sample_index: u32, dimension: u32);
     fn get_1d(&mut self) -> f32;
     fn get_2d(&mut self) -> Point2f;
     fn get_pixel(&mut self) -> Point2f;
