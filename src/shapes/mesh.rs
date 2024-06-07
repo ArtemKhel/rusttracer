@@ -7,7 +7,7 @@ use crate::{
         cross, dot, utils::local_normal, Cross, Dot, Frame, Normed, Number, Point3, Transform, Transformable, Unit,
         Vec3,
     },
-    shapes::{Bounded, Intersectable},
+    shapes::{Bounded, Intersectable, Samplable, ShapeSample},
     Point2f, Point3f, Vec3f,
 };
 
@@ -65,7 +65,6 @@ impl Triangle {
 
 impl Intersectable for Triangle {
     fn intersect(&self, ray: &Ray, t_max: f32) -> Option<SurfaceInteraction> {
-        // let denom = ray.dir.dot(self.normal);
         let denom = self.normal.dot(&ray.dir);
         if denom.abs() < Self::PADDING {
             return None;
@@ -99,6 +98,17 @@ impl Intersectable for Triangle {
             None
         }
     }
+}
+
+// TODO: triangle sampling
+impl Samplable for Triangle {
+    fn sample(&self, sample_p: Point2f) -> Option<ShapeSample> { todo!() }
+
+    fn sample_from_point(&self, point: Point3f, sample_p: Point2f) -> Option<ShapeSample> { todo!() }
+
+    fn pdf(&self, interaction: &Interaction) -> f32 { todo!() }
+
+    fn area(&self) -> f32 { todo!() }
 }
 
 impl Bounded<f32> for Triangle {

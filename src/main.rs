@@ -2,25 +2,24 @@
 
 use std::sync::Arc;
 
-use image::{buffer::ConvertBuffer, Rgb};
+use image::buffer::ConvertBuffer;
 use itertools::Itertools;
+use num_traits::Pow;
 use rusttracer::{
     aggregates::BVH,
     colors,
-    integrators::{random_walk::RandomWalkIntegrator, Integrator},
-    material::{matte::Matte, metal::Metal, MaterialsEnum},
-    math::{axis::Axis3, Point3, Transform},
+    integrators::{random_walk::RandomWalkIntegrator, simple_path::SimplePathIntegrator, Integrator},
+    light::{diffuse_area::DiffuseAreaLight, point::PointLight, Light},
+    material::{matte::Matte, MaterialsEnum},
+    math::Transform,
     point2, point3,
     scene::{
-        cameras::{
-            base::BaseCameraConfig,
-            orthographic::{OrthographicCamera, OrthographicCameraConfig},
-            CameraType::Orthographic,
-        },
+        cameras::{BaseCameraConfig, OrthographicCamera, OrthographicCameraConfig},
         film::RGBFilm,
-        PrimitiveEnum, Scene, SimplePrimitive,
+        primitives::{geometric::GeometricPrimitive, simple::SimplePrimitive, PrimitiveEnum},
     },
     shapes::{mesh::Triangle, sphere::Sphere},
+    test_scenes::cornell_box,
     textures::{checkerboard::CheckerboardTexture, constant::ConstantTexture},
     vec3, Bounds2f, Point3f,
 };
@@ -50,48 +49,69 @@ fn teapot_triangles() -> Vec<Triangle> {
 fn main() {
     env_logger::init();
 
-    let camera = Orthographic(OrthographicCamera::from(OrthographicCameraConfig {
+    let camera = OrthographicCamera::new(OrthographicCameraConfig {
         base_config: BaseCameraConfig {
-            transform: Transform::id()
-                // .then_rotate_degrees(Axis3::Y, 225.)
-                // .then_rotate_arbitrary_axis(vec3!(-1.,0.,1.), FRAC_PI_4)
-                // .then_translate(vec3!(1., 1., 1.)),
-                .then_rotate_degrees(Axis3::X, 45.)
-                .then_translate(vec3!(0., 1., -1.)),
+            transform: Transform::id().then_translate(vec3!(0., 0., -1.)),
             film: RGBFilm::new(300, 300),
         },
         screen_window: Bounds2f::from_points(point2!(-1., -1.), point2!(1., 1.)),
         lens_radius: 0.0,
         focal_distance: 0.0,
-    }));
+    });
 
     let const_gray = Arc::new(ConstantTexture {
         value: colors::LIGHT_GRAY,
     });
 
-    let mut primitives: Vec<Arc<PrimitiveEnum>> = vec![PrimitiveEnum::Simple(SimplePrimitive {
-        shape: Arc::new(Sphere {
-            radius: 0.7,
-            transform: Transform::id(),
-        }),
-        material: Arc::new(
-            //     MaterialsEnum::Matte(Matte {
-            //     reflectance: Arc::new(
-            //         ConstantTexture { value: colors::LIGHT_GRAY }
-            //         // CheckerboardTexture {
-            //         //     light: colors::GREEN,
-            //         //     dark: colors::RED,
-            //         //     size: 0.001,
-            //         // },
-            //     ),
-            // })
-            MaterialsEnum::Metal(Metal {
-                reflectance: const_gray.clone(),
-                eta: const_gray.clone(),
-                k: const_gray.clone(),
+    let mat = Arc::new(
+        MaterialsEnum::Matte(Matte {
+            reflectance: Arc::new(
+                // ConstantTexture {
+                //     value: colors::LIGHT_GRAY,
+                // },
+                CheckerboardTexture {
+                    light: colors::GREEN,
+                    dark: colors::RED,
+                    size: 0.1,
+                },
+            ),
+        }), /* MaterialsEnum::Metal(Metal {
+                 *          reflectance: const_gray.clone(),
+                 *          eta: const_gray.clone(),
+                 *          k: const_gray.clone(),
+                 *      }), */
+
+            /* MaterialsEnum::Glass(Glass {
+             *      ior: 2.,
+             *      spectrum: const_gray.clone(),
+             *  }), */
+    );
+
+    let mut primitives: Vec<Arc<PrimitiveEnum>> = vec![
+        PrimitiveEnum::Simple(SimplePrimitive {
+            shape: Arc::new(Sphere {
+                radius: 0.7,
+                transform: Transform::id(),
             }),
-        ),
-    })]
+            material: mat.clone(),
+        }),
+        PrimitiveEnum::Geometric(GeometricPrimitive {
+            shape: Arc::new(Sphere {
+                radius: 10.,
+                transform: Transform::translate(vec3!(0., 12., 0.)),
+            }),
+            material: mat.clone(),
+            light: Some(Arc::new(DiffuseAreaLight::new(
+                colors::WHITE,
+                1.,
+                Transform::translate(vec3!(0., 0., 0.)),
+                Arc::new(Sphere {
+                    radius: 10.,
+                    transform: Transform::id(),
+                }),
+            ))),
+        }),
+    ]
     .into_iter()
     .map(Arc::new)
     .collect();
@@ -113,15 +133,36 @@ fn main() {
     //     .collect();
     // primitives.extend(teapot);
 
+    let lights: Vec<Arc<dyn Light>> = vec![
+        Arc::new(PointLight::new(
+            colors::WHITE,
+            1.,
+            Transform::translate(vec3!(0., 2., 0.)),
+        )),
+        // Arc::new(DiffuseAreaLight::new(
+        //     colors::WHITE,
+        //     1.,
+        //     Transform::translate(vec3!(0., 3., 0.)),
+        //     Arc::new(Sphere {
+        //         radius: 1.0,
+        //         transform: Transform::id(),
+        //     }),
+        // )),
+    ];
+
     let objects = PrimitiveEnum::BVH(BVH::new(primitives, 8));
 
-    let scene = Scene {
-        camera,
-        objects,
-        background_color: Rgb([0.25, 0.25, 0.25]),
-    };
+    // let scene = Scene {
+    //     camera,
+    //     objects,
+    //     background_color: Rgb([0.25, 0.25, 0.25]),
+    //     lights,
+    // };
 
-    let mut integrator = RandomWalkIntegrator::new(scene, 5, 8);
+    let scene = cornell_box();
+    // let mut integrator = DebugNormalIntegrator::new(scene);
+    // let mut integrator = RandomWalkIntegrator::new(scene, 5, 2u32.pow(4));
+    let mut integrator = SimplePathIntegrator::new(scene, 5, 2u32.pow(4));
     integrator.render();
 }
 

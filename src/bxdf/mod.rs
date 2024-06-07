@@ -1,7 +1,7 @@
 pub mod bsdf;
 pub mod bxdf;
 pub mod conductor;
-mod dielectric;
+pub mod dielectric;
 pub mod diffuse;
 pub mod utils;
 

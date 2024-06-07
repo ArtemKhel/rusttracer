@@ -1,66 +1,67 @@
+use std::f32::consts::PI;
+
 use image::{buffer::ConvertBuffer, ImageBuffer, Rgb, RgbImage};
 use rand::Rng;
 
 use crate::{
-    breakpoint,
+    breakpoint, colors,
     core::Ray,
-    integrators::Integrator,
-    point2,
+    integrators::{
+        random_walk::RandomWalkIntegrator,
+        ray::{RIState, RayIntegrator},
+        tile::TIState,
+        IState, Integrator,
+    },
+    math::dot,
+    point2, ray,
+    samplers::{utils::sample_uniform_sphere, IndependentSampler, SamplerType, StratifiedSampler},
     scene::{
-        cameras::{Camera, CameraSample, PixelCoord},
+        cameras::{Camera, CameraSample},
         Scene,
     },
-    utils::linear_to_gamma,
+    utils::{lerp, linear_to_gamma},
     Point2f,
 };
 
 pub struct DebugNormalIntegrator {
-    pub scene: Scene,
-}
-
-impl DebugNormalIntegrator {
-    fn ray_color(&self, ray: &Ray) -> Rgb<f32> {
-        let closest_hit = self.scene.cast_ray(ray);
-        if let Some(interaction) = closest_hit {
-            return Rgb([
-                interaction.hit.normal.x,
-                interaction.hit.normal.y,
-                interaction.hit.normal.z,
-            ]);
-        }
-        self.scene.background_color
-    }
+    state: RIState,
 }
 
 unsafe impl Sync for DebugNormalIntegrator {}
 
 unsafe impl Send for DebugNormalIntegrator {}
 
-impl Integrator for DebugNormalIntegrator {
-    fn render(&self) {
-        let resolution = self.scene.camera.get_film().resolution;
-        let mut image = ImageBuffer::new(resolution.x, resolution.y);
-        let mut rng = rand::thread_rng();
+impl RayIntegrator for DebugNormalIntegrator {
+    fn light_incoming(&self, ray: &Ray, sampler: &mut SamplerType) -> Rgb<f32> { self.normal_as_rgb(ray) }
 
-        image.enumerate_pixels_mut().for_each(|(x, y, pixel)| {
-            // image.par_enumerate_pixels_mut().for_each(|(x, y, pixel)| {
-            let mut color = Rgb([0., 0., 0.]);
-            let p_film = point2!(x as f32, y as f32);
-            let sample = CameraSample {
-                p_film,
-                p_lens: point2!(rng.gen::<f32>(), rng.gen::<f32>()),
-            };
-            // breakpoint!(x == 100 && y == 100);
-            let ray = self.scene.camera.generate_ray(sample);
+    fn get_ri_state(&self) -> &RIState { &self.state }
 
-            if x == 150 && y == 150 {
-                dbg!(&ray);
-            }
+    fn get_ri_state_mut(&mut self) -> &mut RIState { &mut self.state }
+}
 
-            *pixel = linear_to_gamma(self.ray_color(&ray));
-        });
+impl DebugNormalIntegrator {
+    pub fn new(scene: Scene) -> Self {
+        DebugNormalIntegrator {
+            state: RIState {
+                max_depth: 1,
+                tile: TIState {
+                    base: IState { scene },
+                    sampler: SamplerType::Independent(IndependentSampler::new(1, 42)),
+                },
+            },
+        }
+    }
 
-        let image: RgbImage = image.convert();
-        image.save("./images/_image.png").unwrap();
+    fn normal_as_rgb(&self, ray: &Ray) -> Rgb<f32> {
+        let closest_hit = self.get_state().scene.cast_ray(ray);
+        if let Some(mut interaction) = closest_hit {
+            return Rgb([
+                (interaction.hit.normal.x + 1.) / 2.,
+                (interaction.hit.normal.y + 1.) / 2.,
+                (interaction.hit.normal.z + 1.) / 2.,
+            ]);
+        } else {
+            colors::BLACK
+        }
     }
 }

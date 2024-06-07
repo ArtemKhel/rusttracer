@@ -29,6 +29,9 @@ macro_rules! unit_normal3 {
 
 #[macro_export]
 macro_rules! unit_normal3_unchecked {
+    ($vec:expr) => {
+        $crate::math::Unit::from_unchecked($vec).cast::<$crate::math::Normal3<_>>()
+    };
     ($x:expr, $y:expr, $z:expr) => {
         $crate::math::Unit::from_unchecked($crate::vec3!($x, $y, $z)).cast::<$crate::math::Normal3<_>>()
     };

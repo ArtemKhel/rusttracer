@@ -1,10 +1,9 @@
 use crate::{
-    math::Transform,
-    scene::cameras::{
-        base::{BaseCamera, BaseCameraConfig},
-        orthographic::OrthographicCameraConfig,
-    },
-    vec3, Bounds2f, Point2f, Point2u,
+    core::Ray,
+    math::{Normed, Transform},
+    samplers::utils::sample_uniform_disk_concentric,
+    scene::cameras::base::{BaseCamera, BaseCameraConfig},
+    vec3, Bounds2f, Point2f, Point3f,
 };
 
 pub struct ProjectiveCamera {
@@ -24,20 +23,23 @@ pub struct ProjectiveCameraConfig {
     pub focal_distance: f32,
 }
 
-impl From<OrthographicCameraConfig> for ProjectiveCameraConfig {
-    fn from(config: OrthographicCameraConfig) -> Self {
-        ProjectiveCameraConfig {
-            base_config: config.base_config,
-            camera_to_screen: Transform::orthographic(0., 1.),
-            screen_window: config.screen_window,
-            lens_radius: config.lens_radius,
-            focal_distance: config.focal_distance,
+impl ProjectiveCamera {
+    pub(super) fn adjust_for_dof(&self, ray: &mut Ray, p_lens: Point2f) {
+        if self.lens_radius > 0. {
+            let point_on_lens = sample_uniform_disk_concentric(p_lens) * self.lens_radius;
+            let t_focal_intersect = self.focal_distance / ray.dir.z;
+            let focus_point = ray.at(t_focal_intersect);
+            ray.origin = Point3f::from(point_on_lens);
+            ray.dir = (focus_point - ray.origin).to_unit();
         }
     }
 }
 
-impl From<ProjectiveCameraConfig> for ProjectiveCamera {
-    fn from(config: ProjectiveCameraConfig) -> Self {
+impl<T> From<T> for ProjectiveCamera
+where T: Into<ProjectiveCameraConfig>
+{
+    fn from(config: T) -> Self {
+        let config = config.into();
         let screen_to_ndc = Transform::compose(
             Transform::translate(vec3!(-config.screen_window.min.x, -config.screen_window.max.y, 0.)),
             Transform::scale(

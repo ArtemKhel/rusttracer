@@ -7,8 +7,8 @@ use crate::{
     breakpoint, colors,
     core::Ray,
     integrators::{
-        ray_integrator::{RIState, RayIntegrator},
-        tile_integrator::TIState,
+        ray::{RIState, RayIntegrator},
+        tile::TIState,
         IState, Integrator,
     },
     math::dot,
@@ -41,39 +41,47 @@ impl RandomWalkIntegrator {
                 max_depth,
                 tile: TIState {
                     base: IState { scene },
-                    // sampler: SamplerType::Independent(IndependentSampler::new(samples_per_pixel, 42)),
-                    sampler: SamplerType::Stratified(StratifiedSampler::new(4, 4, true, 42)),
+                    sampler: SamplerType::Independent(IndependentSampler::new(samples_per_pixel, 42)),
+                    // sampler: SamplerType::Stratified(StratifiedSampler::new(16, 16, true, 42)),
                 },
             },
         }
     }
 
     fn random_walk(&self, ray: &Ray, depth: u32, sampler: &mut SamplerType) -> Rgb<f32> {
-        // TODO: emitted
-        let closest_hit = self.get_state().scene.cast_ray(ray);
+        let closest_hit = self.state.scene.cast_ray(ray);
         if let Some(mut interaction) = closest_hit {
-            if let Some(bsdf) = interaction.get_bsdf(ray, &self.get_state().scene.camera, sampler) {
-                if depth > self.state.max_depth {
-                    return colors::BLACK;
-                }
+            let emitted = interaction.emitted_light();
+
+            if depth > self.state.max_depth {
+                return emitted;
+            }
+
+            if let Some(bsdf) = interaction.get_bsdf(ray, &self.state.scene.camera, sampler) {
+                // todo: infinite lights
 
                 let incoming = sample_uniform_sphere(sampler.get_2d());
                 let cos_in_out = dot(&incoming, &interaction.hit.normal).abs();
-                let result = bsdf.eval(*interaction.hit.outgoing, *incoming).map(|x| x * cos_in_out);
-                if result == colors::BLACK {
-                    return result;
+                // let radiance = bsdf.eval(*interaction.hit.outgoing, *incoming).map(|x| x * cos_in_out);
+                let radiance = bsdf.eval(*incoming, *interaction.hit.outgoing).map(|x| x * cos_in_out);
+                if radiance == colors::BLACK {
+                    return emitted;
                 }
 
                 // TODO: SI.spawn_ray
+                // TODO: ray offset
                 let incoming_ray = ray!(interaction.hit.point + **interaction.hit.normal * 1e-3, incoming);
                 let incoming_radiance = self.random_walk(&incoming_ray, depth + 1, sampler);
 
-                result.map2(&incoming_radiance, |x, y| x * y * (4. * PI))
+                radiance
+                    .map2(&incoming_radiance, |x, y| x * y * (4. * PI))
+                    .map2(&emitted, |r, e| r + e)
             } else {
-                colors::BLACK
+                emitted
             }
         } else {
-            lerp(colors::DARK_BLUE, colors::LIGHT_BLUE, (ray.dir.y + 1.) / 2.)
+            colors::BLACK
+            // lerp(colors::DARK_BLUE, colors::LIGHT_BLUE, (ray.dir.y + 1.) / 2.)
         }
     }
 }

@@ -4,6 +4,7 @@ use std::{
     sync::Arc,
 };
 
+use derive_more::Deref;
 use image::Rgb;
 use itertools::{iproduct, Itertools};
 use log::{debug, info};
@@ -21,12 +22,14 @@ use crate::{
     Point2us,
 };
 
-pub struct TIState {
+#[derive(Deref)]
+pub(super) struct TIState {
+    #[deref]
     pub(crate) base: IState,
     pub(crate) sampler: SamplerType,
 }
 
-pub trait TileIntegrator: Integrator {
+pub(super) trait TileIntegrator: Integrator {
     fn evaluate_pixel(&self, pixel: Point2us, sampler: &mut SamplerType);
     fn get_ti_state(&self) -> &TIState;
     fn get_ti_state_mut(&mut self) -> &mut TIState;
@@ -58,7 +61,7 @@ where T: TileIntegrator + Sync + Send
                     iproduct!(
                         (tile_bounds.min.y..tile_bounds.max.y),
                         (tile_bounds.min.x..tile_bounds.max.x),
-                        (start..till)
+                        (start..=till)
                     )
                     .for_each(|(y, x, sample_index)| {
                         let pixel_coords = point2!(x, y);

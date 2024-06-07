@@ -162,6 +162,22 @@ impl<T: Number> Transform<T> {
         )
     }
 
+    pub fn perspective(fov: T, z_near: T, z_far: T) -> Self {
+        let _0 = T::zero();
+        let _1 = T::one();
+        let _2 = _1 + _1;
+
+        #[rustfmt::skip]
+        let perspective = Matrix4::from_elements(
+            _1, _0, _0, _0,
+            _0, _1, _0, _0,
+            _0, _0, z_far / (z_far - z_near), -z_far * z_near / (z_far - z_near),
+            _0, _0, _1, _0,
+        );
+        let scale = (fov.to_radians() / _2).tan().recip();
+        Transform::compose(Transform::from_matrix(perspective), Transform::scale(scale, scale, _1))
+    }
+
     pub fn compose(a: Transform<T>, b: Transform<T>) -> Self {
         // TODO: rotations
         Transform {

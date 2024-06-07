@@ -1,18 +1,15 @@
-pub mod base;
-pub mod orthographic;
-pub mod projective;
+use std::sync::Arc;
 
-use std::{cmp::max, ops::Mul, sync::Arc};
+pub use base::BaseCameraConfig;
+pub use orthographic::{OrthographicCamera, OrthographicCameraConfig};
+pub use perspective::{PerspectiveCamera, PerspectiveCameraConfig};
 
-use crate::{
-    core::{ray::RayDifferential, Ray},
-    point3,
-    scene::{
-        cameras::{orthographic::OrthographicCamera, projective::ProjectiveCamera},
-        film::RGBFilm,
-    },
-    vec3, Normal3f, Point2f, Point3f, Vec3f,
-};
+use crate::{core::Ray, scene::film::RGBFilm, Normal3f, Point2f, Point3f, Vec3f};
+
+mod base;
+mod orthographic;
+mod perspective;
+mod projective;
 
 #[enum_delegate::register]
 pub trait Camera {
@@ -31,6 +28,7 @@ pub trait Camera {
 #[enum_delegate::implement(Camera)]
 pub enum CameraType {
     Orthographic(OrthographicCamera),
+    Perspective(PerspectiveCamera),
 }
 
 #[derive(Debug, Copy, Clone)]

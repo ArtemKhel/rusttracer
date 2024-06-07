@@ -2,14 +2,14 @@ use std::ops::Deref;
 
 use crate::{
     aggregates::Aabb,
-    core::{Hit, Ray},
+    core::{Hit, Interaction, Ray, SurfaceInteraction},
     math::{
-        axis::Axis3, cross, dot, utils::local_normal, Cross, Dot, Normed, Number, Point3, Transform, Transformable,
-        Unit, Vec3,
+        axis::Axis3, cross, dot, utils::local_normal, Cross, Dot, Frame, Normed, Number, Point3, Transform,
+        Transformable, Unit, Vec3,
     },
     point3,
-    shapes::{Bounded, Intersectable},
-    vec3, Point3f, Vec3f,
+    shapes::{Bounded, Intersectable, Samplable, ShapeSample},
+    unit3_unchecked, unit_normal3_unchecked, vec3, Point2f, Point3f, Vec3f,
 };
 
 #[derive(Debug)]
@@ -20,14 +20,17 @@ pub struct Quad {
     normal: Unit<Vec3f>,
     d: f32,
     w: Vec3f,
-    transform: Transform<f32>,
 }
 
 impl Quad {
     const PADDING: f32 = 1e-4;
 
     pub fn new(a: Point3f, ab: Vec3f, ac: Vec3f, transform: Transform<f32>) -> Self {
-        let n = cross(ab, ac);
+        let a = a.transform(&transform);
+        let ab = ab.transform(&transform);
+        let ac = ac.transform(&transform);
+
+        let n = cross(&ab, &ac);
         let normal = n.to_unit();
         let d = dot(normal.deref(), &a.coords);
         let w = -n / n.len_squared();
@@ -38,15 +41,14 @@ impl Quad {
             normal,
             d,
             w,
-            transform,
         }
     }
 
     pub fn quad_box(width: f32, height: f32, depth: f32, transform: Transform<f32>) -> Vec<Quad> {
         let mut sides = Vec::with_capacity(6);
 
-        let a = Point3::new(Vec3::new(-width / 2., -height / 2., -depth / 2.));
-        let b = Point3::new(Vec3::new(width / 2., height / 2., depth / 2.));
+        let a = point3!(-width / 2., -height / 2., -depth / 2.);
+        let b = point3!(width / 2., height / 2., depth / 2.);
         let diag = b - a;
         let px = diag.only(Axis3::X);
         let py = diag.only(Axis3::Y);
@@ -63,34 +65,36 @@ impl Quad {
     }
 }
 
-impl Intersectable<f32> for Quad {
-    fn hit(&self, ray: &Ray) -> Option<Hit> {
-        let ray = ray.inv_transform(&self.transform);
-        // let denom = ray.dir.dot(self.normal);
-        let denom = dot(self.normal.deref(), ray.dir.deref());
+impl Intersectable for Quad {
+    fn intersect(&self, ray: &Ray, t_max: f32) -> Option<SurfaceInteraction> {
+        let denom = self.normal.dot(&ray.dir);
         if denom.abs() < Self::PADDING {
             return None;
         }
 
-        let t = (self.d - dot(self.normal.deref(), &ray.origin.coords)) / denom;
+        let t = (self.d - self.normal.dot(&ray.origin.coords)) / denom;
         if t < 0.0 {
             return None;
         }
 
         let hit_point = ray.at(t);
         let planar_hit_point = hit_point - self.a;
-        let alpha = self.w.dot(&planar_hit_point.cross(self.ab));
-        let beta = self.w.dot(&self.ac.cross(planar_hit_point));
+        let alpha = dot(&self.w, &cross(&planar_hit_point, &self.ab));
+        let beta = dot(&self.w, &cross(&self.ac, &planar_hit_point));
 
         if (0.0..=1.0).contains(&alpha) && (0.0..=1.0).contains(&beta) {
-            Some(
-                Hit {
-                    point: hit_point,
-                    normal: local_normal(*self.normal, &ray).to_normal().to_unit(),
-                    t,
-                }
-                .transform(&self.transform),
-            )
+            let an = 1.0 - alpha - beta;
+
+            let normal = unit_normal3_unchecked!(local_normal(*self.normal, ray));
+            let f = Frame::from_z(**normal);
+            let si = SurfaceInteraction::new(
+                Interaction::new(hit_point, normal, t, -ray.dir, Point2f::default()),
+                *f.y,
+                *f.z,
+                Default::default(),
+                Default::default(),
+            );
+            Some(si)
         } else {
             None
         }
@@ -99,7 +103,32 @@ impl Intersectable<f32> for Quad {
 
 impl Bounded<f32> for Quad {
     fn bound(&self) -> Aabb<f32> {
-        Aabb::from_points(self.a + self.ab, self.a + self.ac)
-            + Aabb::from_points(self.a, self.a + (self.ac + self.ab)).transform(&self.transform)
+        Aabb::from_points(self.a + self.ab, self.a + self.ac) + Aabb::from_points(self.a, self.a + (self.ac + self.ab))
     }
+}
+
+impl Samplable for Quad {
+    fn sample(&self, sample_p: Point2f) -> Option<ShapeSample> {
+        // TODO: uv
+        let point = self.a + sample_p.x * self.ab + sample_p.y * self.ac;
+        Some(ShapeSample {
+            hit: Interaction {
+                point,
+                normal: self.normal.cast(),
+                t: 0.0,
+                outgoing: Default::default(),
+                uv: Default::default(),
+            },
+            pdf: self.area().recip(),
+        })
+    }
+
+    fn sample_from_point(&self, point: Point3f, sample_p: Point2f) -> Option<ShapeSample> {
+        //TODO: this
+        self.sample(sample_p)
+    }
+
+    fn pdf(&self, interaction: &Interaction) -> f32 { todo!() }
+
+    fn area(&self) -> f32 { cross(&self.ab, &self.ac).len() }
 }

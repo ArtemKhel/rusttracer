@@ -1,11 +1,12 @@
 use std::sync::Arc;
 
+use derive_more::{Deref, DerefMut};
 use image::Rgb;
 
 use crate::{
     core::Ray,
     integrators::{
-        tile_integrator::{TIState, TileIntegrator},
+        tile::{TIState, TileIntegrator},
         Integrator,
     },
     samplers::{Sampler, SamplerType},
@@ -16,15 +17,18 @@ use crate::{
     Point2us,
 };
 
-pub trait RayIntegrator: TileIntegrator {
+pub(super) trait RayIntegrator: TileIntegrator {
     fn light_incoming(&self, ray: &Ray, sampler: &mut SamplerType) -> Rgb<f32>;
     fn get_ri_state(&self) -> &RIState;
     fn get_ri_state_mut(&mut self) -> &mut RIState;
 }
 
-pub struct RIState {
-    pub tile: TIState,
-    pub max_depth: u32,
+#[derive(Deref)]
+pub(super) struct RIState {
+    #[deref]
+    pub(super) tile: TIState,
+    // TODO: move to more concrete structs?
+    pub(super) max_depth: u32,
 }
 
 impl<T> TileIntegrator for T

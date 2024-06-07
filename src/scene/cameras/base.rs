@@ -12,10 +12,10 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub struct BaseCamera {
-    pub camera_to_world: Transform<f32>,
-    pub film: Arc<RGBFilm>,
-    // pub medium: ???
+pub(super) struct BaseCamera {
+    pub(super) camera_to_world: Transform<f32>,
+    pub(super) film: Arc<RGBFilm>,
+    // pub(super) medium: ???
     min_pos_differential_x: Vec3f,
     min_pos_differential_y: Vec3f,
     min_dir_differential_x: Vec3f,
@@ -28,7 +28,7 @@ pub struct BaseCameraConfig {
 }
 
 impl BaseCamera {
-    pub fn generate_differential_ray<C: Camera>(camera: C, sample: CameraSample) -> Ray {
+    pub(super) fn generate_differential_ray<C: Camera>(camera: C, sample: CameraSample) -> Ray {
         // TODO: camera knows nothing about resolution
 
         let rx = camera.generate_ray({
@@ -53,7 +53,7 @@ impl BaseCamera {
         ray
     }
 
-    pub fn approximate_dp_dxy(&self, p: Point3f, n: Normal3f, samples_per_pixel: u32) -> (Vec3f, Vec3f) {
+    pub(super) fn approximate_dp_dxy(&self, p: Point3f, n: Normal3f, samples_per_pixel: u32) -> (Vec3f, Vec3f) {
         // Shamelessly --stolen-- commandeered from https://github.com/jalberse/shimmer/blob/main/src/camera.rs
         // TODO:
         let z = vec3!(0., 0., 1.);

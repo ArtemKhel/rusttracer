@@ -1,6 +1,47 @@
+mod base;
+pub mod diffuse_area;
+pub mod point;
+
+use std::fmt::Debug;
+
+use bitflags::bitflags;
 use image::Rgb;
 
-pub trait Light {
-    fn flux() -> Rgb<f32>;
-    fn light_type(); // ?
+use crate::{colors, core::SurfaceInteraction, math::Unit, Point2f, Point3f, Vec3f};
+
+pub trait Light: Debug {
+    /// Total emitted power. Phi() in PBRT
+    fn flux(&self) -> Rgb<f32>;
+    fn light_type(&self) -> LightType;
+    fn sample_light(&self, surf_int: &SurfaceInteraction, sample_p: Point2f) -> Option<LightSample>;
+    ///Radiance emitted back along the intersecting ray. L() in PBRT
+    fn radiance(&self, surf_int: &SurfaceInteraction) -> Rgb<f32> { colors::BLACK }
+    // todo: fn pdf_incoming(&self, incoming: Vec3f, surf_int: &SurfaceInteraction) -> f32 {}
+    //       fn Le(&self, ...) -> ... {}
+}
+
+bitflags! {
+    #[derive(Copy, Clone, Debug)]
+    pub struct LightType: u32{
+        /// Emits from single point
+        const DeltaPosition = 1 << 0;
+        /// Emits in single direction
+        const DeltaDirection = 1 << 1;
+        /// Emits from the surface of an object
+        const Area = 1 << 2;
+        /// For rays that escaped the scene
+        const Infinite = 1 << 3;
+    }
+}
+
+#[derive(Debug)]
+pub struct LightSample {
+    /// Amount of radiance leaving the light source toward the receiving point
+    pub radiance: Rgb<f32>,
+    /// Direction towards the light source from passed [SurfaceInteraction]
+    pub incoming: Unit<Vec3f>,
+    pub pdf: f32,
+    // TODO: mediums
+    /// Point from which light is being emitted
+    pub point: Point3f,
 }

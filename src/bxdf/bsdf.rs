@@ -3,7 +3,7 @@ use std::ops::Deref;
 use image::Rgb;
 
 use crate::{
-    bxdf::bxdf::{BxDF, Shading},
+    bxdf::bxdf::{BxDF, BxDFFlags, Shading},
     colors,
     math::Frame,
     Point2f, Vec3f,
@@ -20,15 +20,17 @@ pub struct BSDFSample<T> {
     pub incoming: T,
     pub pdf: f32,
     pub eta: f32,
+    pub flags: BxDFFlags,
 }
 
 impl<T> BSDFSample<T> {
-    pub(crate) fn new(color: Rgb<f32>, incoming: T, pdf: f32) -> Self {
+    pub(crate) fn new(color: Rgb<f32>, incoming: T, pdf: f32, flags: BxDFFlags) -> Self {
         BSDFSample {
             color,
             incoming,
             pdf,
             eta: 1.0,
+            flags,
         }
     }
 }
@@ -39,7 +41,7 @@ impl BSDF {
         // TODO: frame sometimes with NaNs
         Self {
             bxdf,
-            shading_frame: Frame::from_x_y(shading_normal, shading_dp_du),
+            shading_frame: Frame::from_x_z(shading_dp_du, shading_normal),
         }
     }
 
@@ -53,7 +55,7 @@ impl BSDF {
         self.bxdf.eval(s_in, s_out)
     }
 
-    pub fn sample(&self, sample_p: Point2f, sample_c: f32, outgoing: Vec3f) -> Option<BSDFSample<Vec3f>> {
+    pub fn sample(&self, outgoing: Vec3f, sample_p: Point2f, sample_c: f32) -> Option<BSDFSample<Vec3f>> {
         let s_out = self.render_to_shading(outgoing);
         if s_out.z == 0.0
         /* TODO flags here */
@@ -66,7 +68,12 @@ impl BSDF {
             {
                 None
             } else {
-                Some(BSDFSample::new(sample.color, self.shading_to_render(sample.incoming), sample.pdf))
+                Some(BSDFSample::new(
+                    sample.color,
+                    self.shading_to_render(sample.incoming),
+                    sample.pdf,
+                    self.bxdf.flags(),
+                ))
             }
         } else {
             None

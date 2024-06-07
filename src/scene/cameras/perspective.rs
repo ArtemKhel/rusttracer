@@ -3,49 +3,49 @@ use std::sync::Arc;
 use crate::{
     core::{ray::RayDifferential, Ray},
     math::{Normed, Transform, Transformable},
-    ray,
+    point3, ray,
     samplers::utils::sample_uniform_disk_concentric,
     scene::{
         cameras::{
-            base::BaseCameraConfig,
             projective::{ProjectiveCamera, ProjectiveCameraConfig},
-            Camera, CameraSample, CameraType,
+            BaseCameraConfig, Camera, CameraSample, CameraType, OrthographicCamera, OrthographicCameraConfig,
         },
         film::RGBFilm,
     },
-    unit_vec3, vec3, Bounds2f, Normal3f, Point2f, Point3f, Vec3f,
+    vec3, Bounds2f, Normal3f, Point2f, Point3f, Vec3f,
 };
 
-pub struct OrthographicCamera {
+pub struct PerspectiveCamera {
     projective: ProjectiveCamera,
     dx_camera: Vec3f,
     dy_camera: Vec3f,
 }
 
-pub struct OrthographicCameraConfig {
+pub struct PerspectiveCameraConfig {
     pub base_config: BaseCameraConfig,
-    /// Screen bounds in film plane. (0,0) is the camera position
+    pub fov: f32,
     pub screen_window: Bounds2f,
     pub lens_radius: f32,
     pub focal_distance: f32,
 }
 
-impl OrthographicCamera {
-    pub fn new(config: OrthographicCameraConfig) -> CameraType {
-        CameraType::Orthographic(OrthographicCamera::from(config))
+impl PerspectiveCamera {
+    pub fn new(config: PerspectiveCameraConfig) -> CameraType {
+        CameraType::Perspective(PerspectiveCamera::from(config))
     }
 
     fn generate_camera_space_ray(&self, sample: CameraSample) -> Ray {
+        let ray_origin = point3!(0., 0., 0.);
         let point_raster: Point3f = sample.p_film.into();
         let point_camera = point_raster.transform(&self.projective.raster_to_camera);
-        let mut ray = ray!(point_camera, unit_vec3!(0., 0., 1.));
+        let ray_direction = point_camera.coords.to_unit();
+        let mut ray = ray!(ray_origin, ray_direction);
         self.projective.adjust_for_dof(&mut ray, sample.p_lens);
         ray
     }
 }
 
-impl Camera for OrthographicCamera {
-    // TODO: camera ray wrapper?
+impl Camera for PerspectiveCamera {
     fn generate_ray(&self, sample: CameraSample) -> Ray {
         let ray = self.generate_camera_space_ray(sample);
         ray.transform(&self.projective.base.camera_to_world)
@@ -53,14 +53,16 @@ impl Camera for OrthographicCamera {
 
     fn generate_differential_ray(&self, sample: CameraSample) -> Ray {
         let mut ray = self.generate_camera_space_ray(sample);
+        let point_raster: Point3f = sample.p_film.into();
+        let point_camera = point_raster.transform(&self.projective.raster_to_camera);
 
         if self.projective.lens_radius > 0. {
         } else {
             let diff = RayDifferential {
-                rx_origin: ray.origin + self.dx_camera,
-                ry_origin: ray.origin + self.dy_camera,
-                rx_direction: ray.dir,
-                ry_direction: ray.dir,
+                rx_origin: ray.origin,
+                ry_origin: ray.origin,
+                rx_direction: (*point_camera + self.dx_camera).to_unit(),
+                ry_direction: (*point_camera + self.dy_camera).to_unit(),
             };
             ray.diff = Some(diff)
         }
@@ -76,21 +78,26 @@ impl Camera for OrthographicCamera {
     fn get_film(&self) -> Arc<RGBFilm> { self.projective.base.film.clone() }
 }
 
-impl From<OrthographicCameraConfig> for OrthographicCamera {
-    fn from(config: OrthographicCameraConfig) -> Self {
-        OrthographicCamera {
-            projective: ProjectiveCamera::from(config),
-            dx_camera: vec3!(1., 0., 0.),
-            dy_camera: vec3!(0., 1., 0.),
+impl From<PerspectiveCameraConfig> for PerspectiveCamera {
+    fn from(config: PerspectiveCameraConfig) -> Self {
+        let projective = ProjectiveCamera::from(config);
+        let dx_camera = vec3!(1., 0., 0.).transform(&projective.raster_to_camera)
+            - vec3!(0., 0., 0.).transform(&projective.raster_to_camera);
+        let dy_camera = vec3!(0., 1., 0.).transform(&projective.raster_to_camera)
+            - vec3!(0., 0., 0.).transform(&projective.raster_to_camera);
+        PerspectiveCamera {
+            projective,
+            dx_camera,
+            dy_camera,
         }
     }
 }
 
-impl From<OrthographicCameraConfig> for ProjectiveCameraConfig {
-    fn from(config: OrthographicCameraConfig) -> Self {
+impl From<PerspectiveCameraConfig> for ProjectiveCameraConfig {
+    fn from(config: PerspectiveCameraConfig) -> Self {
         ProjectiveCameraConfig {
             base_config: config.base_config,
-            camera_to_screen: Transform::orthographic(0., 1.),
+            camera_to_screen: Transform::perspective(config.fov, 1., 100.),
             screen_window: config.screen_window,
             lens_radius: config.lens_radius,
             focal_distance: config.focal_distance,

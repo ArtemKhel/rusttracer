@@ -1,8 +1,12 @@
 use std::{cmp::Ordering, sync::Arc};
 
+use image::Rgb;
+
 use crate::{
     bxdf::BSDF,
+    colors,
     core::{interaction::Interaction, Ray},
+    light::Light,
     material::{Material, MaterialsEnum},
     math::{dot, Dot, Transform, Transformable},
     samplers::SamplerType,
@@ -29,6 +33,7 @@ pub struct SurfaceInteraction {
     pub du_dy: f32,
     pub dv_dy: f32,
     pub material: Option<Arc<MaterialsEnum>>,
+    pub area_light: Option<Arc<dyn Light>>,
 }
 
 impl SurfaceInteraction {
@@ -57,6 +62,15 @@ impl SurfaceInteraction {
             du_dy: 0.,
             dv_dy: 0.,
             material: None,
+            area_light: None,
+        }
+    }
+
+    pub fn emitted_light(&self) -> Rgb<f32> {
+        if let Some(area_light) = &self.area_light {
+            area_light.radiance(&self)
+        } else {
+            colors::BLACK
         }
     }
 
@@ -72,7 +86,10 @@ impl SurfaceInteraction {
         }
     }
 
-    pub fn set_material_properties(&mut self, material: Arc<MaterialsEnum>) { self.material = Some(material.clone()) }
+    pub fn set_material_properties(&mut self, material: &Arc<MaterialsEnum>, area_light: Option<&Arc<dyn Light>>) {
+        self.material = Some(material.clone());
+        self.area_light = area_light.cloned()
+    }
 
     pub fn calculate_differentials(&mut self, ray: &Ray, camera: &dyn Camera, samples_per_pixel: u32) {
         if let Some(diff) = ray.diff {
@@ -167,6 +184,7 @@ impl Transformable<f32> for SurfaceInteraction {
             du_dy: self.du_dy,
             dv_dy: self.dv_dy,
             material: self.material.clone(),
+            area_light: self.area_light.clone(),
         }
     }
 

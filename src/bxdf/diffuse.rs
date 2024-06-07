@@ -6,7 +6,7 @@ use image::{Pixel, Rgb};
 use crate::{
     bxdf::{
         bsdf::BSDFSample,
-        bxdf::{BxDF, BxDFType, Shading},
+        bxdf::{BxDF, BxDFFlags, Shading},
         utils::{abs_cos_theta, cosine_hemisphere_pdf, same_hemisphere, sample_cosine_hemisphere},
     },
     colors, Point2f, Vec3f,
@@ -19,7 +19,7 @@ pub struct DiffuseBxDF {
 }
 
 impl BxDF for DiffuseBxDF {
-    fn bxdf_type(&self) -> BxDFType { BxDFType::Diffuse | BxDFType::Reflection }
+    fn flags(&self) -> BxDFFlags { BxDFFlags::Diffuse | BxDFFlags::Reflection }
 
     fn eval(&self, incoming: Shading<Vec3f>, outgoing: Shading<Vec3f>) -> Rgb<f32> {
         if same_hemisphere(incoming, outgoing) {
@@ -34,7 +34,12 @@ impl BxDF for DiffuseBxDF {
         let mut incoming = sample_cosine_hemisphere(sample_p);
         incoming.z *= outgoing.z.signum();
         let pdf = cosine_hemisphere_pdf(abs_cos_theta(incoming));
-        Some(BSDFSample::new(self.reflectance.map(|x| x * FRAC_1_PI), incoming, pdf))
+        Some(BSDFSample::new(
+            self.reflectance.map(|x| x * FRAC_1_PI),
+            incoming,
+            pdf,
+            self.flags(),
+        ))
     }
 
     fn pdf(&self, incoming: Shading<Vec3f>, outgoing: Shading<Vec3f>) -> f32 {

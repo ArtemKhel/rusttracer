@@ -3,10 +3,11 @@ use rayon::iter::ParallelIterator;
 
 use crate::{math::Point2, scene::Scene, Int, Point2u};
 
-// pub mod debug_normal;
+pub mod debug_normal;
 pub mod random_walk;
-mod ray_integrator;
-mod tile_integrator;
+mod ray;
+pub mod simple_path;
+mod tile;
 
 // #[enum_delegate::implement(Integrator)]
 // pub enum Integrators{

@@ -17,7 +17,7 @@ use crate::{
     core::{hit::Hit, Ray, SurfaceInteraction},
     math::{axis::Axis3, Normed, Number, Point3},
     normal3, point3,
-    scene::{Primitive, PrimitiveEnum},
+    scene::primitives::PrimitiveEnum,
     shapes::Intersectable,
     unit_normal3, vec3,
 };

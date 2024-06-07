@@ -16,20 +16,15 @@ pub struct Metal<T> {
     pub k: Arc<dyn Texture<T>>,
 }
 
-impl Metal<Rgb<f32>> {
+impl Material for Metal<Rgb<f32>> {
+    type BxDF = BxDFEnum;
+
     fn get_bxdf(&self, surf_int: &SurfaceInteraction) -> <Metal<Rgb<f32>> as Material>::BxDF {
         // let reflectance = ...
         let eta = self.eta.evaluate(surf_int);
         let k = self.k.evaluate(surf_int);
         BxDFEnum::Conductor(ConductorBxDF::new(eta, k))
-        // ConductorBxDF::new(eta, k)
     }
-}
-
-impl Material for Metal<Rgb<f32>> {
-    type BxDF = BxDFEnum;
-
-    // type BxDF = ConductorBxDF;
 
     fn get_bsdf(&self, surf_int: &SurfaceInteraction) -> BSDF {
         let bxdf = self.get_bxdf(surf_int);

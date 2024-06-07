@@ -6,12 +6,14 @@ use image::Rgb;
 use num_traits::Zero;
 
 use crate::{
-    bxdf::{bsdf::BSDFSample, conductor::ConductorBxDF, diffuse::DiffuseBxDF},
+    bxdf::{bsdf::BSDFSample, conductor::ConductorBxDF, dielectric::DielectricBxDF, diffuse::DiffuseBxDF},
     Point2f, Vec3f,
 };
 
 bitflags! {
-    pub struct BxDFType: u32 {
+    #[derive(Copy, Clone, Debug)]
+    pub struct BxDFFlags: u32 {
+        const None = 0;
         const Reflection = 1 << 0;
         const Transmission = 1 << 1;
         const Diffuse = 1 << 2;
@@ -49,7 +51,7 @@ pub struct Shading<T> {
 #[enum_delegate::register]
 pub trait BxDF {
     /// Material properties
-    fn bxdf_type(&self) -> BxDFType;
+    fn flags(&self) -> BxDFFlags;
 
     /// Returns the value of the distribution function for the given pair of directions (in the local reflection
     /// coordinate system). f() in PBRT
@@ -67,4 +69,5 @@ pub trait BxDF {
 pub enum BxDFEnum {
     Diffuse(DiffuseBxDF),
     Conductor(ConductorBxDF),
+    Dielectric(DielectricBxDF),
 }

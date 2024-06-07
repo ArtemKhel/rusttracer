@@ -1,23 +1,30 @@
 use std::mem::offset_of;
 
+use derive_new::new;
 use image::Rgb;
+use log::debug;
 use num_traits::Signed;
 
-use crate::{bxdf::{
-    bsdf::BSDFSample,
-    bxdf::{BxDFType, Shading},
-    utils::{abs_cos_theta, cos_theta},
-    BxDF,
-}, vec3, Point2f, Vec3f, unit_normal3, unit_normal3_unchecked, colors};
-use crate::math::Unit;
-use crate::math::utils::refract;
+use crate::{
+    bxdf::{
+        bsdf::BSDFSample,
+        bxdf::{BxDFFlags, Shading},
+        utils::{abs_cos_theta, cos_theta},
+        BxDF,
+    },
+    colors,
+    math::{utils::refract, Unit},
+    unit_normal3, unit_normal3_unchecked, vec3, Point2f, Vec3f,
+};
 
-struct DielectricBxDF {
+#[derive(Debug)]
+#[derive(new)]
+pub struct DielectricBxDF {
     eta: f32,
 }
 
 impl BxDF for DielectricBxDF {
-    fn bxdf_type(&self) -> BxDFType { todo!() }
+    fn flags(&self) -> BxDFFlags { BxDFFlags::SpecularTransmission | BxDFFlags::SpecularReflection }
 
     fn eval(&self, incoming: Shading<Vec3f>, outgoing: Shading<Vec3f>) -> Rgb<f32> {
         // TODO: microfacet
@@ -40,24 +47,32 @@ impl BxDF for DielectricBxDF {
                 color,
                 incoming,
                 pdf: prob_reflected,
-                eta: self.eta
+                eta: self.eta,
+                flags: self.flags(),
             })
         } else {
+            // TODO: outgoing should be unit as a Ray.dir. Need to change BSDF.sample param to Unit<> and make Shading
+            //       work with other wrappers. Marker trait for Vector wrappers may be useful. Same for BSDFSample
+
             // Sample transmitted light
-            // TODO: outgoing should be unit as a Ray.dir. Need to change BSDF.sample param to Unit<> and make Shading work with other wrappers. Vector wrapper marker trait may be useful
             // Should always be Some(), but float rounding errors exist
-            if let Some((incoming, rel_eta)) = refract(Unit::from_unchecked(*outgoing), unit_normal3_unchecked!(0.,0.,1.), self.eta){
+            if let Some((incoming, rel_eta)) = refract(
+                Unit::from_unchecked(*outgoing),
+                unit_normal3_unchecked!(0., 0., 1.),
+                self.eta,
+            ) {
                 let incoming = Shading::from(incoming);
                 let c = transmitted / abs_cos_theta(incoming);
                 let color = Rgb([c, c, c]);
                 // TODO: [PBRT] Account for non-symmetry with transmission to different medium
-                Some(BSDFSample{
+                Some(BSDFSample {
                     color,
                     incoming,
                     pdf: 1. - prob_reflected,
-                    eta: rel_eta
+                    eta: rel_eta,
+                    flags: self.flags(),
                 })
-            }else{
+            } else {
                 None
             }
         }

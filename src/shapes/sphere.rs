@@ -1,4 +1,4 @@
-use std::{f32::consts::PI, fmt::Debug, ops::Deref};
+use std::{default::Default, f32::consts::PI, fmt::Debug, ops::Deref};
 
 use derive_new::new;
 use num_traits::Pow;
@@ -116,8 +116,8 @@ impl Intersectable for Sphere {
 }
 
 impl Samplable for Sphere {
-    fn sample(&self, sample: Point2f) -> Option<ShapeSample> {
-        let point_obj = point3!(self.radius * *sample_uniform_sphere(sample));
+    fn sample(&self, sample_p: Point2f) -> Option<ShapeSample> {
+        let point_obj = point3!(self.radius * *sample_uniform_sphere(sample_p));
         let normal = point_obj.to_normal().transform(&self.transform).to_unit();
 
         let phi = spherical_phi(*point_obj);
@@ -126,33 +126,33 @@ impl Samplable for Sphere {
         let v = theta / PI;
 
         Some(ShapeSample {
-            interaction: Interaction {
+            hit: Interaction {
                 point: point_obj,
                 normal,
                 t: 0.,
-                outgoing: Unit::default(),
+                outgoing: Default::default(),
                 uv: point2!(u, v),
             }
             .inv_transform(&self.transform),
-            pdf: 1. / self.area(),
+            pdf: self.area().recip(),
         })
     }
 
-    fn sample_from_point(&self, point: Point3f, sample: Point2f) -> Option<ShapeSample> {
+    fn sample_from_point(&self, point: Point3f, sample_p: Point2f) -> Option<ShapeSample> {
         if point.len_squared() < self.radius.powi(2) + 1e-4 {
             // todo: corner cases, rounding error
-            let mut ss = self.sample(sample).unwrap();
-            let incoming = ss.interaction.point - point;
-            ss.pdf /= dot(&ss.interaction.normal, &-incoming).abs() / (point - ss.interaction.point).len_squared();
+            let mut ss = self.sample(sample_p).unwrap();
+            let incoming = ss.hit.point - point;
+            ss.pdf /= dot(&ss.hit.normal, &-incoming).abs() / (point - ss.hit.point).len_squared();
             return if ss.pdf.is_infinite() { None } else { Some(ss) };
         }
 
         let max_sin_theta = self.radius / point.len();
         let max_cos_theta = (1. - max_sin_theta.powi(2)).sqrt();
-        let sampled_dir = sample_uniform_cone(sample, max_cos_theta).to_unit();
+        let sampled_dir = sample_uniform_cone(sample_p, max_cos_theta).to_unit();
         let interaction = self.basic_intersect(ray!(point, sampled_dir), f32::INFINITY).unwrap();
         Some(ShapeSample {
-            interaction,
+            hit: interaction,
             pdf: 1. / (2. * PI * (1. - max_cos_theta)),
         })
     }
