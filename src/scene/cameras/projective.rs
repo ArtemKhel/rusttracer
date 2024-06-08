@@ -1,7 +1,6 @@
 use crate::{
     core::Ray,
     math::{Normed, Transform},
-    point2,
     samplers::utils::sample_uniform_disk_concentric,
     scene::cameras::base::{BaseCamera, BaseCameraConfig},
     vec3, Bounds2f, Point2f, Point3f,
@@ -43,22 +42,26 @@ where T: Into<ProjectiveCameraConfig>
         // Screen space - regular cartesian 2D parallel to the film plane / XY-camera
         // NDC space - image coordinates from (0,0) - upper-left to (1,1) - bottom-right
         // Raster space - same as NDC, but with actual pixel coordinates
-        // Camera space - X - right, Y - up, Z - backward
+        // Camera space - left-handed, X - left, Y - up, Z - forward
         let config = config.into();
-        let screen_to_ndc = Transform::compose(
+
+        let screen_to_raster = Transform::compose_iter([
+            // Move to the 4th quadrant
             Transform::translate(vec3!(-config.screen_window.min.x, -config.screen_window.max.y, 0.)),
+            // Flip Y and scale to (1,1)
             Transform::scale(
                 (config.screen_window.max.x - config.screen_window.min.x).recip(),
-                (config.screen_window.max.y - config.screen_window.min.y).recip(),
+                -(config.screen_window.max.y - config.screen_window.min.y).recip(),
                 1.,
             ),
-        );
-        let ndc_to_raster = Transform::scale(
-            config.base_config.film.resolution.x as f32,
-            -(config.base_config.film.resolution.y as f32),
-            1.,
-        );
-        let screen_to_raster = Transform::compose(screen_to_ndc, ndc_to_raster);
+            // Scale to resolution
+            Transform::scale(
+                (config.base_config.film.resolution.x as f32),
+                (config.base_config.film.resolution.y as f32),
+                1.,
+            ),
+        ]);
+
         let raster_to_camera = Transform::compose(screen_to_raster.invert(), config.camera_to_screen.invert());
 
         Self {

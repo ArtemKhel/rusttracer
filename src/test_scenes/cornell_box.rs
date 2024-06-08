@@ -2,23 +2,20 @@ use std::sync::Arc;
 
 use crate::{
     aggregates::BVH,
-    Bounds2f,
     colors,
     light::diffuse_area::DiffuseAreaLight,
-    material::{MaterialsEnum, matte::Matte, metal::Metal},
-    math::{axis::Axis3, Transform}, point2,
-    point3,
+    material::{glass::Glass, matte::Matte, metal::Metal, MaterialsEnum},
+    math::{axis::Axis3, Transform},
+    point2, point3,
     scene::{
-        cameras::{
-            BaseCameraConfig, CameraType,
-            PerspectiveCamera, PerspectiveCameraConfig,
-        },
+        cameras::{BaseCameraConfig, CameraType, PerspectiveCamera, PerspectiveCameraConfig},
         film::RGBFilm,
-        primitives::{geometric::GeometricPrimitive, PrimitiveEnum, simple::SimplePrimitive},
+        primitives::{geometric::GeometricPrimitive, simple::SimplePrimitive, PrimitiveEnum},
         Scene,
     },
     shapes::{quad::Quad, sphere::Sphere},
-    textures::constant::ConstantTexture, vec3,
+    textures::constant::ConstantTexture,
+    vec3, Bounds2f,
 };
 
 fn base_box(
@@ -26,6 +23,7 @@ fn base_box(
     right_wall: &Arc<MaterialsEnum>,
     back_wall: &Arc<MaterialsEnum>,
     other_walls: &Arc<MaterialsEnum>,
+    glass: &Arc<MaterialsEnum>,
 ) -> Vec<Arc<PrimitiveEnum>> {
     let mut walls = vec![
         // left wall
@@ -86,7 +84,7 @@ fn base_box(
                 radius: 100.,
                 transform: Transform::id().then_translate(vec3!(x, 100., 200.)),
             }),
-            material: other_walls.clone(),
+            material: glass.clone(),
         });
     }
     let mut base_box: Vec<Arc<PrimitiveEnum>> = walls.into_iter().map(|x| Arc::new(PrimitiveEnum::Simple(x))).collect();
@@ -106,8 +104,9 @@ pub fn cornell_box() -> Scene {
         lens_radius: 1.0,
         focal_distance: 1200.0,
     })
-        .into();
+    .into();
 
+    let const_white = Arc::new(ConstantTexture { value: colors::WHITE });
     let const_gray = Arc::new(ConstantTexture {
         value: colors::LIGHT_GRAY,
     });
@@ -124,12 +123,16 @@ pub fn cornell_box() -> Scene {
         reflectance: const_red.clone(),
     }));
     let metal = Arc::new(MaterialsEnum::Metal(Metal {
-        reflectance: const_gray.clone(),
-        eta: const_gray.clone(),
-        k: const_gray.clone(),
+        reflectance: const_white.clone(),
+        eta: const_white.clone(),
+        k: const_white.clone(),
+    }));
+    let glass = Arc::new(MaterialsEnum::Glass(Glass {
+        spectrum: const_gray.clone(),
+        ior: 1.5,
     }));
 
-    let mut cornell_box = base_box(&matte_green, &matte_red, &metal, &matte_gray);
+    let mut cornell_box = base_box(&matte_green, &matte_red, &metal, &matte_gray, &glass);
     let light_shape = Arc::new(Quad::new(
         point3!(300., 950., 300.),
         vec3!(400., 0., 0.),

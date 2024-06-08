@@ -77,7 +77,7 @@ impl Camera for OrthographicCamera {
 
 impl From<OrthographicCameraConfig> for OrthographicCamera {
     fn from(config: OrthographicCameraConfig) -> Self {
-        let projective= ProjectiveCamera::from(config);
+        let projective = ProjectiveCamera::from(config);
         OrthographicCamera {
             dx_camera: vec3!(1., 0., 0.).transform(&projective.raster_to_camera),
             dy_camera: vec3!(0., 1., 0.).transform(&projective.raster_to_camera),

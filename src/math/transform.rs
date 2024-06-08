@@ -8,8 +8,8 @@ use crate::{
     math::{
         axis::{Axis3, Axis4},
         dot,
-        matrix4::Matrix4,
-        Dot, Normed, Number, Vec3,
+        Dot,
+        matrix4::Matrix4, Normed, Number, Vec3,
     },
     vec3, Vec3f,
 };
@@ -21,7 +21,6 @@ pub struct Transform<T> {
 }
 
 pub trait Transformable<T> {
-    // TODO:
     fn transform(&self, trans: &Transform<T>) -> Self;
     fn inv_transform(&self, trans: &Transform<T>) -> Self;
 }
@@ -155,6 +154,8 @@ impl<T: Number> Transform<T> {
         self
     }
 
+    pub fn look_at() -> Self { todo!() }
+
     pub fn orthographic(z_near: T, z_far: T) -> Self {
         Transform::compose(
             Transform::translate(vec3!(T::zero(), T::zero(), -z_near)),
@@ -168,13 +169,13 @@ impl<T: Number> Transform<T> {
         let _2 = _1 + _1;
 
         #[rustfmt::skip]
-        let perspective = Matrix4::from_elements(
+            let perspective = Matrix4::from_elements(
             _1, _0, _0, _0,
             _0, _1, _0, _0,
-            // _0, _0, z_far / (z_far - z_near), -z_far * z_near / (z_far - z_near),
-            // _0, _0, _1, _0,
-            _0, _0, z_far / (z_far - z_near), -_1,
-            _0, _0, -z_far * z_near / (z_far - z_near), _0,
+            _0, _0, z_far / (z_far - z_near), -z_far * z_near / (z_far - z_near),
+            _0, _0, -_1, _0,
+            // _0, _0, z_far / (z_far - z_near), -_1,
+            // _0, _0, -z_far * z_near / (z_far - z_near), _0,
         );
         let scale = (fov.to_radians() / _2).tan().recip();
         Transform::compose(Transform::from_matrix(perspective), Transform::scale(scale, scale, _1))
@@ -189,8 +190,8 @@ impl<T: Number> Transform<T> {
 
     pub fn compose_iter<Iterable, Iter>(it: Iterable) -> Self
     where
-        Iterable: IntoIterator<Item = Transform<T>, IntoIter = Iter>,
-        Iter: Iterator<Item = Transform<T>>, {
+        Iterable: IntoIterator<Item=Transform<T>, IntoIter=Iter>,
+        Iter: Iterator<Item=Transform<T>>, {
         it.into_iter().reduce(|acc, x| Self::compose(acc, x)).unwrap()
     }
 
@@ -233,8 +234,9 @@ mod tests {
 
     use approx::assert_abs_diff_eq;
 
-    use super::*;
     use crate::{point3, vec3, Vec3f};
+
+    use super::*;
 
     #[test]
     fn test_translate() {
