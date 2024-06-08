@@ -155,13 +155,11 @@ pub fn cornell_box() -> Scene {
     let objects = PrimitiveEnum::BVH(BVH::new(cornell_box, 8));
     let lights = vec![light_source as _];
 
-    let scene = Scene {
+    Scene {
         camera,
         objects,
         lights,
-    };
-
-    scene
+    }
     // for side in Quad::quad_box(
     //     165.0,
     //     165.0,

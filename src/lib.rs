@@ -1,9 +1,9 @@
-#![warn(clippy::all, clippy::pedantic)]
+#![warn(clippy::all)]
 #![allow(clippy::similar_names, clippy::many_single_char_names)]
 #![allow(unused)]
 #![allow(clippy::module_inception)]
-// For breakpoint! macro
 #![allow(internal_features)]
+#![feature(test)]
 #![feature(core_intrinsics)]
 #![feature(stmt_expr_attributes)]
 #![feature(const_trait_impl, effects)]

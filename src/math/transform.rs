@@ -8,8 +8,8 @@ use crate::{
     math::{
         axis::{Axis3, Axis4},
         dot,
-        Dot,
-        matrix4::Matrix4, Normed, Number, Vec3,
+        matrix4::Matrix4,
+        Dot, Normed, Number, Vec3,
     },
     vec3, Vec3f,
 };
@@ -190,8 +190,8 @@ impl<T: Number> Transform<T> {
 
     pub fn compose_iter<Iterable, Iter>(it: Iterable) -> Self
     where
-        Iterable: IntoIterator<Item=Transform<T>, IntoIter=Iter>,
-        Iter: Iterator<Item=Transform<T>>, {
+        Iterable: IntoIterator<Item = Transform<T>, IntoIter = Iter>,
+        Iter: Iterator<Item = Transform<T>>, {
         it.into_iter().reduce(|acc, x| Self::compose(acc, x)).unwrap()
     }
 
@@ -234,9 +234,8 @@ mod tests {
 
     use approx::assert_abs_diff_eq;
 
-    use crate::{point3, vec3, Vec3f};
-
     use super::*;
+    use crate::{point3, vec3, Vec3f};
 
     #[test]
     fn test_translate() {

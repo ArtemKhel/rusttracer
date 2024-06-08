@@ -9,6 +9,7 @@ use crate::{
     Point2f, Vec3f,
 };
 
+#[allow(clippy::upper_case_acronyms)]
 pub struct BSDF {
     bxdf: Box<dyn BxDF>,
     shading_frame: Frame<f32>,

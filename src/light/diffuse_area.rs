@@ -59,13 +59,11 @@ impl Light for DiffuseAreaLight {
 
         let incoming = (shape_sample.hit.point - surf_int.hit.point).to_unit();
 
-        self.radiance(surf_int).and_then(|emitted| {
-            Some(LightSample {
-                radiance: emitted,
-                incoming,
-                pdf: shape_sample.pdf,
-                point: shape_sample.hit.point,
-            })
+        self.radiance(surf_int).map(|emitted| LightSample {
+            radiance: emitted,
+            incoming,
+            pdf: shape_sample.pdf,
+            point: shape_sample.hit.point,
         })
     }
 
