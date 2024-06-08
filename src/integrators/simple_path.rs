@@ -1,7 +1,8 @@
 use image::{Pixel, Rgb};
 
 use crate::{
-    bxdf::bxdf::BxDFFlags,
+    breakpoint,
+    bxdf::BxDFFlags,
     colors,
     core::Ray,
     integrators::{
@@ -9,7 +10,7 @@ use crate::{
         tile::TIState,
         IState,
     },
-    math::{dot, Unit},
+    math::{dot, Normed, Unit},
     ray,
     samplers::{Sampler, SamplerType, StratifiedSampler},
     scene::Scene,
@@ -27,6 +28,7 @@ unsafe impl Sync for SimplePathIntegrator {}
 
 impl SimplePathIntegrator {
     pub fn new(scene: Scene, max_depth: u32, samples_per_pixel: u32) -> Self {
+        let sqrt_spp = samples_per_pixel.isqrt();
         SimplePathIntegrator {
             sample_lights: true,
             sample_bsdf: true,
@@ -34,8 +36,8 @@ impl SimplePathIntegrator {
                 max_depth,
                 tile: TIState {
                     base: IState { scene },
-                    // sampler: SamplerType::Independent(IndependentSampler::new(samples_per_pixel, 42)),
-                    sampler: SamplerType::Stratified(StratifiedSampler::new(16, 16, true, 42)),
+                    // sampler: IndependentSampler::new(samples_per_pixel, 42).into(),
+                    sampler: StratifiedSampler::new(sqrt_spp, sqrt_spp, true, 42).into(),
                 },
             },
         }
@@ -45,79 +47,87 @@ impl SimplePathIntegrator {
 impl RayIntegrator for SimplePathIntegrator {
     // TODO: this is awful, refactor
     fn light_incoming(&self, ray: &Ray, sampler: &mut SamplerType) -> Rgb<f32> {
-        let mut ray = ray.clone();
+        let mut ray = *ray;
         let mut depth = 0;
+        // Total radiance from the current path
         let mut radiance = colors::BLACK;
         // Fraction of radiance that arrives at the camera
         let mut throughput = colors::WHITE;
         let mut specular_bounce = true;
 
         while throughput != colors::BLACK {
-            if let Some(mut interaction) = self.state.scene.cast_ray(&ray) {
-                // TODO: medias
+            // Check for intersections with the scene
+            let Some(mut interaction) = self.state.scene.cast_ray(&ray) else {
+                // TODO: sample infinite lights
+                break;
+            };
 
-                if (!self.sample_lights || specular_bounce) {
-                    let emitted = interaction.emitted_light().map2(&throughput, |e, t| e * t);
+            // Account for emissive materials
+            if !self.sample_lights || specular_bounce {
+                if let Some(mut emitted) = interaction.emitted_light() {
+                    emitted.apply2(&throughput, |e, t| e * t);
                     radiance.apply2(&emitted, |r, e| r + e)
                 }
+            }
 
-                if depth == self.state.max_depth {
-                    break;
-                } else {
-                    depth += 1;
-                }
+            if depth == self.state.max_depth {
+                break;
+            }
+            depth += 1;
 
-                let Some(bsdf) = interaction.get_bsdf(&ray, &self.state.scene.camera, sampler) else {
-                    continue;
-                };
+            let Some(bsdf) = interaction.get_bsdf(&ray, &self.state.scene.camera, sampler) else {
+                // TODO: medias
+                continue;
+            };
 
-                if self.sample_lights {
-                    // TODO: light sampler
-                    let light = self.state.scene.lights.first().unwrap();
-                    if let Some(light_sample) = light.sample_light(&interaction, sampler.get_2d()) {
-                        if light_sample.pdf == 0. && light_sample.radiance == colors::BLACK {
-                            break;
-                        }
-                        let mut reflected = bsdf.eval(*light_sample.incoming, *interaction.hit.outgoing);
-                        // TODO: scene.cast_ray -> bool
-                        if reflected != colors::BLACK
-                        /* && self.state.scene.cast_ray(&ray!(interaction.hit.point + light_sample.incoming *1e-3,
-                         * light_sample.incoming)).is_none() */
-                        {
-                            reflected.apply2(&throughput, |e, t| e * t);
-                            reflected.apply2(&light_sample.radiance, |e, t| e * t /* / light_sample.pdf */);
-                            radiance.apply2(&reflected, |r, e| r + e);
-                        }
+            if self.sample_lights {
+                // TODO: light sampler
+                let light = self.state.scene.lights.first().unwrap();
+                if let Some(light_sample) = light.sample_light(&interaction, sampler.get_2d()) {
+                    if light_sample.pdf == 0. && light_sample.radiance == colors::BLACK {
+                        break;
+                    }
+                    let mut reflected = bsdf.eval(*light_sample.incoming, *interaction.hit.outgoing);
+                    let cos = dot(
+                        &light_sample.incoming,
+                        /* TODO: shading_normal */ &interaction.hit.normal,
+                    )
+                    .abs();
+                    reflected.apply(|x| x * cos);
+                    // TODO: scene.cast_ray -> bool
+                    let ray = ray!(
+                        interaction.hit.point + light_sample.incoming * 1e-3,
+                        light_sample.incoming
+                    );
+                    let t_max = (interaction.hit.point - light_sample.point).len() * 0.99;
+                    let unoccluded = self.state.scene.cast_bounded_ray(&ray, t_max).is_none();
+                    if reflected != colors::BLACK && unoccluded {
+                        reflected.apply2(&throughput, |r, t| r * t);
+                        reflected.apply2(&light_sample.radiance, |r, l| r * l / light_sample.pdf);
+                        radiance.apply2(&reflected, |r, e| r + e);
                     }
                 }
+            }
 
-                if self.sample_bsdf {
-                    let Some(sample) = bsdf.sample(*interaction.hit.outgoing, sampler.get_2d(), sampler.get_1d())
-                    else {
-                        break;
-                    };
-                    // TODO: shading normal
-                    let coef = dot(&interaction.hit.outgoing, &interaction.hit.normal).abs() / sample.pdf;
-                    throughput.apply2(&sample.color, |t, s| t * s * coef);
-                    specular_bounce = sample.flags.contains(BxDFFlags::Specular);
-                    // todo: si.spawn_ray
-                    ray = ray!(
-                        interaction.hit.point + sample.incoming * 1e-3,
-                        Unit::from_unchecked(sample.incoming)
-                    );
-                } else {
-                    // todo uniformly sample
-                }
+            if self.sample_bsdf {
+                let Some(sample) = bsdf.sample(*interaction.hit.outgoing, sampler.get_2d(), sampler.get_1d()) else {
+                    break;
+                };
+                let coef = dot(
+                    &sample.incoming,
+                    /* TODO: shading normal */ &interaction.hit.normal,
+                )
+                .abs()
+                    / sample.pdf;
+                throughput.apply2(&sample.color, |t, s| t * s * coef);
+                specular_bounce = sample.flags.contains(BxDFFlags::Specular);
+                // todo: si.spawn_ray
+                ray = ray!(
+                    interaction.hit.point + sample.incoming * 1e-3,
+                    Unit::from_unchecked(sample.incoming)
+                );
             } else {
-                // if (!self.sample_lights || specular_bounce) {
-                //     // TODO: lights
-                //     let background = throughput.map2(
-                //         &lerp(colors::DARK_BLUE, colors::LIGHT_BLUE, (ray.dir.y + 1.) / 2.),
-                //         |t, b| t * b,
-                //     );
-                //     radiance.apply2(&background, |r, b| r + b);
-                // }
-                break;
+                // todo uniformly sample
             }
         }
         radiance

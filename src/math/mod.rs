@@ -1,3 +1,5 @@
+#![allow(clippy::just_underscores_and_digits)]
+
 use std::{
     fmt::Debug,
     marker::PhantomData,

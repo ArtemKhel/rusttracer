@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
+    breakpoint,
     core::{ray::RayDifferential, Ray},
     math::{Normed, Transform, Transformable},
     point3, ray,
@@ -30,9 +31,7 @@ pub struct PerspectiveCameraConfig {
 }
 
 impl PerspectiveCamera {
-    pub fn new(config: PerspectiveCameraConfig) -> CameraType {
-        CameraType::Perspective(PerspectiveCamera::from(config))
-    }
+    pub fn new(config: PerspectiveCameraConfig) -> Self { PerspectiveCamera::from(config) }
 
     fn generate_camera_space_ray(&self, sample: CameraSample) -> Ray {
         let ray_origin = point3!(0., 0., 0.);
@@ -57,6 +56,7 @@ impl Camera for PerspectiveCamera {
         let point_camera = point_raster.transform(&self.projective.raster_to_camera);
 
         if self.projective.lens_radius > 0. {
+            // TODO
         } else {
             let diff = RayDifferential {
                 rx_origin: ray.origin,

@@ -31,9 +31,7 @@ pub struct OrthographicCameraConfig {
 }
 
 impl OrthographicCamera {
-    pub fn new(config: OrthographicCameraConfig) -> CameraType {
-        CameraType::Orthographic(OrthographicCamera::from(config))
-    }
+    pub fn new(config: OrthographicCameraConfig) -> Self { OrthographicCamera::from(config) }
 
     fn generate_camera_space_ray(&self, sample: CameraSample) -> Ray {
         let point_raster: Point3f = sample.p_film.into();
@@ -55,6 +53,7 @@ impl Camera for OrthographicCamera {
         let mut ray = self.generate_camera_space_ray(sample);
 
         if self.projective.lens_radius > 0. {
+            // TODO
         } else {
             let diff = RayDifferential {
                 rx_origin: ray.origin + self.dx_camera,
@@ -78,10 +77,11 @@ impl Camera for OrthographicCamera {
 
 impl From<OrthographicCameraConfig> for OrthographicCamera {
     fn from(config: OrthographicCameraConfig) -> Self {
+        let projective= ProjectiveCamera::from(config);
         OrthographicCamera {
-            projective: ProjectiveCamera::from(config),
-            dx_camera: vec3!(1., 0., 0.),
-            dy_camera: vec3!(0., 1., 0.),
+            dx_camera: vec3!(1., 0., 0.).transform(&projective.raster_to_camera),
+            dy_camera: vec3!(0., 1., 0.).transform(&projective.raster_to_camera),
+            projective,
         }
     }
 }

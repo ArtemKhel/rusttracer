@@ -171,15 +171,16 @@ impl<T: Number> Transform<T> {
         let perspective = Matrix4::from_elements(
             _1, _0, _0, _0,
             _0, _1, _0, _0,
-            _0, _0, z_far / (z_far - z_near), -z_far * z_near / (z_far - z_near),
-            _0, _0, _1, _0,
+            // _0, _0, z_far / (z_far - z_near), -z_far * z_near / (z_far - z_near),
+            // _0, _0, _1, _0,
+            _0, _0, z_far / (z_far - z_near), -_1,
+            _0, _0, -z_far * z_near / (z_far - z_near), _0,
         );
         let scale = (fov.to_radians() / _2).tan().recip();
         Transform::compose(Transform::from_matrix(perspective), Transform::scale(scale, scale, _1))
     }
 
     pub fn compose(a: Transform<T>, b: Transform<T>) -> Self {
-        // TODO: rotations
         Transform {
             mat: b.mat * a.mat,
             inv: a.inv * b.inv,

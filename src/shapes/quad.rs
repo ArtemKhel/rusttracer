@@ -2,14 +2,11 @@ use std::ops::Deref;
 
 use crate::{
     aggregates::Aabb,
-    core::{Hit, Interaction, Ray, SurfaceInteraction},
-    math::{
-        axis::Axis3, cross, dot, utils::local_normal, Cross, Dot, Frame, Normed, Number, Point3, Transform,
-        Transformable, Unit, Vec3,
-    },
+    core::{Interaction, Ray, SurfaceInteraction},
+    math::{axis::Axis3, cross, dot, utils::local_normal, Cross, Dot, Frame, Normed, Transform, Transformable, Unit},
     point3,
     shapes::{Bounded, Intersectable, Samplable, ShapeSample},
-    unit3_unchecked, unit_normal3_unchecked, vec3, Point2f, Point3f, Vec3f,
+    unit_normal3_unchecked, Point2f, Point3f, Vec3f,
 };
 
 #[derive(Debug)]
@@ -109,7 +106,7 @@ impl Bounded<f32> for Quad {
 
 impl Samplable for Quad {
     fn sample(&self, sample_p: Point2f) -> Option<ShapeSample> {
-        // TODO: uv
+        // TODO: uv,pdf
         let point = self.a + sample_p.x * self.ab + sample_p.y * self.ac;
         Some(ShapeSample {
             hit: Interaction {
@@ -119,12 +116,17 @@ impl Samplable for Quad {
                 outgoing: Default::default(),
                 uv: Default::default(),
             },
-            pdf: self.area().recip(),
+            // pdf: self.area().recip(),
+            pdf: 1.,
         })
     }
 
     fn sample_from_point(&self, point: Point3f, sample_p: Point2f) -> Option<ShapeSample> {
-        //TODO: this
+        // TODO: this
+        // let mut sample = self.sample(sample_p).unwrap();
+        // let cos = dot(&((self.a + 0.5 * (self.ab + self.ac)) - point).to_unit(), &self.normal).abs();
+        // sample.pdf /= cos;
+        // Some(sample)
         self.sample(sample_p)
     }
 

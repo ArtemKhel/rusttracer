@@ -1,6 +1,7 @@
 use crate::{
     core::Ray,
     math::{Normed, Transform},
+    point2,
     samplers::utils::sample_uniform_disk_concentric,
     scene::cameras::base::{BaseCamera, BaseCameraConfig},
     vec3, Bounds2f, Point2f, Point3f,
@@ -12,7 +13,6 @@ pub struct ProjectiveCamera {
     pub focal_distance: f32,
     pub camera_to_screen: Transform<f32>,
     pub raster_to_camera: Transform<f32>,
-    pub screen_to_raster: Transform<f32>,
 }
 
 pub struct ProjectiveCameraConfig {
@@ -27,7 +27,7 @@ impl ProjectiveCamera {
     pub(super) fn adjust_for_dof(&self, ray: &mut Ray, p_lens: Point2f) {
         if self.lens_radius > 0. {
             let point_on_lens = sample_uniform_disk_concentric(p_lens) * self.lens_radius;
-            let t_focal_intersect = self.focal_distance / ray.dir.z;
+            let t_focal_intersect = self.focal_distance / -ray.dir.z;
             let focus_point = ray.at(t_focal_intersect);
             ray.origin = Point3f::from(point_on_lens);
             ray.dir = (focus_point - ray.origin).to_unit();
@@ -39,6 +39,11 @@ impl<T> From<T> for ProjectiveCamera
 where T: Into<ProjectiveCameraConfig>
 {
     fn from(config: T) -> Self {
+        // Reminder:
+        // Screen space - regular cartesian 2D parallel to the film plane / XY-camera
+        // NDC space - image coordinates from (0,0) - upper-left to (1,1) - bottom-right
+        // Raster space - same as NDC, but with actual pixel coordinates
+        // Camera space - X - right, Y - up, Z - backward
         let config = config.into();
         let screen_to_ndc = Transform::compose(
             Transform::translate(vec3!(-config.screen_window.min.x, -config.screen_window.max.y, 0.)),
@@ -56,14 +61,12 @@ where T: Into<ProjectiveCameraConfig>
         let screen_to_raster = Transform::compose(screen_to_ndc, ndc_to_raster);
         let raster_to_camera = Transform::compose(screen_to_raster.invert(), config.camera_to_screen.invert());
 
-        // TODO:
         Self {
             base: BaseCamera::from(config.base_config),
             lens_radius: config.lens_radius,
             focal_distance: config.focal_distance,
             camera_to_screen: config.camera_to_screen,
             raster_to_camera,
-            screen_to_raster,
         }
     }
 }

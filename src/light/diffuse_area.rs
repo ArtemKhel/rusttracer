@@ -50,28 +50,26 @@ impl Light for DiffuseAreaLight {
     fn light_type(&self) -> LightType { LightType::Area }
 
     fn sample_light(&self, surf_int: &SurfaceInteraction, sample_p: Point2f) -> Option<LightSample> {
-        let ss = self.shape.sample_from_point(surf_int.hit.point, sample_p);
-        if let Some(shape_sample) = ss {
-            // TODO: mediums
-            if shape_sample.pdf == 0. {
-                return None;
-            }
-            let incoming = (shape_sample.hit.point - surf_int.hit.point).to_unit();
-            let emitted = self.radiance(&surf_int);
-            if emitted == colors::BLACK {
-                None
-            } else {
-                Some(LightSample {
-                    radiance: emitted,
-                    incoming,
-                    pdf: shape_sample.pdf,
-                    point: shape_sample.hit.point,
-                })
-            }
-        } else {
-            None
-        }
+        let shape_sample = self.shape.sample_from_point(surf_int.hit.point, sample_p)?;
+
+        // TODO: mediums
+        if shape_sample.pdf == 0. {
+            return None;
+        };
+
+        let incoming = (shape_sample.hit.point - surf_int.hit.point).to_unit();
+
+        self.radiance(surf_int).and_then(|emitted| {
+            Some(LightSample {
+                radiance: emitted,
+                incoming,
+                pdf: shape_sample.pdf,
+                point: shape_sample.hit.point,
+            })
+        })
     }
 
-    fn radiance(&self, surf_int: &SurfaceInteraction) -> Rgb<f32> { self.spectrum.map(|x| x * self.scale) }
+    fn radiance(&self, surf_int: &SurfaceInteraction) -> Option<Rgb<f32>> {
+        Some(self.spectrum.map(|x| x * self.scale))
+    }
 }

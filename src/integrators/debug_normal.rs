@@ -55,11 +55,14 @@ impl DebugNormalIntegrator {
     fn normal_as_rgb(&self, ray: &Ray) -> Rgb<f32> {
         let closest_hit = self.get_state().scene.cast_ray(ray);
         if let Some(mut interaction) = closest_hit {
-            return Rgb([
-                (interaction.hit.normal.x + 1.) / 2.,
-                (interaction.hit.normal.y + 1.) / 2.,
-                (interaction.hit.normal.z + 1.) / 2.,
-            ]);
+            Rgb([
+                interaction.hit.normal.x,
+                interaction.hit.normal.y,
+                interaction.hit.normal.z,
+                // (interaction.hit.normal.x + 1.) / 2.,
+                // (interaction.hit.normal.y + 1.) / 2.,
+                // (interaction.hit.normal.z + 1.) / 2.,
+            ])
         } else {
             colors::BLACK
         }

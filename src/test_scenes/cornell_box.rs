@@ -1,26 +1,24 @@
 use std::sync::Arc;
 
-use image::Rgb;
-
 use crate::{
     aggregates::BVH,
+    Bounds2f,
     colors,
-    light::{diffuse_area::DiffuseAreaLight, Light},
-    material::{matte::Matte, metal::Metal, MaterialsEnum},
-    math::{axis::Axis3, Transform},
-    point2, point3,
+    light::diffuse_area::DiffuseAreaLight,
+    material::{MaterialsEnum, matte::Matte, metal::Metal},
+    math::{axis::Axis3, Transform}, point2,
+    point3,
     scene::{
         cameras::{
-            BaseCameraConfig, CameraType::Orthographic, OrthographicCamera, OrthographicCameraConfig,
+            BaseCameraConfig, CameraType,
             PerspectiveCamera, PerspectiveCameraConfig,
         },
         film::RGBFilm,
-        primitives::{geometric::GeometricPrimitive, simple::SimplePrimitive, PrimitiveEnum},
+        primitives::{geometric::GeometricPrimitive, PrimitiveEnum, simple::SimplePrimitive},
         Scene,
     },
-    shapes::quad::Quad,
-    textures::constant::ConstantTexture,
-    vec3, Bounds2f,
+    shapes::{quad::Quad, sphere::Sphere},
+    textures::constant::ConstantTexture, vec3,
 };
 
 fn base_box(
@@ -29,7 +27,7 @@ fn base_box(
     back_wall: &Arc<MaterialsEnum>,
     other_walls: &Arc<MaterialsEnum>,
 ) -> Vec<Arc<PrimitiveEnum>> {
-    let walls = vec![
+    let mut walls = vec![
         // left wall
         SimplePrimitive {
             shape: Arc::new(Quad::new(
@@ -81,21 +79,34 @@ fn base_box(
             material: back_wall.clone(),
         },
     ];
+
+    for x in [200., 500., 800.].into_iter() {
+        walls.push(SimplePrimitive {
+            shape: Arc::new(Sphere {
+                radius: 100.,
+                transform: Transform::id().then_translate(vec3!(x, 100., 200.)),
+            }),
+            material: other_walls.clone(),
+        });
+    }
     let mut base_box: Vec<Arc<PrimitiveEnum>> = walls.into_iter().map(|x| Arc::new(PrimitiveEnum::Simple(x))).collect();
     base_box
 }
 
 pub fn cornell_box() -> Scene {
-    let camera = PerspectiveCamera::new(PerspectiveCameraConfig {
+    let camera: CameraType = PerspectiveCamera::new(PerspectiveCameraConfig {
         base_config: BaseCameraConfig {
-            transform: Transform::id().then_translate(vec3!(500., 500., -1000.)),
+            transform: Transform::id()
+                .then_rotate_degrees(Axis3::Y, 180.)
+                .then_translate(vec3!(500., 500., -1000.)),
             film: RGBFilm::new(300, 300),
         },
         fov: 55.0,
         screen_window: Bounds2f::from_points(point2!(-1., -1.), point2!(1., 1.)),
-        lens_radius: 0.0,
-        focal_distance: 0.0,
-    });
+        lens_radius: 1.0,
+        focal_distance: 1200.0,
+    })
+        .into();
 
     let const_gray = Arc::new(ConstantTexture {
         value: colors::LIGHT_GRAY,
@@ -109,7 +120,9 @@ pub fn cornell_box() -> Scene {
     let matte_green = Arc::new(MaterialsEnum::Matte(Matte {
         reflectance: const_green.clone(),
     }));
-    let matte_red = Arc::new(MaterialsEnum::Matte(Matte { reflectance: const_red }));
+    let matte_red = Arc::new(MaterialsEnum::Matte(Matte {
+        reflectance: const_red.clone(),
+    }));
     let metal = Arc::new(MaterialsEnum::Metal(Metal {
         reflectance: const_gray.clone(),
         eta: const_gray.clone(),
@@ -125,7 +138,7 @@ pub fn cornell_box() -> Scene {
     ));
     let light_source = Arc::new(DiffuseAreaLight::new(
         colors::WHITE,
-        1.,
+        3.,
         Transform::id(),
         light_shape.clone(),
     ));
@@ -142,7 +155,6 @@ pub fn cornell_box() -> Scene {
     let scene = Scene {
         camera,
         objects,
-        background_color: Rgb([0.1, 0.1, 0.1]),
         lights,
     };
 

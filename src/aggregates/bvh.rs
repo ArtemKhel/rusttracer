@@ -339,7 +339,6 @@ impl Intersectable for BVH<f32> {
                     axis,
                     second_child_offset,
                 } => {
-                    // if bounds.hit(ray, t_max) {
                     if bounds.hit_fast(ray, inv_dir, inv_bounds, t_max) {
                         if ray.dir[axis] >= 0. {
                             stack.push(second_child_offset);
@@ -356,15 +355,17 @@ impl Intersectable for BVH<f32> {
                     first_offset,
                     n_primitives,
                 } => {
-                    // if bounds.hit(ray, t_max) {
                     if bounds.hit_fast(ray, inv_dir, inv_bounds, t_max) {
                         let curr_closest = self.primitives[first_offset..first_offset + n_primitives]
                             .iter()
                             .filter_map(|obj| obj.intersect(ray, t_max))
                             .min();
 
-                        if curr_closest.is_some() && (closest.is_none() || curr_closest < closest) {
-                            t_max = curr_closest.as_ref().unwrap().hit.t;
+                        if let Some(cc) = &curr_closest
+                            && cc.hit.t < t_max
+                            && (closest.is_none() || curr_closest < closest)
+                        {
+                            t_max = cc.hit.t;
                             closest = curr_closest;
                         }
                     }

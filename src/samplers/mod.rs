@@ -1,8 +1,9 @@
+use derive_more::From;
 pub use independent::IndependentSampler;
 use num_traits::One;
 
 pub use crate::samplers::stratified::StratifiedSampler;
-use crate::{math::Point2, Point2f, Point2u, Point2us};
+use crate::{Point2f, Point2us};
 
 mod independent;
 mod stratified;

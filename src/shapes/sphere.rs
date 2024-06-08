@@ -25,7 +25,8 @@ pub struct Sphere {
 
 impl Sphere {
     /// Checks if ray hits the sphere. Assume that ray is in object space.
-    /// Returns [Interaction] that is also in object space.
+    /// Returns [Interaction] that is also **in object space.**
+    // TODO: obj space wrapper?
     fn basic_intersect(&self, ray: Ray, t_max: f32) -> Option<Interaction> {
         let o = *ray.origin;
         let h = dot(ray.dir.deref(), &o);
@@ -107,8 +108,9 @@ impl Intersectable for Sphere {
     fn intersect(&self, ray: &Ray, t_max: f32) -> Option<SurfaceInteraction> {
         let ray = ray.inv_transform(&self.transform);
         if let Some(interaction) = self.basic_intersect(ray, t_max) {
-            let surf_inter = self.calculate_surface_interaction(interaction);
-            Some(surf_inter)
+            let mut surf_int = self.calculate_surface_interaction(interaction);
+            surf_int = surf_int.transform(&self.transform);
+            Some(surf_int)
         } else {
             None
         }
@@ -133,12 +135,13 @@ impl Samplable for Sphere {
                 outgoing: Default::default(),
                 uv: point2!(u, v),
             }
-            .inv_transform(&self.transform),
+            .transform(&self.transform),
             pdf: self.area().recip(),
         })
     }
 
     fn sample_from_point(&self, point: Point3f, sample_p: Point2f) -> Option<ShapeSample> {
+        let point = point.inv_transform(&self.transform);
         if point.len_squared() < self.radius.powi(2) + 1e-4 {
             // todo: corner cases, rounding error
             let mut ss = self.sample(sample_p).unwrap();
@@ -150,7 +153,10 @@ impl Samplable for Sphere {
         let max_sin_theta = self.radius / point.len();
         let max_cos_theta = (1. - max_sin_theta.powi(2)).sqrt();
         let sampled_dir = sample_uniform_cone(sample_p, max_cos_theta).to_unit();
-        let interaction = self.basic_intersect(ray!(point, sampled_dir), f32::INFINITY).unwrap();
+        let interaction = self
+            .basic_intersect(ray!(point, sampled_dir), f32::INFINITY)
+            .unwrap()
+            .inv_transform(&self.transform);
         Some(ShapeSample {
             hit: interaction,
             pdf: 1. / (2. * PI * (1. - max_cos_theta)),

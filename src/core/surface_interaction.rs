@@ -1,3 +1,5 @@
+#![allow(clippy::non_canonical_partial_ord_impl)]
+
 use std::{cmp::Ordering, sync::Arc};
 
 use image::Rgb;
@@ -66,12 +68,13 @@ impl SurfaceInteraction {
         }
     }
 
-    pub fn emitted_light(&self) -> Rgb<f32> {
-        if let Some(area_light) = &self.area_light {
-            area_light.radiance(&self)
-        } else {
-            colors::BLACK
-        }
+    pub fn emitted_light(&self) -> Option<Rgb<f32>> {
+        self.area_light.as_ref().and_then(|x| x.radiance(self))
+        // if let Some(area_light) = &self.area_light {
+        //     area_light.radiance(&self)
+        // } else {
+        //     colors::BLACK
+        // }
     }
 
     pub fn get_bsdf(&mut self, ray: &Ray, camera: &dyn Camera, sampler: &mut SamplerType) -> Option<BSDF> {
@@ -188,7 +191,26 @@ impl Transformable<f32> for SurfaceInteraction {
         }
     }
 
-    fn inv_transform(&self, trans: &Transform<f32>) -> Self { todo!() }
+    fn inv_transform(&self, trans: &Transform<f32>) -> Self {
+        SurfaceInteraction {
+            hit: self.hit.inv_transform(trans),
+            dp_du: self.dp_du.inv_transform(trans),
+            dp_dv: self.dp_dv.inv_transform(trans),
+
+            dn_du: self.dn_du.inv_transform(trans),
+            dn_dv: self.dn_dv.inv_transform(trans),
+
+            dp_dx: self.dp_dx.inv_transform(trans),
+            dp_dy: self.dp_dx.inv_transform(trans),
+
+            du_dx: self.du_dx,
+            dv_dx: self.dv_dx,
+            du_dy: self.du_dy,
+            dv_dy: self.dv_dy,
+            material: self.material.clone(),
+            area_light: self.area_light.clone(),
+        }
+    }
 }
 
 impl Eq for SurfaceInteraction {}
@@ -196,7 +218,6 @@ impl Eq for SurfaceInteraction {}
 impl PartialEq<Self> for SurfaceInteraction {
     fn eq(&self, other: &Self) -> bool { self.hit.eq(&other.hit) }
 }
-
 impl PartialOrd<Self> for SurfaceInteraction {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> { self.hit.partial_cmp(&other.hit) }
 }

@@ -3,7 +3,7 @@ use std::{marker::PhantomData, sync::Arc};
 use image::Rgb;
 
 use crate::{
-    bxdf::{conductor::ConductorBxDF, dielectric::DielectricBxDF, BxDFEnum, DiffuseBxDF, BSDF},
+    bxdf::{BxDFEnum, ConductorBxDF, DielectricBxDF, DiffuseBxDF, BSDF},
     core::SurfaceInteraction,
     material::Material,
     textures::Texture,

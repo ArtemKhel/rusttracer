@@ -3,7 +3,7 @@ use std::sync::Arc;
 use image::Rgb;
 
 use crate::{
-    bxdf::{conductor::ConductorBxDF, BxDFEnum, DiffuseBxDF, BSDF},
+    bxdf::{BxDFEnum, ConductorBxDF, DiffuseBxDF, BSDF},
     core::SurfaceInteraction,
     material::Material,
     textures::Texture,

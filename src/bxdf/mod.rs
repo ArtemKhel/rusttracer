@@ -1,10 +1,12 @@
-pub mod bsdf;
-pub mod bxdf;
-pub mod conductor;
-pub mod dielectric;
-pub mod diffuse;
-pub mod utils;
+pub(crate) use bsdf::*;
+pub(crate) use bxdf::*;
+pub(crate) use conductor::*;
+pub(crate) use dielectric::*;
+pub(crate) use diffuse::*;
 
-pub use bsdf::BSDF;
-pub use bxdf::{BxDF, BxDFEnum};
-pub use diffuse::DiffuseBxDF;
+mod bsdf;
+mod bxdf;
+mod conductor;
+mod dielectric;
+mod diffuse;
+mod utils;

@@ -36,13 +36,14 @@ impl RayIntegrator for RandomWalkIntegrator {
 
 impl RandomWalkIntegrator {
     pub fn new(scene: Scene, max_depth: u32, samples_per_pixel: u32) -> Self {
+        let sqrt_spp = samples_per_pixel.isqrt();
         RandomWalkIntegrator {
             state: RIState {
                 max_depth,
                 tile: TIState {
                     base: IState { scene },
-                    sampler: SamplerType::Independent(IndependentSampler::new(samples_per_pixel, 42)),
-                    // sampler: SamplerType::Stratified(StratifiedSampler::new(16, 16, true, 42)),
+                    // sampler: IndependentSampler::new(samples_per_pixel, 42).into(),
+                    sampler: StratifiedSampler::new(sqrt_spp, sqrt_spp, true, 42).into(),
                 },
             },
         }
@@ -51,7 +52,7 @@ impl RandomWalkIntegrator {
     fn random_walk(&self, ray: &Ray, depth: u32, sampler: &mut SamplerType) -> Rgb<f32> {
         let closest_hit = self.state.scene.cast_ray(ray);
         if let Some(mut interaction) = closest_hit {
-            let emitted = interaction.emitted_light();
+            let emitted = interaction.emitted_light().unwrap_or(colors::BLACK);
 
             if depth > self.state.max_depth {
                 return emitted;

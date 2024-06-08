@@ -1,14 +1,17 @@
+#![warn(clippy::all, clippy::pedantic)]
+#![allow(clippy::similar_names, clippy::many_single_char_names)]
 #![allow(unused)]
+#![allow(clippy::module_inception)]
+// For breakpoint! macro
 #![allow(internal_features)]
 #![feature(core_intrinsics)]
-#![feature(unboxed_closures, fn_traits)]
 #![feature(stmt_expr_attributes)]
-#![feature(test)]
 #![feature(const_trait_impl, effects)]
-#![feature(trait_alias)]
 #![feature(get_mut_unchecked)]
 #![feature(duration_millis_float)]
 #![feature(more_float_constants)]
+#![feature(isqrt)]
+#![feature(let_chains)]
 
 use std::{ops::DerefMut, sync::atomic::AtomicU32};
 

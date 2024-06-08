@@ -40,7 +40,7 @@ impl StratifiedSampler {
         (self.current_pixel, self.dimension, self.seed).hash(&mut hasher);
         let hash = hasher.finish();
         let mut rng = SmallRng::seed_from_u64(hash);
-        let rnd_index = rng.gen_range((0..self.samples_per_pixel));
+        let rnd_index = rng.gen_range(0..self.samples_per_pixel);
         (rnd_index + self.sample_index + hash as u32) % self.samples_per_pixel
     }
 
@@ -79,7 +79,7 @@ impl StratifiedSampler {
                 break;
             }
         }
-        return ((i + p) % l) as u32;
+        ((i + p) % l) as u32
     }
 }
 
@@ -102,7 +102,7 @@ impl Sampler for StratifiedSampler {
         let stratum = self.permutation_element_2() as f32;
         self.dimension += 1;
         let delta = if self.jitter { self.rng.gen() } else { 0.5 };
-        return (stratum + delta) / self.samples_per_pixel as f32;
+        (stratum + delta) / self.samples_per_pixel as f32
     }
 
     fn get_2d(&mut self) -> Point2f {

@@ -1,6 +1,7 @@
 use std::{
     cell::{Cell, RefCell},
     cmp::{max, min},
+    intrinsics::breakpoint,
     sync::Arc,
 };
 
@@ -13,6 +14,7 @@ use rayon::{current_thread_index, prelude::*};
 use thread_local::ThreadLocal;
 
 use crate::{
+    breakpoint,
     integrators::{IState, Integrator},
     math::{Bounds2, Point2},
     point2,
@@ -68,6 +70,8 @@ where T: TileIntegrator + Sync + Send
                         let mut thread_sampler = thread_local_sampler
                             .get_or(|| RefCell::new(self.get_ti_state().sampler.clone()))
                             .borrow_mut();
+
+                        // breakpoint!(x == 145 && y == 155);
 
                         thread_sampler.start_pixel_sample(pixel_coords, sample_index);
                         self.evaluate_pixel(pixel_coords, &mut thread_sampler);
