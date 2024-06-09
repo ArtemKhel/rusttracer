@@ -6,6 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+arrayvec = "0.7.4"
 approx = "0.5.1"
 approx-derive = "0.1.3"
 bitflags = "2.5.0"
@@ -21,6 +22,7 @@ log = "0.4.21"
 ndarray = { version = "0.15.6",features = [] }
 num-complex = "0.4.6"
 num-traits = "0.2.19"
+ouroboros = "0.18.4"
 rand = { version = "0.8.5", features = ["small_rng"] }
 rand_seeder = "0.2.3"
 rayon = "1.10.0"

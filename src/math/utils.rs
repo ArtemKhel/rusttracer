@@ -1,41 +1,21 @@
-use std::{fmt::Debug, ops::Deref};
+use std::{
+    fmt::Debug,
+    ops::{Add, Deref, Mul, Sub},
+};
 
-use num_traits::{real::Real, Signed, ToPrimitive};
-use rand::{distributions::uniform::SampleUniform, random};
+use num_traits::{real::Real, One, Signed, ToPrimitive, Zero};
+use rand::distributions::uniform::SampleUniform;
 
 use crate::{
     core::Ray,
-    math::{dot, unit::Unit, Dot, Normal3, Normed, Number, Vec3},
+    math::{dot, unit::Unit, Dot, Normed, Number},
     Normal3f, Vec3f,
 };
 
-// Random vectors now in 0..1 range
-// pub fn random_unit<T: Number + SampleUniform>() -> Unit<Vec3<T>> {
-//     loop {
-//         let rnd: Vec3<T> = random();
-//         if rnd.len() <= T::one() {
-//             break rnd.to_unit();
-//         }
-//     }
-// }
-//
-// pub fn random_on_hemisphere<T: Number + SampleUniform>(normal: &Unit<Vec3<T>>) -> Unit<Vec3<T>> {
-//     let random = random_unit();
-//     if normal.dot(&random) >= T::zero() {
-//         random
-//     } else {
-//         -random
-//     }
-// }
-//
-// pub fn random_in_unit_disk<T: Number + SampleUniform>() -> Vec3<T> {
-//     loop {
-//         let rnd: Vec3<T> = random();
-//         if rnd.len_squared() <= T::one() {
-//             break rnd;
-//         }
-//     }
-// }
+pub fn lerp<T>(a: T, b: T, t: T) -> T
+where T: Copy + One + Add<Output = T> + Sub<Output = T> + Mul<Output = T> {
+    (T::one() - t) * a + t * b
+}
 
 // pub fn reflect<T: Number>(vec: &Vec3<T>, normal: &Vec3<T>) -> Unit<Vec3<T>> {
 //     let _2 = (T::one() + T::one());
@@ -89,10 +69,7 @@ pub fn local_normal(normal: Vec3f, ray: &Ray) -> Vec3f {
 pub mod spherical_coordinates {
     use std::f32::consts::{FRAC_1_PI, PI};
 
-    use crate::{
-        math::{Point3, Vec3},
-        vec3, Vec3f,
-    };
+    use crate::{math::Vec3, vec3, Vec3f};
 
     pub fn spherical_theta(vec: Vec3<f32>) -> f32 { vec.z.acos() * FRAC_1_PI }
 

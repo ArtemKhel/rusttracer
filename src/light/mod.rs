@@ -1,15 +1,22 @@
-mod base;
-pub mod diffuse_area;
-pub mod point;
-
 use std::fmt::Debug;
 
 use bitflags::bitflags;
+pub use diffuse_area::DiffuseAreaLight;
 use image::Rgb;
+pub use light_sampler::LightSampler;
+pub use point::PointLight;
+pub use uniform_sampler::UniformLightSampler;
 
-use crate::{colors, core::SurfaceInteraction, math::Unit, Point2f, Point3f, Vec3f};
+use crate::{core::SurfaceInteraction, math::Unit, Point2f, Point3f, Vec3f};
 
-pub trait Light: Debug {
+mod base;
+mod diffuse_area;
+mod light_sampler;
+mod point;
+mod uniform_sampler;
+
+#[enum_delegate::register]
+pub trait Light {
     /// Total emitted power. Phi() in PBRT
     fn flux(&self) -> Rgb<f32>;
     fn light_type(&self) -> LightType;
@@ -46,4 +53,11 @@ pub struct LightSample {
     // TODO: mediums
     /// Point from which light is being emitted
     pub point: Point3f,
+}
+
+#[derive(Debug)]
+#[enum_delegate::implement(Light)]
+pub enum LightEnum {
+    Point(PointLight),
+    DiffuseArea(DiffuseAreaLight),
 }

@@ -5,7 +5,7 @@ use derive_new::new;
 use crate::{
     aggregates::{Aabb, Bounded},
     core::{Ray, SurfaceInteraction},
-    light::Light,
+    light::{Light, LightEnum},
     material::MaterialsEnum,
     scene::primitives::Primitive,
     shapes::{BoundedIntersectable, Intersectable},
@@ -16,7 +16,7 @@ use crate::{
 pub struct GeometricPrimitive {
     pub shape: Arc<dyn BoundedIntersectable>,
     pub material: Arc<MaterialsEnum>,
-    pub light: Option<Arc<dyn Light>>,
+    pub light: Option<Arc<LightEnum>>,
     // medium_interface
     // alpha
 }

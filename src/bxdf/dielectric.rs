@@ -84,6 +84,8 @@ impl BxDF for DielectricBxDF {
     }
 }
 
+/// Computes the unpolarized Fresnel reflection of a dielectric interface
+/// https://graphics.stanford.edu/courses/cs148-10-summer/docs/2006--degreve--reflection_refraction.pdf
 fn fresnel_dielectric(mut cos_theta_in: f32, mut eta: f32) -> f32 {
     // Flip in case of leaving the object
     if cos_theta_in.is_negative() {

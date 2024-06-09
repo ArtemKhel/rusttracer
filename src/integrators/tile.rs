@@ -29,12 +29,12 @@ pub(super) struct TIState {
     #[deref]
     pub(crate) base: IState,
     pub(crate) sampler: SamplerType,
+    pub(crate) save_intermediate: bool
 }
 
 pub(super) trait TileIntegrator: Integrator {
     fn evaluate_pixel(&self, pixel: Point2us, sampler: &mut SamplerType);
     fn get_ti_state(&self) -> &TIState;
-    fn get_ti_state_mut(&mut self) -> &mut TIState;
 }
 
 impl<T> Integrator for T
@@ -78,21 +78,20 @@ where T: TileIntegrator + Sync + Send
                     });
                 });
                 start = till;
-                till = min(till * 2, spp)
+                till = min(till * 2, spp);
+                
+                if self.get_ti_state().save_intermediate{
+                    self.save_image()
+                }
             }
         });
         info!(
             "Rendering time: {rendering_time:.3}s, {:.3}s per sample",
             rendering_time / spp as f32
         );
-        self.get_state()
-            .scene
-            .camera
-            .get_film()
-            .write_image("./images/_image.png");
+        
+        self.save_image()
     }
 
     fn get_state(&self) -> &IState { &self.get_ti_state().base }
-
-    fn get_state_mut(&mut self) -> &mut IState { &mut self.get_ti_state_mut().base }
 }

@@ -27,6 +27,7 @@ pub mod light;
 mod samplers;
 pub mod scene;
 pub mod shapes;
+pub mod spectra;
 pub mod test_scenes;
 pub mod textures;
 pub mod utils;

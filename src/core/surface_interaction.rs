@@ -8,7 +8,7 @@ use crate::{
     bxdf::BSDF,
     colors,
     core::{interaction::Interaction, Ray},
-    light::Light,
+    light::{Light, LightEnum},
     material::{Material, MaterialsEnum},
     math::{dot, Dot, Transform, Transformable},
     samplers::SamplerType,
@@ -35,7 +35,7 @@ pub struct SurfaceInteraction {
     pub du_dy: f32,
     pub dv_dy: f32,
     pub material: Option<Arc<MaterialsEnum>>,
-    pub area_light: Option<Arc<dyn Light>>,
+    pub area_light: Option<Arc<LightEnum>>,
 }
 
 impl SurfaceInteraction {
@@ -89,7 +89,7 @@ impl SurfaceInteraction {
         }
     }
 
-    pub fn set_material_properties(&mut self, material: &Arc<MaterialsEnum>, area_light: Option<&Arc<dyn Light>>) {
+    pub fn set_material_properties(&mut self, material: &Arc<MaterialsEnum>, area_light: Option<&Arc<LightEnum>>) {
         self.material = Some(material.clone());
         self.area_light = area_light.cloned()
     }

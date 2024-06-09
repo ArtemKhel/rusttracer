@@ -30,8 +30,6 @@ impl RayIntegrator for RandomWalkIntegrator {
     fn light_incoming(&self, ray: &Ray, sampler: &mut SamplerType) -> Rgb<f32> { self.random_walk(ray, 0, sampler) }
 
     fn get_ri_state(&self) -> &RIState { &self.state }
-
-    fn get_ri_state_mut(&mut self) -> &mut RIState { &mut self.state }
 }
 
 impl RandomWalkIntegrator {
@@ -44,6 +42,7 @@ impl RandomWalkIntegrator {
                     base: IState { scene },
                     // sampler: IndependentSampler::new(samples_per_pixel, 42).into(),
                     sampler: StratifiedSampler::new(sqrt_spp, sqrt_spp, true, 42).into(),
+                    save_intermediate: false,
                 },
             },
         }

@@ -3,9 +3,9 @@ use std::sync::Arc;
 use crate::{
     aggregates::BVH,
     colors,
-    light::diffuse_area::DiffuseAreaLight,
+    light::{DiffuseAreaLight, LightEnum},
     material::{glass::Glass, matte::Matte, metal::Metal, MaterialsEnum},
-    math::{axis::Axis3, Transform},
+    math::{axis::Axis3, Transform, Vec3},
     point2, point3,
     scene::{
         cameras::{BaseCameraConfig, CameraType, PerspectiveCamera, PerspectiveCameraConfig},
@@ -14,6 +14,7 @@ use crate::{
         Scene,
     },
     shapes::{quad::Quad, sphere::Sphere},
+    test_scenes::teapot_triangles,
     textures::constant::ConstantTexture,
     vec3, Bounds2f,
 };
@@ -78,15 +79,15 @@ fn base_box(
         },
     ];
 
-    for x in [200., 500., 800.].into_iter() {
-        walls.push(SimplePrimitive {
-            shape: Arc::new(Sphere {
-                radius: 100.,
-                transform: Transform::id().then_translate(vec3!(x, 100., 200.)),
-            }),
-            material: glass.clone(),
-        });
-    }
+    // for x in [200., 500., 800.].into_iter() {
+    //     walls.push(SimplePrimitive {
+    //         shape: Arc::new(Sphere {
+    //             radius: 100.,
+    //             transform: Transform::id().then_translate(vec3!(x, 100., 200.)),
+    //         }),
+    //         material: glass.clone(),
+    //     });
+    // }
     let mut base_box: Vec<Arc<PrimitiveEnum>> = walls.into_iter().map(|x| Arc::new(PrimitiveEnum::Simple(x))).collect();
     base_box
 }
@@ -97,12 +98,12 @@ pub fn cornell_box() -> Scene {
             transform: Transform::id()
                 .then_rotate_degrees(Axis3::Y, 180.)
                 .then_translate(vec3!(500., 500., -1000.)),
-            film: RGBFilm::new(300, 300),
+            film: RGBFilm::new(400,400),
         },
         fov: 55.0,
         screen_window: Bounds2f::from_points(point2!(-1., -1.), point2!(1., 1.)),
-        lens_radius: 1.0,
-        focal_distance: 1200.0,
+        lens_radius: 10.0,
+        focal_distance: 1500.0,
     })
     .into();
 
@@ -133,27 +134,58 @@ pub fn cornell_box() -> Scene {
     }));
 
     let mut cornell_box = base_box(&matte_green, &matte_red, &metal, &matte_gray, &glass);
-    let light_shape = Arc::new(Quad::new(
-        point3!(300., 950., 300.),
-        vec3!(400., 0., 0.),
-        vec3!(0., 0., 400.),
+    let light_left_shape = Arc::new(Quad::new(
+        point3!(850., 950., 50.),
+        vec3!(50., 0., 0.),
+        vec3!(0., 0., 900.),
         Transform::id(),
     ));
-    let light_source = Arc::new(DiffuseAreaLight::new(
-        colors::WHITE,
-        3.,
+    let light_right_shape = Arc::new(Quad::new(
+        point3!(100., 950., 50.),
+        vec3!(50., 0., 0.),
+        vec3!(0., 0., 900.),
         Transform::id(),
-        light_shape.clone(),
     ));
-    let light = GeometricPrimitive {
-        shape: light_shape.clone(),
+    let light_source_left = Arc::new(LightEnum::DiffuseArea(DiffuseAreaLight::new(
+        colors::LIGHT_GRAY,
+        0.8,
+        Transform::id(),
+        light_left_shape.clone(),
+    )));
+    let light_source_right = Arc::new(LightEnum::DiffuseArea(DiffuseAreaLight::new(
+        colors::LIGHT_GRAY,
+        0.8,
+        Transform::id(),
+        light_right_shape.clone(),
+    )));
+    let light_left = GeometricPrimitive {
+        shape: light_left_shape.clone(),
         material: matte_gray.clone(),
-        light: Some(light_source.clone()),
+        light: Some(light_source_left.clone()),
     };
-    cornell_box.push(Arc::new(PrimitiveEnum::Geometric(light)));
+    let light_right = GeometricPrimitive {
+        shape: light_right_shape.clone(),
+        material: matte_gray.clone(),
+        light: Some(light_source_right.clone()),
+    };
+    cornell_box.push(Arc::new(PrimitiveEnum::Geometric(light_left)));
+    cornell_box.push(Arc::new(PrimitiveEnum::Geometric(light_right)));
+
+    let tri = teapot_triangles(Transform::scale_uniform(150.).then_translate(vec3!(500., 0., 500.)));
+    let tri: Vec<Arc<PrimitiveEnum>> = tri
+        .into_iter()
+        .map(Arc::new)
+        .map(|x| SimplePrimitive {
+            shape: x,
+            material: metal.clone(),
+        })
+        .map(PrimitiveEnum::Simple)
+        .map(Arc::new)
+        .collect();
+    cornell_box.extend(tri);
 
     let objects = PrimitiveEnum::BVH(BVH::new(cornell_box, 8));
-    let lights = vec![light_source as _];
+    let lights = vec![light_source_left as _, light_source_right as _];
 
     Scene {
         camera,

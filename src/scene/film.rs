@@ -10,7 +10,9 @@ use rand::random;
 use crate::{
     colors,
     math::{Bounds2, Point2},
-    point2, Point2u, Point2us,
+    point2,
+    utils::linear_to_gamma,
+    Point2u, Point2us,
 };
 
 pub trait Film {
@@ -78,7 +80,7 @@ impl Film for RGBFilm {
         let raw_pixels: Vec<f32> = self
             .pixels
             .iter()
-            .flat_map(|pix| pix.rgb.0.map(|x| x / pix.weight))
+            .flat_map(|pix| linear_to_gamma(pix.rgb.map(|x| x / pix.weight)).0)
             .collect();
         let image =
             ImageBuffer::<Rgb<f32>, Vec<f32>>::from_vec(self.resolution.x as u32, self.resolution.y as u32, raw_pixels)

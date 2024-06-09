@@ -47,6 +47,7 @@ impl BxDF for ConductorBxDF {
     }
 }
 
+/// https://graphics.stanford.edu/courses/cs148-10-summer/docs/2006--degreve--reflection_refraction.pdf
 fn fresnel_complex(mut cos_theta_in: f32, eta: Complex32) -> f32 {
     cos_theta_in = cos_theta_in.clamp(0., 1.);
     let sin_2_theta_in = 1. - cos_theta_in.powi(2);

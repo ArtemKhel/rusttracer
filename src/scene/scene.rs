@@ -5,7 +5,7 @@ use image::Rgb;
 use crate::{
     aggregates::BVH,
     core::{Ray, SurfaceInteraction},
-    light::Light,
+    light::{Light, LightEnum},
     material::Material,
     scene::{cameras::CameraType, primitives::PrimitiveEnum},
     shapes::Intersectable,
@@ -15,7 +15,7 @@ pub struct Scene {
     pub camera: CameraType,
     pub objects: PrimitiveEnum,
     // pub materials: ???
-    pub lights: Vec<Arc<dyn Light>>,
+    pub lights: Vec<Arc<LightEnum>>,
     // pub background_color: Rgb<f32>,
 }
 

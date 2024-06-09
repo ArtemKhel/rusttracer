@@ -14,7 +14,7 @@ use rayon::join;
 use crate::{
     aggregates::{aabb::Sign, Aabb, Bounded},
     breakpoint,
-    core::{hit::Hit, Ray, SurfaceInteraction},
+    core::{Ray, SurfaceInteraction},
     math::{axis::Axis3, Normed, Number, Point3},
     normal3, point3,
     scene::primitives::PrimitiveEnum,
@@ -121,7 +121,7 @@ impl BVH<f32> {
     }
 
     fn recursive_build(
-        primitives: &Vec<Arc<PrimitiveEnum>>,
+        primitives: &[Arc<PrimitiveEnum>],
         primitives_info: &mut [BVHPrimitiveInfo<f32>],
         ordered_primitives: &mut Vec<Arc<PrimitiveEnum>>,
         total_nodes: &mut usize,

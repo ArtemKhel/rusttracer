@@ -20,7 +20,6 @@ use crate::{
 pub(super) trait RayIntegrator: TileIntegrator {
     fn light_incoming(&self, ray: &Ray, sampler: &mut SamplerType) -> Rgb<f32>;
     fn get_ri_state(&self) -> &RIState;
-    fn get_ri_state_mut(&mut self) -> &mut RIState;
 }
 
 #[derive(Deref)]
@@ -56,6 +55,4 @@ where T: RayIntegrator
     }
 
     fn get_ti_state(&self) -> &TIState { &self.get_ri_state().tile }
-
-    fn get_ti_state_mut(&mut self) -> &mut TIState { &mut self.get_ri_state_mut().tile }
 }

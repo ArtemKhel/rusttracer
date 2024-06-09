@@ -2,7 +2,7 @@ use num_traits::Pow;
 
 use crate::{
     aggregates::Aabb,
-    core::{Hit, Interaction, Ray, SurfaceInteraction},
+    core::{Interaction, Ray, SurfaceInteraction},
     math::{
         cross, dot, utils::local_normal, Cross, Dot, Frame, Normed, Number, Point3, Transform, Transformable, Unit,
         Vec3,
