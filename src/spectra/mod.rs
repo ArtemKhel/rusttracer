@@ -1,23 +1,23 @@
 use arrayvec::ArrayVec;
 pub use constant::ConstantSpectrum;
 pub use densely_sampled::DenselySampledSpectrum;
+use named::NamedSpectra;
 
 use crate::spectra::{
-    blackbody::BlackbodySpectrum, piecewise_linear::PiecewiseLinearSpectrum,
-    sampled_spectrum::SampledSpectrum, sampled_wavelengths::SampledWavelengths,
+    blackbody::BlackbodySpectrum, piecewise_linear::PiecewiseLinearSpectrum, sampled_spectrum::SampledSpectrum,
+    sampled_wavelengths::SampledWavelengths,
 };
-use named::NamedSpectra;
 
 mod blackbody;
 mod cie;
 mod constant;
 mod densely_sampled;
+mod named;
 mod piecewise_linear;
 mod rgb_color;
 mod sampled_spectrum;
 mod sampled_wavelengths;
 mod xyz;
-mod named;
 
 const LAMBDA_MIN: f32 = 360.;
 const LAMBDA_MAX: f32 = 830.;
@@ -38,8 +38,6 @@ pub enum SpectrumEnum {
     PiecewiseLinear(PiecewiseLinearSpectrum),
     Blackbody(BlackbodySpectrum),
 }
-
-
 
 // todo
 fn inner_product<F: Spectrum, G: Spectrum>(f: &F, g: &G) -> f32 {

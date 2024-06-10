@@ -33,6 +33,7 @@ unsafe impl Send for DebugNormalIntegrator {}
 
 impl RayIntegrator for DebugNormalIntegrator {
     fn light_incoming(&self, ray: &Ray, sampler: &mut SamplerType) -> Rgb<f32> { self.normal_as_rgb(ray) }
+
     fn get_ri_state(&self) -> &RIState { &self.state }
 }
 

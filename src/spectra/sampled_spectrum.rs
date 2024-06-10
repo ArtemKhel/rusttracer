@@ -1,8 +1,4 @@
-use std::{
-    fmt::Debug,
-    iter::zip
-    ,
-};
+use std::{fmt::Debug, iter::zip};
 
 use arrayvec::ArrayVec;
 use derive_more::{Deref, DerefMut, From};
@@ -12,11 +8,11 @@ use num_traits::Zero;
 
 use crate::spectra::{
     cie::{CIE, CIE_Y_INTEGRAL},
-    rgb_color::{RGB, RGBColorSpace},
+    rgb_color::{RGBColorSpace, RGB},
     sampled_wavelengths::SampledWavelengths,
+    xyz::XYZ,
     Spectrum,
 };
-use crate::spectra::xyz::XYZ;
 
 #[derive(Clone, Debug)]
 #[derive(new)]
@@ -28,9 +24,7 @@ pub struct SampledSpectrum<const N: usize> {
 impl<const N: usize> SampledSpectrum<N> {
     pub fn has_nan(&self) -> bool { self.iter().any(|x| x.is_nan()) }
 
-    pub fn avg(&self) -> f32 {
-        self.values.iter().sum::<f32>() / (self.values.len() as f32)
-    }
+    pub fn avg(&self) -> f32 { self.values.iter().sum::<f32>() / (self.values.len() as f32) }
 
     pub fn to_xyz(&self, lambda: &SampledWavelengths<N>) -> XYZ {
         let x = CIE::X.get().sample(lambda);
@@ -67,7 +61,6 @@ impl<const N: usize> Zero for SampledSpectrum<N> {
 
     fn is_zero(&self) -> bool { self.iter().all(f32::is_zero) }
 }
-
 
 type SS<const N: usize> = SampledSpectrum<N>;
 

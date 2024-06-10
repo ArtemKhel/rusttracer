@@ -5,15 +5,14 @@ use derive_more::{Add, AddAssign, Deref, DerefMut, Div, DivAssign, From, Mul, Mu
 use gen_ops::gen_ops;
 use num_traits::Float;
 use rand::{
-    distributions::{Standard, uniform::SampleUniform},
+    distributions::{uniform::SampleUniform, Standard},
     prelude::Distribution,
     Rng,
 };
 
 use crate::{
     impl_axis_index,
-    math::{axis::Axis2, Number, vec2::Vec2}
-    ,
+    math::{axis::Axis2, vec2::Vec2, Number},
 };
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Hash)]
@@ -31,9 +30,11 @@ macro_rules! point2 {
         $crate::math::Point2::new($x, $y)
     };
 }
-impl<T> Point2<T>{
+impl<T> Point2<T> {
     pub fn new(x: T, y: T) -> Point2<T> {
-        Point2 { coords: Vec2::new(x, y) }
+        Point2 {
+            coords: Vec2::new(x, y),
+        }
     }
 }
 
@@ -91,7 +92,7 @@ where Standard: Distribution<T>
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Point2<T> { Point2::from(rng.gen::<Vec2<T>>()) }
 }
 
-impl<T: Float + AbsDiffEq<Epsilon=T>> AbsDiffEq for Point2<T> {
+impl<T: Float + AbsDiffEq<Epsilon = T>> AbsDiffEq for Point2<T> {
     type Epsilon = T;
 
     fn default_epsilon() -> Self::Epsilon { T::epsilon() }

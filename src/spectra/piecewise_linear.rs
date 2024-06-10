@@ -1,7 +1,12 @@
 use std::ops::Deref;
-use crate::{math::utils::lerp, spectra::Spectrum};
-use crate::spectra::{inner_product, LAMBDA_MAX, LAMBDA_MIN};
-use crate::spectra::cie::{CIE, CIE_Y_INTEGRAL};
+
+use crate::{
+    math::utils::lerp,
+    spectra::{
+        cie::{CIE, CIE_Y_INTEGRAL},
+        inner_product, Spectrum, LAMBDA_MAX, LAMBDA_MIN,
+    },
+};
 
 #[derive(Clone, Debug)]
 pub struct PiecewiseLinearSpectrum {
@@ -23,37 +28,35 @@ impl PiecewiseLinearSpectrum {
         assert_eq!(len % 2, 0);
         let half = len / 2;
 
-        let mut lambdas = Vec::<f32>::with_capacity(half+2);
-        let mut values = Vec::<f32>::with_capacity(half+2);
-        
-        if from[0] > LAMBDA_MIN{
+        let mut lambdas = Vec::<f32>::with_capacity(half + 2);
+        let mut values = Vec::<f32>::with_capacity(half + 2);
+
+        if from[0] > LAMBDA_MIN {
             lambdas.push(from[0]);
             values.push(from[1]);
         }
-        
+
         from.chunks_exact(2).for_each(|x| {
             lambdas.push(x[0]);
             values.push(x[1]);
         });
-        
-        if from[len-2] < LAMBDA_MAX{
-            lambdas.push(from[len-2]);
-            values.push(from[len-1]);
+
+        if from[len - 2] < LAMBDA_MAX {
+            lambdas.push(from[len - 2]);
+            values.push(from[len - 1]);
         }
 
         let mut spectrum = PiecewiseLinearSpectrum { lambdas, values };
-        
+
         // Normalize to have luminance of 1.
         if (normalize) {
             spectrum.scale(CIE_Y_INTEGRAL / inner_product(&spectrum, CIE::Y.get()));
         }
-        
+
         spectrum
     }
-    
-    fn scale(&mut self, factor: f32){
-        self.values.iter_mut().for_each(|x| *x *= factor);
-    }
+
+    fn scale(&mut self, factor: f32) { self.values.iter_mut().for_each(|x| *x *= factor); }
 }
 
 impl Spectrum for PiecewiseLinearSpectrum {

@@ -1,14 +1,16 @@
 use std::sync::{Arc, LazyLock};
-use crate::spectra::piecewise_linear::PiecewiseLinearSpectrum;
-use crate::spectra::SpectrumEnum;
 
-pub enum NamedSpectra{
+use crate::spectra::{piecewise_linear::PiecewiseLinearSpectrum, SpectrumEnum};
+
+pub enum NamedSpectra {
     IlluminantD65,
 }
 
-impl NamedSpectra{
-    pub fn get(&self) -> Arc<SpectrumEnum>{
-        match self { NamedSpectra::IlluminantD65 => ILLUMINANT_D65.clone() } 
+impl NamedSpectra {
+    pub fn get(&self) -> Arc<SpectrumEnum> {
+        match self {
+            NamedSpectra::IlluminantD65 => ILLUMINANT_D65.clone(),
+        }
     }
 }
 

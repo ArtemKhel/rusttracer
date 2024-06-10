@@ -1,8 +1,14 @@
-use derive_new::new;
 use derive_more::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
-use crate::spectra::{inner_product, LAMBDA_MAX, LAMBDA_MIN, Spectrum, SpectrumEnum};
-use crate::{point2, Point2f, Vec3f};
-use crate::spectra::cie::{CIE, CIE_Y_INTEGRAL};
+use derive_new::new;
+
+use crate::{
+    point2,
+    spectra::{
+        cie::{CIE, CIE_Y_INTEGRAL},
+        inner_product, Spectrum, SpectrumEnum, LAMBDA_MAX, LAMBDA_MIN,
+    },
+    Point2f, Vec3f,
+};
 
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
 #[derive(new)]
@@ -51,4 +57,3 @@ impl From<&SpectrumEnum> for XYZ {
         } / CIE_Y_INTEGRAL
     }
 }
-

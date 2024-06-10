@@ -2,12 +2,16 @@ use std::ops::Deref;
 // Spectral Data
 use std::sync::LazyLock;
 
-use crate::spectra::{DenselySampledSpectrum, piecewise_linear::PiecewiseLinearSpectrum, SpectrumEnum};
+use crate::spectra::{piecewise_linear::PiecewiseLinearSpectrum, DenselySampledSpectrum, SpectrumEnum};
 
 pub(super) const CIE_Y_INTEGRAL: f32 = 106.856895;
 pub(super) const N_CIE_SAMPLES: usize = 471;
 
-pub enum CIE { X, Y, Z }
+pub enum CIE {
+    X,
+    Y,
+    Z,
+}
 
 impl CIE {
     pub fn get(&self) -> &'static SpectrumEnum {

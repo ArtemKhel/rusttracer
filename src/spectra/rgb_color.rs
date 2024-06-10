@@ -1,15 +1,14 @@
 use std::sync::Arc;
+
 use derive_more::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 use derive_new::new;
 use rgb2spec::RGB2Spec;
 
 use crate::{
-    math::Matrix3
-    ,
-    Point2f,
-    spectra::SpectrumEnum, Vec3f,
+    math::Matrix3,
+    spectra::{xyz::XYZ, SpectrumEnum},
+    Point2f, Vec3f,
 };
-use crate::spectra::xyz::XYZ;
 
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
 #[derive(new)]
@@ -45,14 +44,21 @@ pub struct RGBColorSpace {
 
 impl RGBColorSpace {
     #[allow(non_snake_case)]
-    pub fn new(r: Point2f, g: Point2f, b: Point2f, illuminant: Arc<SpectrumEnum>/*, rgb2spec: RGB2Spec*/) -> Self {
+    pub fn new(
+        r: Point2f,
+        g: Point2f,
+        b: Point2f,
+        illuminant: Arc<SpectrumEnum>, /* , rgb2spec: RGB2Spec */
+    ) -> Self {
         let W = XYZ::from(illuminant.as_ref());
         let whitepoint = W.xy();
         let xyz_r = XYZ::from_xy(r);
         let xyz_g = XYZ::from_xy(g);
         let xyz_b = XYZ::from_xy(b);
 
-        let rgb = Matrix3::from_elements(xyz_r.x, xyz_g.x, xyz_b.x, xyz_r.y, xyz_g.y, xyz_b.y, xyz_r.z, xyz_g.z, xyz_b.z);
+        let rgb = Matrix3::from_elements(
+            xyz_r.x, xyz_g.x, xyz_b.x, xyz_r.y, xyz_g.y, xyz_b.y, xyz_r.z, xyz_g.z, xyz_b.z,
+        );
 
         let C = rgb.invert().unwrap() * Vec3f::from(W);
         let rgb_to_xyz = rgb * Matrix3::diag(C.x, C.y, C.z);

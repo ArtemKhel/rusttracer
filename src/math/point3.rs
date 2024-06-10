@@ -38,7 +38,13 @@ macro_rules! point3 {
     };
 }
 
-impl<T> Point3<T>{ pub fn new(x: T, y: T, z: T) -> Point3<T> { Point3 { coords: Vec3::new(x, y, z) } } }
+impl<T> Point3<T> {
+    pub fn new(x: T, y: T, z: T) -> Point3<T> {
+        Point3 {
+            coords: Vec3::new(x, y, z),
+        }
+    }
+}
 
 impl<T: Number> Point3<T> {
     pub fn min_coords(lhs: Point3<T>, rhs: Point3<T>) -> Point3<T> {
