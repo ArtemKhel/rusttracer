@@ -1,9 +1,11 @@
 use image::{ImageBuffer, Rgb};
 use rayon::iter::ParallelIterator;
 
-use crate::{math::Point2, scene::Scene, Int, Point2u};
-use crate::scene::cameras::Camera;
-use crate::scene::film::Film;
+use crate::{
+    math::Point2,
+    scene::{cameras::Camera, film::Film, Scene},
+    Int, Point2u,
+};
 
 pub mod debug_normal;
 pub mod random_walk;
@@ -19,8 +21,8 @@ mod tile;
 pub trait Integrator {
     fn render(&mut self);
     fn get_state(&self) -> &IState;
-    
-    fn save_image(&self){
+
+    fn save_image(&self) {
         self.get_state()
             .scene
             .camera

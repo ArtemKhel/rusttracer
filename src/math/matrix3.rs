@@ -1,9 +1,13 @@
-use std::ops::Mul;
+use std::ops::{Index, Mul};
 
+use arrayvec::ArrayVec;
+use itertools::Itertools;
 use num_traits::Zero;
+use strum::IntoEnumIterator;
 
 use crate::{
-    math::{axis::Axis3, Number, Vec3},
+    impl_axis_index,
+    math::{axis::Axis3, dot, Number, Vec3},
     vec3,
 };
 
@@ -31,6 +35,14 @@ impl<T: Number> Matrix3<T> {
         }
     }
 
+    pub fn diag(x: T, y: T, z: T) -> Self {
+        Matrix3 {
+            x: Vec3::from_axis(Axis3::X, x),
+            y: Vec3::from_axis(Axis3::Y, y),
+            z: Vec3::from_axis(Axis3::Z, z),
+        }
+    }
+
     #[rustfmt::skip]
     #[allow(clippy::too_many_arguments)]
     pub fn from_elements(
@@ -43,6 +55,19 @@ impl<T: Number> Matrix3<T> {
             y: vec3!(m10, m11, m12),
             z: vec3!(m20, m21, m22),
         }
+    }
+
+    pub fn from_array(array: &[T; 9]) -> Self {
+        Self::from_elements(
+            array[0], array[1], array[2], array[3], array[4], array[5], array[6], array[7], array[8],
+        )
+    }
+
+    pub fn row(&self, axis: Axis3) -> Vec3<T> { self[axis] }
+
+    pub fn col(&self, axis: Axis3) -> Vec3<T> {
+        use Axis3::*;
+        Vec3::new(self[X][axis], self[Y][axis], self[Z][axis])
     }
 
     pub fn determinant(&self) -> T {
@@ -77,7 +102,7 @@ impl<T: Number> Matrix3<T> {
         let inv_det = det.recip();
 
         #[rustfmt::skip]
-        let adj = Matrix3 {
+            let adj = Matrix3 {
             x: vec3!(
                 (self.y.y * self.z.z - self.y.z * self.z.y),
                -(self.y.x * self.z.z - self.y.z * self.z.x),
@@ -98,6 +123,33 @@ impl<T: Number> Matrix3<T> {
     }
 }
 
+impl<T: Number> Mul for Matrix3<T> {
+    type Output = Matrix3<T>;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        Matrix3::from_array(
+            &Axis3::iter()
+                .cartesian_product(Axis3::iter())
+                .map(|(i, j)| self[i][j] * rhs[j][i])
+                .collect::<ArrayVec<T, 9>>()
+                .into_inner()
+                .unwrap(),
+        )
+    }
+}
+
+impl<T: Number> Mul<Vec3<T>> for Matrix3<T> {
+    type Output = Vec3<T>;
+
+    fn mul(self, rhs: Vec3<T>) -> Self::Output {
+        Vec3 {
+            x: dot(&self.x, &rhs),
+            y: dot(&self.y, &rhs),
+            z: dot(&self.z, &rhs),
+        }
+    }
+}
+
 impl<T: Number> Mul<T> for Matrix3<T> {
     type Output = Matrix3<T>;
 
@@ -109,6 +161,8 @@ impl<T: Number> Mul<T> for Matrix3<T> {
         }
     }
 }
+
+impl_axis_index!(Matrix3, Axis3, Vec3<T>, (X, x), (Y, y), (Z, z));
 
 #[cfg(test)]
 mod tests {

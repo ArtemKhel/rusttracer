@@ -98,7 +98,7 @@ pub fn cornell_box() -> Scene {
             transform: Transform::id()
                 .then_rotate_degrees(Axis3::Y, 180.)
                 .then_translate(vec3!(500., 500., -1000.)),
-            film: RGBFilm::new(400,400),
+            film: RGBFilm::new(400, 400),
         },
         fov: 55.0,
         screen_window: Bounds2f::from_points(point2!(-1., -1.), point2!(1., 1.)),

@@ -29,7 +29,7 @@ pub(super) struct TIState {
     #[deref]
     pub(crate) base: IState,
     pub(crate) sampler: SamplerType,
-    pub(crate) save_intermediate: bool
+    pub(crate) save_intermediate: bool,
 }
 
 pub(super) trait TileIntegrator: Integrator {
@@ -79,8 +79,8 @@ where T: TileIntegrator + Sync + Send
                 });
                 start = till;
                 till = min(till * 2, spp);
-                
-                if self.get_ti_state().save_intermediate{
+
+                if self.get_ti_state().save_intermediate {
                     self.save_image()
                 }
             }
@@ -89,7 +89,7 @@ where T: TileIntegrator + Sync + Send
             "Rendering time: {rendering_time:.3}s, {:.3}s per sample",
             rendering_time / spp as f32
         );
-        
+
         self.save_image()
     }
 

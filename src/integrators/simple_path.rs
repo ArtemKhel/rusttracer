@@ -15,10 +15,9 @@ use crate::{
     light::{Light, LightSampler, UniformLightSampler},
     math::{dot, Normed, Unit},
     ray,
-    samplers::{Sampler, SamplerType, StratifiedSampler},
+    samplers::{IndependentSampler, Sampler, SamplerType, StratifiedSampler},
     scene::Scene,
 };
-use crate::samplers::IndependentSampler;
 
 // TODO: or just copy lights for the light sampler?
 #[self_referencing]

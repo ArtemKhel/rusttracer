@@ -45,7 +45,7 @@ axis_conversion!(Axis3, Axis2, {X,Y});
 #[macro_export]
 macro_rules! impl_axis_index {
     ($type_name:ident, $axis_name:ident, $output:ty, $( ($axis:ident, $field:ident) ),* ) => {
-        impl<T> Index<$axis_name> for $type_name<T>{
+        impl<T> std::ops::Index<$axis_name> for $type_name<T>{
             type Output = $output;
 
             fn index(&self, index: $axis_name) -> &Self::Output {
@@ -54,7 +54,7 @@ macro_rules! impl_axis_index {
                 }
             }
         }
-        impl<T> IndexMut<$axis_name> for $type_name<T>{
+        impl<T> std::ops::IndexMut<$axis_name> for $type_name<T>{
             fn index_mut(&mut self, index: $axis_name) -> &mut Self::Output {
                 match index{
                     $( $axis_name::$axis => &mut self.$field ), *

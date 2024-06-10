@@ -1,7 +1,12 @@
+use std::sync::LazyLock;
+
 use arrayvec::ArrayVec;
 use derive_more::Deref;
 
-use crate::math::utils::lerp;
+use crate::{math::utils::lerp, point2, spectra::sampled_spectrum::SampledSpectrum};
+use crate::spectra::named::NamedSpectra;
+use crate::spectra::rgb_color::RGBColorSpace;
+use crate::spectra::SpectrumEnum;
 
 #[derive(Debug, Default)]
 #[derive(Deref)]
@@ -38,4 +43,15 @@ impl<const N: usize> SampledWavelengths<N> {
         self.pdf.iter_mut().skip(1).for_each(|x| *x = 0.);
         self.pdf[0] /= N as f32;
     }
+
+    pub fn pdf(&self) -> SampledSpectrum<N> { SampledSpectrum::new(self.pdf.clone()) }
 }
+
+pub static SRGB: LazyLock<RGBColorSpace> = LazyLock::new(||
+    RGBColorSpace::new(
+        point2!(0.64, 0.33),
+        point2!(0.3, 0.6),
+        point2!(0.15, 0.06),
+        NamedSpectra::get(NamedSpectra::IlluminantD65),
+    )
+);

@@ -1,20 +1,19 @@
-use std::ops::{Index, IndexMut};
+use std::ops::Index;
 
 use approx::AbsDiffEq;
 use derive_more::{Add, AddAssign, Deref, DerefMut, Div, DivAssign, From, Mul, MulAssign, Neg, Sub, SubAssign};
-use derive_new::new;
 use gen_ops::gen_ops;
 use num_traits::Float;
 use rand::{
-    distributions::{uniform::SampleUniform, Standard},
+    distributions::{Standard, uniform::SampleUniform},
     prelude::Distribution,
     Rng,
 };
 
 use crate::{
     impl_axis_index,
-    math::{axis::Axis2, vec2::Vec2, Number, Point3},
-    point3,
+    math::{axis::Axis2, Number, vec2::Vec2}
+    ,
 };
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Hash)]
@@ -29,18 +28,16 @@ macro_rules! point2 {
         $crate::math::Point2::default()
     };
     ($x:expr, $y:expr) => {
-        $crate::math::Point2 {
-            coords: $crate::math::Vec2 { x: $x, y: $y },
-        }
+        $crate::math::Point2::new($x, $y)
     };
 }
-impl<T: Number> Point2<T> {
+impl<T> Point2<T>{
     pub fn new(x: T, y: T) -> Point2<T> {
-        Point2 {
-            coords: Vec2::new(x, y),
-        }
+        Point2 { coords: Vec2::new(x, y) }
     }
+}
 
+impl<T: Number> Point2<T> {
     pub fn min_coords(lhs: Point2<T>, rhs: Point2<T>) -> Point2<T> { point2!(lhs.x.min(rhs.x), lhs.y.min(rhs.y)) }
 
     pub fn max_coords(lhs: Point2<T>, rhs: Point2<T>) -> Point2<T> { point2!(lhs.x.max(rhs.x), lhs.y.max(rhs.y)) }
@@ -93,7 +90,8 @@ where Standard: Distribution<T>
 {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Point2<T> { Point2::from(rng.gen::<Vec2<T>>()) }
 }
-impl<T: Float + AbsDiffEq<Epsilon = T>> AbsDiffEq for Point2<T> {
+
+impl<T: Float + AbsDiffEq<Epsilon=T>> AbsDiffEq for Point2<T> {
     type Epsilon = T;
 
     fn default_epsilon() -> Self::Epsilon { T::epsilon() }

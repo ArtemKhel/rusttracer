@@ -3,7 +3,7 @@ use arrayvec::ArrayVec;
 
 use crate::spectra::{sampled_spectrum::SampledSpectrum, sampled_wavelengths::SampledWavelengths, Spectrum};
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct BlackbodySpectrum {
     temp: f32,
     norm_factor: f32,

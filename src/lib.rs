@@ -12,6 +12,7 @@
 #![feature(more_float_constants)]
 #![feature(isqrt)]
 #![feature(let_chains)]
+#![feature(lazy_cell)]
 
 use std::{ops::DerefMut, sync::atomic::AtomicU32};
 
