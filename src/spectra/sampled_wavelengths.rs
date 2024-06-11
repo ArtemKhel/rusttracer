@@ -6,8 +6,9 @@ use derive_more::Deref;
 use crate::{
     math::utils::lerp,
     point2,
-    spectra::{named::NamedSpectra, rgb_color::RGBColorSpace, sampled_spectrum::SampledSpectrum, SpectrumEnum},
+    spectra::{named::NamedSpectra, rgb::RGBColorSpace, sampled_spectrum::SampledSpectrum, SpectrumEnum},
 };
+use crate::spectra::rgb2spec::Gamut;
 
 #[derive(Debug, Default)]
 #[derive(Deref)]
@@ -48,11 +49,13 @@ impl<const N: usize> SampledWavelengths<N> {
     pub fn pdf(&self) -> SampledSpectrum<N> { SampledSpectrum::new(self.pdf.clone()) }
 }
 
-pub static SRGB: LazyLock<RGBColorSpace> = LazyLock::new(|| {
+#[allow(non_upper_case_globals)]
+pub static sRGB: LazyLock<RGBColorSpace> = LazyLock::new(|| {
     RGBColorSpace::new(
         point2!(0.64, 0.33),
         point2!(0.3, 0.6),
         point2!(0.15, 0.06),
         NamedSpectra::IlluminantD65.get(),
+        Gamut::sRGB
     )
 });

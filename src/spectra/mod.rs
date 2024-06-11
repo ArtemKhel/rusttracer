@@ -7,6 +7,7 @@ use crate::spectra::{
     blackbody::BlackbodySpectrum, piecewise_linear::PiecewiseLinearSpectrum, sampled_spectrum::SampledSpectrum,
     sampled_wavelengths::SampledWavelengths,
 };
+use crate::spectra::rgb_spectrum::RGBAlbedoSpectrum;
 
 mod blackbody;
 mod cie;
@@ -14,10 +15,12 @@ mod constant;
 mod densely_sampled;
 mod named;
 mod piecewise_linear;
-mod rgb_color;
+mod rgb;
 mod sampled_spectrum;
 mod sampled_wavelengths;
 mod xyz;
+mod rgb2spec;
+mod rgb_spectrum;
 
 const LAMBDA_MIN: f32 = 360.;
 const LAMBDA_MAX: f32 = 830.;
@@ -37,6 +40,7 @@ pub enum SpectrumEnum {
     DenselySampled(DenselySampledSpectrum),
     PiecewiseLinear(PiecewiseLinearSpectrum),
     Blackbody(BlackbodySpectrum),
+    RGBAlbedo(RGBAlbedoSpectrum)
 }
 
 // todo

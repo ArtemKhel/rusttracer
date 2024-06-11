@@ -8,7 +8,7 @@ use num_traits::Zero;
 
 use crate::spectra::{
     cie::{CIE, CIE_Y_INTEGRAL},
-    rgb_color::{RGBColorSpace, RGB},
+    rgb::{RGBColorSpace, RGB},
     sampled_wavelengths::SampledWavelengths,
     xyz::XYZ,
     Spectrum,

@@ -1,0 +1,66 @@
+use std::sync::Arc;
+
+use crate::spectra::{DenselySampledSpectrum, Spectrum};
+use crate::spectra::rgb::{RGB, RGBColorSpace, RGBSigmoidPoly};
+
+#[derive(Clone, Debug)]
+pub struct RGBAlbedoSpectrum {
+    rsp: RGBSigmoidPoly,
+}
+
+impl RGBAlbedoSpectrum {
+    fn new(color_space: &RGBColorSpace, rgb: RGB) -> RGBAlbedoSpectrum {
+        RGBAlbedoSpectrum { rsp: color_space.to_rgb_poly(rgb) }
+    }
+}
+
+impl Spectrum for RGBAlbedoSpectrum {
+    fn value(&self, wavelength: f32) -> f32 {
+        self.rsp.eval(wavelength)
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct RGBUnboundedSpectrum {
+    rsp: RGBSigmoidPoly,
+    scale: f32,
+}
+
+impl RGBUnboundedSpectrum {
+    fn new(color_space: &RGBColorSpace, rgb: RGB) -> RGBUnboundedSpectrum {
+        let scale = match 2. * rgb.max() {
+            0.0 => 1.,
+            x => x
+        };
+        RGBUnboundedSpectrum { rsp: color_space.to_rgb_poly(rgb / scale), scale }
+    }
+}
+
+impl Spectrum for RGBUnboundedSpectrum {
+    fn value(&self, wavelength: f32) -> f32 {
+        self.rsp.eval(wavelength) * self.scale
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct RGBIlluminantSpectrum {
+    rsp: RGBSigmoidPoly,
+    scale: f32,
+    illuminant: Arc<DenselySampledSpectrum>,
+}
+
+impl RGBIlluminantSpectrum {
+    fn new(color_space: &RGBColorSpace, rgb: RGB, illuminant: Arc<DenselySampledSpectrum>) -> RGBIlluminantSpectrum {
+        let scale = match 2. * rgb.max() {
+            0.0 => 1.,
+            x => x
+        };
+        RGBIlluminantSpectrum { rsp: color_space.to_rgb_poly(rgb / scale), scale, illuminant }
+    }
+}
+
+impl Spectrum for RGBIlluminantSpectrum {
+    fn value(&self, wavelength: f32) -> f32 {
+        self.rsp.eval(wavelength) * self.scale * self.illuminant.value(wavelength)
+    }
+}
