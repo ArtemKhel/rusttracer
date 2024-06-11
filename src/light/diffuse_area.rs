@@ -49,8 +49,8 @@ impl Light for DiffuseAreaLight {
 
     fn light_type(&self) -> LightType { LightType::Area }
 
-    fn sample_light(&self, surf_int: &SurfaceInteraction, sample_p: Point2f) -> Option<LightSample> {
-        let shape_sample = self.shape.sample_from_point(surf_int.hit.point, sample_p)?;
+    fn sample_light(&self, surf_int: &SurfaceInteraction, rnd_p: Point2f) -> Option<LightSample> {
+        let shape_sample = self.shape.sample_from_point(surf_int.hit.point, rnd_p)?;
 
         // TODO: mediums
         if shape_sample.pdf == 0. {

@@ -105,9 +105,9 @@ impl Bounded<f32> for Quad {
 }
 
 impl Samplable for Quad {
-    fn sample(&self, sample_p: Point2f) -> Option<ShapeSample> {
+    fn sample(&self, rnd_p: Point2f) -> Option<ShapeSample> {
         // TODO: uv,pdf
-        let point = self.a + sample_p.x * self.ab + sample_p.y * self.ac;
+        let point = self.a + rnd_p.x * self.ab + rnd_p.y * self.ac;
         Some(ShapeSample {
             hit: Interaction {
                 point,
@@ -121,13 +121,13 @@ impl Samplable for Quad {
         })
     }
 
-    fn sample_from_point(&self, point: Point3f, sample_p: Point2f) -> Option<ShapeSample> {
+    fn sample_from_point(&self, point: Point3f, rnd_p: Point2f) -> Option<ShapeSample> {
         // TODO: this
-        // let mut sample = self.sample(sample_p).unwrap();
+        // let mut sample = self.sample(rnd_p).unwrap();
         // let cos = dot(&((self.a + 0.5 * (self.ab + self.ac)) - point).to_unit(), &self.normal).abs();
         // sample.pdf /= cos;
         // Some(sample)
-        self.sample(sample_p)
+        self.sample(rnd_p)
     }
 
     fn pdf(&self, interaction: &Interaction) -> f32 { todo!() }

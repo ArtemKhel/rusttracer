@@ -118,8 +118,8 @@ impl Intersectable for Sphere {
 }
 
 impl Samplable for Sphere {
-    fn sample(&self, sample_p: Point2f) -> Option<ShapeSample> {
-        let point_obj = point3!(self.radius * *sample_uniform_sphere(sample_p));
+    fn sample(&self, rnd_p: Point2f) -> Option<ShapeSample> {
+        let point_obj = point3!(self.radius * *sample_uniform_sphere(rnd_p));
         let normal = point_obj.to_normal().transform(&self.transform).to_unit();
 
         let phi = spherical_phi(*point_obj);
@@ -140,11 +140,11 @@ impl Samplable for Sphere {
         })
     }
 
-    fn sample_from_point(&self, point: Point3f, sample_p: Point2f) -> Option<ShapeSample> {
+    fn sample_from_point(&self, point: Point3f, rnd_p: Point2f) -> Option<ShapeSample> {
         let point = point.inv_transform(&self.transform);
         if point.len_squared() < self.radius.powi(2) + 1e-4 {
             // todo: corner cases, rounding error
-            let mut ss = self.sample(sample_p).unwrap();
+            let mut ss = self.sample(rnd_p).unwrap();
             let incoming = ss.hit.point - point;
             ss.pdf /= dot(&ss.hit.normal, &-incoming).abs() / (point - ss.hit.point).len_squared();
             return if ss.pdf.is_infinite() { None } else { Some(ss) };
@@ -152,7 +152,7 @@ impl Samplable for Sphere {
 
         let max_sin_theta = self.radius / point.len();
         let max_cos_theta = (1. - max_sin_theta.powi(2)).sqrt();
-        let sampled_dir = sample_uniform_cone(sample_p, max_cos_theta).to_unit();
+        let sampled_dir = sample_uniform_cone(rnd_p, max_cos_theta).to_unit();
         let interaction = self
             .basic_intersect(ray!(point, sampled_dir), f32::INFINITY)
             .unwrap()

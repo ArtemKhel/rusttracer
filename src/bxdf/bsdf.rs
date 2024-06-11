@@ -56,14 +56,14 @@ impl BSDF {
         self.bxdf.eval(s_in, s_out)
     }
 
-    pub fn sample(&self, outgoing: Vec3f, sample_p: Point2f, sample_c: f32) -> Option<BSDFSample<Vec3f>> {
+    pub fn sample(&self, outgoing: Vec3f, rnd_p: Point2f, rnd_c: f32) -> Option<BSDFSample<Vec3f>> {
         let s_out = self.render_to_shading(outgoing);
         if s_out.z == 0.0
         /* TODO flags here */
         {
             return None;
         }
-        if let Some(mut sample) = self.bxdf.sample(sample_p, sample_c, s_out) {
+        if let Some(mut sample) = self.bxdf.sample(rnd_p, rnd_c, s_out) {
             if sample.pdf == 0.0 || sample.incoming.z == 0.0
             /* || RGB==0 */
             {

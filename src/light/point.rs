@@ -34,7 +34,7 @@ impl Light for PointLight {
 
     fn light_type(&self) -> LightType { self.base.light_type }
 
-    fn sample_light(&self, surf_int: &SurfaceInteraction, sample_p: Point2f) -> Option<LightSample> {
+    fn sample_light(&self, surf_int: &SurfaceInteraction, rnd_p: Point2f) -> Option<LightSample> {
         let point = point3!(0., 0., 0.).transform(&self.base.light_to_render);
         let vec = point - surf_int.hit.point;
         let incoming = vec.to_unit();

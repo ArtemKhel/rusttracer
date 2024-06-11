@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
-use derive_more::{Deref, DerefMut};
-use image::Rgb;
+use derive_more::Deref;
 
 use crate::{
     core::Ray,
@@ -14,11 +13,11 @@ use crate::{
         cameras::{Camera, CameraSample},
         film::Film,
     },
-    Point2us,
+    Point2us, SampledSpectrum, SampledWavelengths,
 };
 
 pub(super) trait RayIntegrator: TileIntegrator {
-    fn light_incoming(&self, ray: &Ray, sampler: &mut SamplerType) -> Rgb<f32>;
+    fn light_incoming(&self, ray: &Ray, lambda: &SampledWavelengths, sampler: &mut SamplerType) -> SampledSpectrum;
     fn get_ri_state(&self) -> &RIState;
 }
 
@@ -34,23 +33,21 @@ impl<T> TileIntegrator for T
 where T: RayIntegrator
 {
     fn evaluate_pixel(&self, pixel: Point2us, sampler: &mut SamplerType) {
-        // 0.5 - offset from discrete pixels to continuous one
-        // Disc. |---0---|---1---|---2---|
-        // Cont. 0-------1-------2-------3
-        let p_film = pixel.map(|x| x as f32 + 0.5);
-        let sample = CameraSample {
-            p_film,
-            p_lens: sampler.get_2d(),
-        };
+        let state = self.get_state();
+        let lambda = state.scene.camera.get_film().sample_wavelengths(sampler.get_1d());
+        let sample = CameraSample::new(pixel, sampler);
 
-        let ray = self.get_state().scene.camera.generate_ray(sample);
-        let pixel_value = self.light_incoming(&ray, sampler);
-        // todo: other stuff here
+        // TODO: [AA] should be diff ray.
+        //       [AA] something about diff scaling
+        //       [filters] should account for CameraRay weight
+        //       [realistic camera] need to know about wavelengths
+        let ray = state.scene.camera.generate_ray(sample);
+        let spectrum = self.light_incoming(&ray, &lambda, sampler);
 
-        let mut arc_film = self.get_state().scene.camera.get_film();
+        let mut arc_film = state.scene.camera.get_film();
         unsafe {
             let film = Arc::get_mut_unchecked(&mut arc_film);
-            film.add_sample(pixel, pixel_value, 1.)
+            film.add_sample(pixel, spectrum, lambda, 1.)
         };
     }
 

@@ -8,9 +8,9 @@ use crate::{
 };
 
 pub mod debug_normal;
-pub mod random_walk;
+// pub mod random_walk;
 mod ray;
-pub mod simple_path;
+// pub mod simple_path;
 mod tile;
 
 // #[enum_delegate::implement(Integrator)]

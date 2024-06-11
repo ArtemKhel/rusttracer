@@ -48,6 +48,10 @@ pub type Bounds2f = math::Bounds2<f32>;
 pub type Bounds2i = math::Bounds2<Int>;
 pub type Bounds2u = math::Bounds2<UInt>;
 
+pub const N_WAVELENGTHS: usize = 4;
+pub type SampledSpectrum = spectra::SampledSpectrum<N_WAVELENGTHS>;
+pub type SampledWavelengths = spectra::SampledWavelengths<N_WAVELENGTHS>;
+
 pub static CALLS: AtomicU32 = AtomicU32::new(0);
 pub static SKIP: AtomicU32 = AtomicU32::new(0);
 

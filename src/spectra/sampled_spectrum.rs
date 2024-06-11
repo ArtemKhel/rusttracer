@@ -3,7 +3,7 @@ use std::{fmt::Debug, iter::zip};
 use arrayvec::ArrayVec;
 use derive_more::{Deref, DerefMut, From};
 use derive_new::new;
-use gen_ops::{gen_ops_comm, gen_ops_ex};
+use gen_ops::{gen_ops, gen_ops_comm, gen_ops_ex};
 use num_traits::Zero;
 
 use crate::spectra::{
@@ -38,9 +38,9 @@ impl<const N: usize> SampledSpectrum<N> {
         ) / CIE_Y_INTEGRAL
     }
 
-    pub fn to_rgb(&self, lambda: &SampledWavelengths<N>, colorspace: RGBColorSpace) -> RGB {
+    pub fn to_rgb(&self, lambda: &SampledWavelengths<N>, color_space: &RGBColorSpace) -> RGB {
         let xyz = self.to_xyz(lambda);
-        colorspace.xyz_to_rgb(xyz)
+        color_space.xyz_to_rgb(xyz)
     }
 }
 
@@ -89,7 +89,12 @@ gen_ops_comm!(
     for / call |x: &SS<N>, y: &f32| SampledSpectrum::new(x.iter().map(|x| if *y != 0. {x / y} else {0.}).collect());
 );
 
-// |x: &mut SS<N>, y: SS<N>| zip( x.iter_mut(), y.iter() ).for_each(|(x, y)| *x += y));
-// |x: &mut SS<N>, y: SS<N>| zip( x.iter_mut(), y.iter() ).for_each(|(x, y)| *x -= y));
-// |x: &mut SS<N>, y: SS<N>| zip( x.iter_mut(), y.iter() ).for_each(|(x, y)| *x *= y));
-// |x: &mut SS<N>, y: SS<N>| zip( x.iter_mut(), y.iter() ).for_each(|(x, y)| if *y != 0. { *x /= y } else { *x = 0. }));
+gen_ops!(
+    <|const N: usize>;
+    types SS<N>, SS<N>;
+
+    for += call |x: &mut SS<N>, y: &SS<N>| zip(x.iter_mut(), y.iter()).for_each(|(x, y)| *x += y);
+    for -= call |x: &mut SS<N>, y: &SS<N>| zip( x.iter_mut(), y.iter() ).for_each(|(x, y)| *x -= y);
+    for *= call |x: &mut SS<N>, y: &SS<N>| zip( x.iter_mut(), y.iter() ).for_each(|(x, y)| *x *= y);
+    for /= call |x: &mut SS<N>, y: &SS<N>| zip( x.iter_mut(), y.iter() ).for_each(|(x, y)| if *y != 0. { *x /= y } else { *x = 0. });
+);

@@ -5,7 +5,7 @@ use crate::{
     colors,
     light::{DiffuseAreaLight, LightEnum},
     material::{glass::Glass, matte::Matte, metal::Metal, MaterialsEnum},
-    math::{axis::Axis3, Transform, Vec3},
+    math::{axis::Axis3, Transform},
     point2, point3,
     scene::{
         cameras::{BaseCameraConfig, CameraType, PerspectiveCamera, PerspectiveCameraConfig},
@@ -14,6 +14,7 @@ use crate::{
         Scene,
     },
     shapes::{quad::Quad, sphere::Sphere},
+    spectra::rgb::sRGB,
     test_scenes::teapot_triangles,
     textures::constant::ConstantTexture,
     vec3, Bounds2f,
@@ -79,15 +80,15 @@ fn base_box(
         },
     ];
 
-    // for x in [200., 500., 800.].into_iter() {
-    //     walls.push(SimplePrimitive {
-    //         shape: Arc::new(Sphere {
-    //             radius: 100.,
-    //             transform: Transform::id().then_translate(vec3!(x, 100., 200.)),
-    //         }),
-    //         material: glass.clone(),
-    //     });
-    // }
+    for x in [200., 500., 800.].into_iter() {
+        walls.push(SimplePrimitive {
+            shape: Arc::new(Sphere {
+                radius: 100.,
+                transform: Transform::id().then_translate(vec3!(x, 100., 200.)),
+            }),
+            material: glass.clone(),
+        });
+    }
     let mut base_box: Vec<Arc<PrimitiveEnum>> = walls.into_iter().map(|x| Arc::new(PrimitiveEnum::Simple(x))).collect();
     base_box
 }
@@ -98,11 +99,11 @@ pub fn cornell_box() -> Scene {
             transform: Transform::id()
                 .then_rotate_degrees(Axis3::Y, 180.)
                 .then_translate(vec3!(500., 500., -1000.)),
-            film: RGBFilm::new(400, 400),
+            film: RGBFilm::new(400, 400, sRGB.clone()),
         },
         fov: 55.0,
         screen_window: Bounds2f::from_points(point2!(-1., -1.), point2!(1., 1.)),
-        lens_radius: 10.0,
+        lens_radius: 5.0,
         focal_distance: 1500.0,
     })
     .into();

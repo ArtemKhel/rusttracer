@@ -33,6 +33,7 @@ pub(super) struct TIState {
 }
 
 pub(super) trait TileIntegrator: Integrator {
+    // TODO: in PBRT it also takes sample_index. None of the current integrators use it, but subsequent may
     fn evaluate_pixel(&self, pixel: Point2us, sampler: &mut SamplerType);
     fn get_ti_state(&self) -> &TIState;
 }
@@ -71,7 +72,7 @@ where T: TileIntegrator + Sync + Send
                             .get_or(|| RefCell::new(self.get_ti_state().sampler.clone()))
                             .borrow_mut();
 
-                        // breakpoint!(x == 145 && y == 155);
+                        // breakpoint!(x==100 && y==150);
 
                         thread_sampler.start_pixel_sample(pixel_coords, sample_index);
                         self.evaluate_pixel(pixel_coords, &mut thread_sampler);

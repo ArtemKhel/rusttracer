@@ -1,30 +1,26 @@
-use std::f32::consts::PI;
+use std::sync::Arc;
 
-use image::{buffer::ConvertBuffer, ImageBuffer, Rgb, RgbImage};
-use rand::Rng;
+use image::codecs::avif::ColorSpace;
 
 use crate::{
-    breakpoint, colors,
     core::Ray,
     integrators::{
-        random_walk::RandomWalkIntegrator,
         ray::{RIState, RayIntegrator},
         tile::TIState,
         IState, Integrator,
     },
-    math::dot,
-    point2, ray,
-    samplers::{utils::sample_uniform_sphere, IndependentSampler, SamplerType, StratifiedSampler},
-    scene::{
-        cameras::{Camera, CameraSample},
-        Scene,
+    samplers::{IndependentSampler, SamplerType},
+    scene::Scene,
+    spectra::{
+        rgb::{sRGB, RGBColorSpace, RGB},
+        RGBAlbedoSpectrum, Spectrum,
     },
-    utils::{lerp, linear_to_gamma},
-    Point2f,
+    SampledSpectrum, SampledWavelengths,
 };
 
 pub struct DebugNormalIntegrator {
     state: RIState,
+    color_space: Arc<RGBColorSpace>,
 }
 
 unsafe impl Sync for DebugNormalIntegrator {}
@@ -32,7 +28,9 @@ unsafe impl Sync for DebugNormalIntegrator {}
 unsafe impl Send for DebugNormalIntegrator {}
 
 impl RayIntegrator for DebugNormalIntegrator {
-    fn light_incoming(&self, ray: &Ray, sampler: &mut SamplerType) -> Rgb<f32> { self.normal_as_rgb(ray) }
+    fn light_incoming(&self, ray: &Ray, lambda: &SampledWavelengths, sampler: &mut SamplerType) -> SampledSpectrum {
+        self.normal_as_rgb(ray, lambda)
+    }
 
     fn get_ri_state(&self) -> &RIState { &self.state }
 }
@@ -40,30 +38,30 @@ impl RayIntegrator for DebugNormalIntegrator {
 impl DebugNormalIntegrator {
     pub fn new(scene: Scene) -> Self {
         DebugNormalIntegrator {
+            color_space: sRGB.clone(),
             state: RIState {
                 max_depth: 1,
                 tile: TIState {
                     base: IState { scene },
-                    sampler: SamplerType::Independent(IndependentSampler::new(1, 42)),
+                    sampler: SamplerType::Independent(IndependentSampler::new(10, 42)),
                     save_intermediate: false,
                 },
             },
         }
     }
 
-    fn normal_as_rgb(&self, ray: &Ray) -> Rgb<f32> {
+    fn normal_as_rgb(&self, ray: &Ray, lambda: &SampledWavelengths) -> SampledSpectrum {
         let closest_hit = self.get_state().scene.cast_ray(ray);
         if let Some(mut interaction) = closest_hit {
-            Rgb([
-                interaction.hit.normal.x,
-                interaction.hit.normal.y,
-                interaction.hit.normal.z,
-                // (interaction.hit.normal.x + 1.) / 2.,
-                // (interaction.hit.normal.y + 1.) / 2.,
-                // (interaction.hit.normal.z + 1.) / 2.,
-            ])
+            let rgb = RGB::new(
+                interaction.hit.normal.x.abs(),
+                interaction.hit.normal.y.abs(),
+                interaction.hit.normal.z.abs(),
+            );
+            let rgb_to_spec = RGBAlbedoSpectrum::new(&self.color_space, rgb);
+            rgb_to_spec.sample(&lambda)
         } else {
-            colors::BLACK
+            SampledSpectrum::default()
         }
     }
 }

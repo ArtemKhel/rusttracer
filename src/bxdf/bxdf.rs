@@ -59,7 +59,7 @@ pub trait BxDF {
 
     /// Determines the direction of the incident light and returns the value of BxDF for the pair of directions
     /// sample_f() in PBRT
-    fn sample(&self, sample_p: Point2f, sample_c: f32, outgoing: Shading<Vec3f>) -> Option<BSDFSample<Shading<Vec3f>>>;
+    fn sample(&self, rnd_p: Point2f, rnd_c: f32, outgoing: Shading<Vec3f>) -> Option<BSDFSample<Shading<Vec3f>>>;
 
     fn pdf(&self, incoming: Shading<Vec3f>, outgoing: Shading<Vec3f>) -> f32;
     // TODO:  fn rho()

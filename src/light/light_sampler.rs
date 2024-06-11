@@ -13,7 +13,7 @@ pub struct SampledLight {
 }
 
 pub trait LightSampler {
-    fn sample(&self, surf_int: &SurfaceInteraction, sample_c: f32) -> Option<SampledLight>;
+    fn sample(&self, surf_int: &SurfaceInteraction, rnd_c: f32) -> Option<SampledLight>;
     fn pmf(&self, surf_int: &SurfaceInteraction, light: &LightEnum) -> f32;
     // todo: no-ctx variants
 }

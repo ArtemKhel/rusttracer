@@ -13,11 +13,11 @@ pub struct UniformLightSampler<'a> {
 }
 
 impl LightSampler for UniformLightSampler<'_> {
-    fn sample(&self, surf_int: &SurfaceInteraction, sample_c: f32) -> Option<SampledLight> {
+    fn sample(&self, surf_int: &SurfaceInteraction, rnd_c: f32) -> Option<SampledLight> {
         if self.lights.is_empty() {
             None
         } else {
-            let idx = (self.lights.len() as f32 * sample_c) as usize;
+            let idx = (self.lights.len() as f32 * rnd_c) as usize;
             let light = self.lights.get(idx)?.clone();
             Some(SampledLight {
                 light,

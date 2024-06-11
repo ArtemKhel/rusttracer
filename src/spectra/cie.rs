@@ -223,3 +223,33 @@ static CIE_LAMBDA: [f32; N_CIE_SAMPLES] = [
     800.0,  801.0,  802.0,  803.0,  804.0,  805.0,  806.0,  807.0,  808.0,  809.0,  810.0,  811.0,  812.0,  813.0,  814.0,  815.0,  816.0,  817.0,  818.0,  819.0,
     820.0,  821.0,  822.0,  823.0,  824.0,  825.0,  826.0,  827.0,  828.0,  829.0,  830.0,
 ];
+
+#[cfg(test)]
+mod tests {
+    use approx::assert_abs_diff_eq;
+
+    use super::*;
+    use crate::spectra::{Spectrum, LAMBDA_MAX, LAMBDA_MIN};
+
+    #[test]
+    fn xyz_integral() {
+        // Make sure the integral of all matching function sample values is
+        // basically one in x, y, and z.
+        let mut xx = 0.0;
+        let mut yy = 0.0;
+        let mut zz = 0.0;
+
+        for lambda in (LAMBDA_MIN as i32)..=(LAMBDA_MAX as i32) {
+            xx += CIE::X.get().value(lambda as f32);
+            yy += CIE::Y.get().value(lambda as f32);
+            zz += CIE::Z.get().value(lambda as f32);
+        }
+        xx /= CIE_Y_INTEGRAL;
+        yy /= CIE_Y_INTEGRAL;
+        zz /= CIE_Y_INTEGRAL;
+
+        assert_abs_diff_eq!(1.0, xx, epsilon = 0.005);
+        assert_abs_diff_eq!(1.0, yy, epsilon = 0.005);
+        assert_abs_diff_eq!(1.0, zz, epsilon = 0.005);
+    }
+}

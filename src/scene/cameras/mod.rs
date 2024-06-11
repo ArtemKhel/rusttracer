@@ -4,7 +4,12 @@ pub use base::BaseCameraConfig;
 pub use orthographic::{OrthographicCamera, OrthographicCameraConfig};
 pub use perspective::{PerspectiveCamera, PerspectiveCameraConfig};
 
-use crate::{core::Ray, scene::film::RGBFilm, Normal3f, Point2f, Point3f, Vec3f};
+use crate::{
+    core::Ray,
+    samplers::{Sampler, SamplerType},
+    scene::film::RGBFilm,
+    Normal3f, Point2f, Point2us, Point3f, Vec3f,
+};
 
 mod base;
 mod orthographic;
@@ -35,4 +40,16 @@ pub enum CameraType {
 pub struct CameraSample {
     pub p_film: Point2f,
     pub p_lens: Point2f,
+}
+
+impl CameraSample {
+    pub fn new(pixel: Point2us, sampler: &mut SamplerType) -> Self {
+        // TODO: filters.
+        // Offset from discrete pixels to continuous one
+        // Disc. |---0---|---1---|---2---|
+        // Cont. 0-------1-------2-------3
+        let p_film = pixel.map(|x| x as f32) + *sampler.get_2d();
+        let p_lens = sampler.get_2d();
+        CameraSample { p_film, p_lens }
+    }
 }

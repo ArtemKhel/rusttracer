@@ -31,14 +31,14 @@ impl BxDF for DielectricBxDF {
         colors::BLACK
     }
 
-    fn sample(&self, sample_p: Point2f, sample_c: f32, outgoing: Shading<Vec3f>) -> Option<BSDFSample<Shading<Vec3f>>> {
+    fn sample(&self, rnd_p: Point2f, rnd_c: f32, outgoing: Shading<Vec3f>) -> Option<BSDFSample<Shading<Vec3f>>> {
         // TODO: flags, microfacet
         // TODO: or use Schlick's approximation
         let reflected = fresnel_dielectric(cos_theta(outgoing), self.eta);
         let transmitted = 1. - reflected;
 
         let prob_reflected = reflected / (reflected + transmitted);
-        if sample_c < prob_reflected {
+        if rnd_c < prob_reflected {
             // Sample reflected light
             let incoming: Shading<Vec3f> = vec3!(-outgoing.x, -outgoing.y, outgoing.z).into();
             let c = reflected / abs_cos_theta(incoming);

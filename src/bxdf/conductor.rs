@@ -32,7 +32,7 @@ impl BxDF for ConductorBxDF {
         colors::BLACK
     }
 
-    fn sample(&self, sample_p: Point2f, sample_c: f32, outgoing: Shading<Vec3f>) -> Option<BSDFSample<Shading<Vec3f>>> {
+    fn sample(&self, rnd_p: Point2f, rnd_c: f32, outgoing: Shading<Vec3f>) -> Option<BSDFSample<Shading<Vec3f>>> {
         // TODO: flags, microfacet
         let incoming: Shading<Vec3f> = vec3!(-outgoing.x, -outgoing.y, outgoing.z).into();
         let cos_in = abs_cos_theta(incoming);

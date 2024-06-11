@@ -102,9 +102,9 @@ impl Intersectable for Triangle {
 
 // TODO: triangle sampling
 impl Samplable for Triangle {
-    fn sample(&self, sample_p: Point2f) -> Option<ShapeSample> { todo!() }
+    fn sample(&self, rnd_p: Point2f) -> Option<ShapeSample> { todo!() }
 
-    fn sample_from_point(&self, point: Point3f, sample_p: Point2f) -> Option<ShapeSample> { todo!() }
+    fn sample_from_point(&self, point: Point3f, rnd_p: Point2f) -> Option<ShapeSample> { todo!() }
 
     fn pdf(&self, interaction: &Interaction) -> f32 { todo!() }
 

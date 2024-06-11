@@ -21,7 +21,7 @@ pub trait Light {
     fn flux(&self) -> Rgb<f32>;
     fn light_type(&self) -> LightType;
     /// sampleLi() in PBRT
-    fn sample_light(&self, surf_int: &SurfaceInteraction, sample_p: Point2f) -> Option<LightSample>;
+    fn sample_light(&self, surf_int: &SurfaceInteraction, rnd_p: Point2f) -> Option<LightSample>;
     /// Radiance emitted back along the intersecting ray. L() in PBRT
     /// This method should never be called for any light that does not have geometry associated with it.
     fn radiance(&self, surf_int: &SurfaceInteraction) -> Option<Rgb<f32>> { None }

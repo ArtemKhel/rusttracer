@@ -23,8 +23,8 @@ pub struct ShapeSample {
 
 pub trait Samplable {
     /// Uniformly samples a point on the surface
-    fn sample(&self, sample_p: Point2f) -> Option<ShapeSample>;
-    fn sample_from_point(&self, point: Point3f, sample_p: Point2f) -> Option<ShapeSample>;
+    fn sample(&self, rnd_p: Point2f) -> Option<ShapeSample>;
+    fn sample_from_point(&self, point: Point3f, rnd_p: Point2f) -> Option<ShapeSample>;
     // TODO: pdf_from_point?
     fn pdf(&self, interaction: &Interaction) -> f32;
     /// Surface area of the object

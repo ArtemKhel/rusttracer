@@ -130,20 +130,7 @@ mod tests {
     use crate::point2;
 
     #[test]
-    fn test_fn() {
-        let seed = 42;
-        let mut sampler = StratifiedSampler::new(3, 3, true, seed);
-        dbg!("Run 1");
-        sampler.start_pixel_sample(point2!(0, 0), 0);
-        for _ in (0..9) {
-            dbg!(&sampler.get_1d());
-        }
-        dbg!("Run 2");
-        sampler.start_pixel_sample(point2!(0, 0), 1);
-        for _ in (0..9) {
-            dbg!(&sampler.get_1d());
-        }
-    }
+    fn test_fn() {}
 
     #[test]
     fn test_reproducibility() {

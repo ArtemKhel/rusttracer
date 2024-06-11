@@ -2,28 +2,29 @@ use arrayvec::ArrayVec;
 pub use constant::ConstantSpectrum;
 pub use densely_sampled::DenselySampledSpectrum;
 use named::NamedSpectra;
+pub use rgb_spectrum::{RGBAlbedoSpectrum, RGBIlluminantSpectrum, RGBUnboundedSpectrum};
+pub use sampled_spectrum::SampledSpectrum;
+pub use sampled_wavelengths::SampledWavelengths;
 
-use crate::spectra::{
-    blackbody::BlackbodySpectrum, piecewise_linear::PiecewiseLinearSpectrum, sampled_spectrum::SampledSpectrum,
-    sampled_wavelengths::SampledWavelengths,
-};
-use crate::spectra::rgb_spectrum::RGBAlbedoSpectrum;
+use crate::spectra::{blackbody::BlackbodySpectrum, piecewise_linear::PiecewiseLinearSpectrum};
 
 mod blackbody;
 mod cie;
 mod constant;
 mod densely_sampled;
+mod gamut;
 mod named;
 mod piecewise_linear;
-mod rgb;
-mod sampled_spectrum;
-mod sampled_wavelengths;
-mod xyz;
-mod rgb2spec;
+pub mod rgb;
 mod rgb_spectrum;
+pub mod sampled_spectrum;
+pub mod sampled_wavelengths;
+mod xyz;
 
-const LAMBDA_MIN: f32 = 360.;
-const LAMBDA_MAX: f32 = 830.;
+pub const LAMBDA_MIN: f32 = 360.;
+pub const LAMBDA_MAX: f32 = 830.;
+pub const VISIBLE_MIN: f32 = 360.;
+pub const VISIBLE_MAX: f32 = 830.;
 
 #[enum_delegate::register]
 pub trait Spectrum {
@@ -40,13 +41,14 @@ pub enum SpectrumEnum {
     DenselySampled(DenselySampledSpectrum),
     PiecewiseLinear(PiecewiseLinearSpectrum),
     Blackbody(BlackbodySpectrum),
-    RGBAlbedo(RGBAlbedoSpectrum)
+    RGBAlbedo(RGBAlbedoSpectrum),
+    RGBUnbounded(RGBUnboundedSpectrum),
+    RGBIlluminant(RGBIlluminantSpectrum),
 }
 
-// todo
 fn inner_product<F: Spectrum, G: Spectrum>(f: &F, g: &G) -> f32 {
     (LAMBDA_MIN as i32..=LAMBDA_MAX as i32)
         .into_iter()
-        .map(|x| f.value(x as f32) + g.value(x as f32))
+        .map(|x| f.value(x as f32) * g.value(x as f32))
         .sum()
 }
