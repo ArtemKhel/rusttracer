@@ -3,12 +3,12 @@ use std::{f32::consts::PI, sync::Arc};
 use image::{Pixel, Rgb};
 
 use crate::{
-    colors,
     core::SurfaceInteraction,
     light::{base::BaseLight, Light, LightSample, LightType},
     math::{Normed, Transform},
     shapes::{BoundedIntersectable, Samplable},
-    Point2f,
+    spectra::{Spectrum, SpectrumEnum},
+    Point2f, SampledSpectrum, SampledWavelengths,
 };
 
 // TODO: emit on one side only? fix flux()
@@ -18,7 +18,7 @@ use crate::{
 #[derive(Debug)]
 pub struct DiffuseAreaLight {
     base: BaseLight,
-    spectrum: Rgb<f32>,
+    spectrum: Arc<SpectrumEnum>,
     scale: f32,
     shape: Arc<dyn BoundedIntersectable>,
     area: f32,
@@ -26,7 +26,7 @@ pub struct DiffuseAreaLight {
 
 impl DiffuseAreaLight {
     pub fn new(
-        spectrum: Rgb<f32>,
+        spectrum: Arc<SpectrumEnum>,
         scale: f32,
         light_to_render: Transform<f32>,
         shape: Arc<dyn BoundedIntersectable>,
@@ -45,11 +45,18 @@ impl DiffuseAreaLight {
 }
 
 impl Light for DiffuseAreaLight {
-    fn flux(&self) -> Rgb<f32> { self.spectrum.map(|x| x * self.scale * PI * 2.) }
+    fn flux(&self, lambda: &SampledWavelengths) -> SampledSpectrum {
+        2. * PI * self.scale * self.spectrum.sample(lambda)
+    }
 
     fn light_type(&self) -> LightType { LightType::Area }
 
-    fn sample_light(&self, surf_int: &SurfaceInteraction, rnd_p: Point2f) -> Option<LightSample> {
+    fn sample_light(
+        &self,
+        surf_int: &SurfaceInteraction,
+        lambda: &SampledWavelengths,
+        rnd_p: Point2f,
+    ) -> Option<LightSample> {
         let shape_sample = self.shape.sample_from_point(surf_int.hit.point, rnd_p)?;
 
         // TODO: mediums
@@ -59,7 +66,7 @@ impl Light for DiffuseAreaLight {
 
         let incoming = (shape_sample.hit.point - surf_int.hit.point).to_unit();
 
-        self.radiance(surf_int).map(|emitted| LightSample {
+        self.radiance(surf_int, lambda).map(|emitted| LightSample {
             radiance: emitted,
             incoming,
             pdf: shape_sample.pdf,
@@ -67,7 +74,7 @@ impl Light for DiffuseAreaLight {
         })
     }
 
-    fn radiance(&self, surf_int: &SurfaceInteraction) -> Option<Rgb<f32>> {
-        Some(self.spectrum.map(|x| x * self.scale))
+    fn radiance(&self, surf_int: &SurfaceInteraction, lambda: &SampledWavelengths) -> Option<SampledSpectrum> {
+        Some(self.spectrum.sample(lambda) * self.scale)
     }
 }

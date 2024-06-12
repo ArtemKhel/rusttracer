@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use image::codecs::avif::ColorSpace;
+use num_traits::Zero;
 
 use crate::{
     core::Ray,
@@ -43,7 +44,7 @@ impl DebugNormalIntegrator {
                 max_depth: 1,
                 tile: TIState {
                     base: IState { scene },
-                    sampler: SamplerType::Independent(IndependentSampler::new(10, 42)),
+                    sampler: SamplerType::Independent(IndependentSampler::new(1, 42)),
                     save_intermediate: false,
                 },
             },
@@ -61,7 +62,7 @@ impl DebugNormalIntegrator {
             let rgb_to_spec = RGBAlbedoSpectrum::new(&self.color_space, rgb);
             rgb_to_spec.sample(&lambda)
         } else {
-            SampledSpectrum::default()
+            SampledSpectrum::zero()
         }
     }
 }

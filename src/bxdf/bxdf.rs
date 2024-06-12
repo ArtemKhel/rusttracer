@@ -6,8 +6,12 @@ use image::Rgb;
 use num_traits::Zero;
 
 use crate::{
-    bxdf::{bsdf::BSDFSample, conductor::ConductorBxDF, dielectric::DielectricBxDF, diffuse::DiffuseBxDF},
-    Point2f, Vec3f,
+    bxdf::{
+        bsdf::BSDFSample,
+        // conductor::ConductorBxDF, dielectric::DielectricBxDF,
+        diffuse::DiffuseBxDF,
+    },
+    Point2f, SampledSpectrum, Vec3f,
 };
 
 bitflags! {
@@ -55,7 +59,7 @@ pub trait BxDF {
 
     /// Returns the value of the distribution function for the given pair of directions (in the local reflection
     /// coordinate system). f() in PBRT
-    fn eval(&self, incoming: Shading<Vec3f>, outgoing: Shading<Vec3f>) -> Rgb<f32>;
+    fn eval(&self, incoming: Shading<Vec3f>, outgoing: Shading<Vec3f>) -> SampledSpectrum;
 
     /// Determines the direction of the incident light and returns the value of BxDF for the pair of directions
     /// sample_f() in PBRT
@@ -68,6 +72,6 @@ pub trait BxDF {
 #[enum_delegate::implement(BxDF)]
 pub enum BxDFEnum {
     Diffuse(DiffuseBxDF),
-    Conductor(ConductorBxDF),
-    Dielectric(DielectricBxDF),
+    // Conductor(ConductorBxDF),
+    // Dielectric(DielectricBxDF),
 }

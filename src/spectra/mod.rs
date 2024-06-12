@@ -1,3 +1,5 @@
+use std::{array, env::var};
+
 use arrayvec::ArrayVec;
 pub use constant::ConstantSpectrum;
 pub use densely_sampled::DenselySampledSpectrum;
@@ -13,7 +15,7 @@ mod cie;
 mod constant;
 mod densely_sampled;
 mod gamut;
-mod named;
+pub mod named;
 mod piecewise_linear;
 pub mod rgb;
 mod rgb_spectrum;
@@ -30,7 +32,8 @@ pub const VISIBLE_MAX: f32 = 830.;
 pub trait Spectrum {
     fn value(&self, wavelength: f32) -> f32;
     fn sample<const N: usize>(&self, lambda: &SampledWavelengths<N>) -> SampledSpectrum<N> {
-        SampledSpectrum::from(lambda.iter().map(|&l| self.value(l)).collect::<ArrayVec<_, N>>())
+        let values: [f32; N] = array::from_fn(|i| self.value(lambda[i]));
+        SampledSpectrum::from(values)
     }
 }
 

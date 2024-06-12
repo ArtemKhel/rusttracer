@@ -10,7 +10,6 @@ use num_traits::Signed;
 use rand::random;
 
 use crate::{
-    colors,
     math::{Bounds2, Point2},
     point2,
     spectra::rgb::{RGBColorSpace, RGB},

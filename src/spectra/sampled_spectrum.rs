@@ -1,10 +1,9 @@
-use std::{fmt::Debug, iter::zip};
+use std::{array, fmt::Debug, iter::zip};
 
-use arrayvec::ArrayVec;
 use derive_more::{Deref, DerefMut, From};
 use derive_new::new;
 use gen_ops::{gen_ops, gen_ops_comm, gen_ops_ex};
-use num_traits::Zero;
+use num_traits::{One, Zero};
 
 use crate::spectra::{
     cie::{CIE, CIE_Y_INTEGRAL},
@@ -14,11 +13,13 @@ use crate::spectra::{
     Spectrum,
 };
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 #[derive(new)]
 #[derive(From, Deref, DerefMut)]
 pub struct SampledSpectrum<const N: usize> {
-    pub values: ArrayVec<f32, N>,
+    // Sadly, ArrayVec in not Copy
+    // pub values: ArrayVec<f32, N>,
+    pub values: [f32; N],
 }
 
 impl<const N: usize> SampledSpectrum<N> {
@@ -42,14 +43,17 @@ impl<const N: usize> SampledSpectrum<N> {
         let xyz = self.to_xyz(lambda);
         color_space.xyz_to_rgb(xyz)
     }
+
+    pub fn clamp(mut self, min: f32, max: f32) -> Self {
+        self.values.iter_mut().for_each(|x| {
+            x.clamp(min, max);
+        });
+        self
+    }
 }
 
 impl<const N: usize> From<f32> for SampledSpectrum<N> {
-    fn from(value: f32) -> Self {
-        SampledSpectrum {
-            values: ArrayVec::from([value; N]),
-        }
-    }
+    fn from(value: f32) -> Self { SampledSpectrum { values: [value; N] } }
 }
 
 impl<const N: usize> Default for SampledSpectrum<N> {
@@ -62,39 +66,62 @@ impl<const N: usize> Zero for SampledSpectrum<N> {
     fn is_zero(&self) -> bool { self.iter().all(f32::is_zero) }
 }
 
-type SS<const N: usize> = SampledSpectrum<N>;
+impl<const N: usize> One for SampledSpectrum<N> {
+    fn one() -> Self { SampledSpectrum::from(1.0) }
+}
 
 gen_ops_ex!(
     <|const N: usize>;
-    types ref SS<N>, ref SS<N> => SS<N>;
+    types ref SampledSpectrum<N>, ref SampledSpectrum<N> => SampledSpectrum<N>;
 
-    for + call |x: &SS<N>, y: &SS<N>|
-        SampledSpectrum::new(zip(x.iter(), y.iter()).map(|(x, y)| x + y).collect());
+    for + call |x: &SampledSpectrum<N>, y: &SampledSpectrum<N>|
+        // SampledSpectrum::new(zip(x.iter(), y.iter()).map(|(x, y)| x + y).collect());
+        SampledSpectrum::new(array::from_fn(|i| x[i] + y[i]));
 
-    for - call |x: &SS<N>, y: &SS<N>|
-        SampledSpectrum::new(zip(x.iter(), y.iter()).map(|(x, y)| x - y).collect());
+    for - call |x: &SampledSpectrum<N>, y: &SampledSpectrum<N>|
+        // SampledSpectrum::new(zip(x.iter(), y.iter()).map(|(x, y)| x - y).collect());
+        SampledSpectrum::new(array::from_fn(|i| x[i] - y[i]));
 
-    for * call |x: &SS<N>, y: &SS<N>|
-        SampledSpectrum::new(zip(x.iter(), y.iter()).map(|(x, y)| x * y).collect());
+    for * call |x: &SampledSpectrum<N>, y: &SampledSpectrum<N>|
+        // SampledSpectrum::new(zip(x.iter(), y.iter()).map(|(x, y)| x * y).collect());
+        SampledSpectrum::new(array::from_fn(|i| x[i] * y[i]));
 
-    for / call |x: &SS<N>, y: &SS<N>|
-        SampledSpectrum::new(zip(x.iter(), y.iter()).map(|(x, y)| if *y != 0. { x / y } else { 0. }).collect());
+    for / call |x: &SampledSpectrum<N>, y: &SampledSpectrum<N>|
+        // SampledSpectrum::new(zip(x.iter(), y.iter()).map(|(x, y)| if *y != 0. { x / y } else { 0. }).collect());
+        SampledSpectrum::new(array::from_fn(|i| if y[i] != 0.0 {x[i] / y[i]} else {0.}));
 );
 
 gen_ops_comm!(
     <|const N: usize>;
-    types SS<N>, f32 => SS<N>;
+    types SampledSpectrum<N>, f32 => SampledSpectrum<N>;
 
-    for * call |x: &SS<N>, y: &f32| SampledSpectrum::new(x.iter().map(|x| x * y).collect());
-    for / call |x: &SS<N>, y: &f32| SampledSpectrum::new(x.iter().map(|x| if *y != 0. {x / y} else {0.}).collect());
+    for * call |x: &SampledSpectrum<N>, y: &f32|
+        // SampledSpectrum::new(x.iter().map(|x| x * y).collect());
+        SampledSpectrum::new(array::from_fn(|i| x[i] * y));
 );
 
 gen_ops!(
     <|const N: usize>;
-    types SS<N>, SS<N>;
+    types SampledSpectrum<N>, f32 => SampledSpectrum<N>;
 
-    for += call |x: &mut SS<N>, y: &SS<N>| zip(x.iter_mut(), y.iter()).for_each(|(x, y)| *x += y);
-    for -= call |x: &mut SS<N>, y: &SS<N>| zip( x.iter_mut(), y.iter() ).for_each(|(x, y)| *x -= y);
-    for *= call |x: &mut SS<N>, y: &SS<N>| zip( x.iter_mut(), y.iter() ).for_each(|(x, y)| *x *= y);
-    for /= call |x: &mut SS<N>, y: &SS<N>| zip( x.iter_mut(), y.iter() ).for_each(|(x, y)| if *y != 0. { *x /= y } else { *x = 0. });
+    for / call |x: &SampledSpectrum<N>, y: &f32|
+        // SampledSpectrum::new(x.iter().map(|x| if *y != 0. {x / y} else {0.}).collect());
+        SampledSpectrum::new( if *y != 0.0 { array::from_fn(|i| { x[i] / y } )} else { [0.;N] });
+);
+
+gen_ops!(
+    <|const N: usize>;
+    types SampledSpectrum<N>, SampledSpectrum<N>;
+
+    for += call |x: &mut SampledSpectrum<N>, y: &SampledSpectrum<N>| zip( x.iter_mut(), y.iter() ).for_each(|(x, y)| *x += y);
+    for -= call |x: &mut SampledSpectrum<N>, y: &SampledSpectrum<N>| zip( x.iter_mut(), y.iter() ).for_each(|(x, y)| *x -= y);
+    for *= call |x: &mut SampledSpectrum<N>, y: &SampledSpectrum<N>| zip( x.iter_mut(), y.iter() ).for_each(|(x, y)| *x *= y);
+    for /= call |x: &mut SampledSpectrum<N>, y: &SampledSpectrum<N>| zip( x.iter_mut(), y.iter() ).for_each(|(x, y)| if *y != 0. { *x /= y } else { *x = 0. });
+);
+
+gen_ops!(
+    <|const N: usize>;
+    types SampledSpectrum<N>, f32;
+    
+    for *= call |x: &mut SampledSpectrum<N>, y: &f32| x.iter_mut().for_each(|x| *x *= y);
 );

@@ -54,16 +54,3 @@ pub type SampledWavelengths = spectra::SampledWavelengths<N_WAVELENGTHS>;
 
 pub static CALLS: AtomicU32 = AtomicU32::new(0);
 pub static SKIP: AtomicU32 = AtomicU32::new(0);
-
-pub mod colors {
-    use image::Rgb;
-
-    pub const BLACK: Rgb<f32> = Rgb([0., 0., 0.]);
-    pub const WHITE: Rgb<f32> = Rgb([1., 1., 1.]);
-    pub const GREEN: Rgb<f32> = Rgb([0.12, 0.45, 0.15]);
-    pub const RED: Rgb<f32> = Rgb([0.65, 0.05, 0.05]);
-    pub const LIGHT_GRAY: Rgb<f32> = Rgb([0.73, 0.73, 0.73]);
-    pub const DARK_GRAY: Rgb<f32> = Rgb([0.4, 0.4, 0.4]);
-    pub const LIGHT_BLUE: Rgb<f32> = Rgb([0.5, 0.8, 0.95]);
-    pub const DARK_BLUE: Rgb<f32> = Rgb([0.2, 0.3, 0.5]);
-}

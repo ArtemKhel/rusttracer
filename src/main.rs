@@ -7,8 +7,7 @@ use itertools::Itertools;
 use num_traits::Pow;
 use rusttracer::{
     aggregates::BVH,
-    colors,
-    integrators::{debug_normal::DebugNormalIntegrator, Integrator},
+    integrators::{debug_normal::DebugNormalIntegrator, random_walk::RandomWalkIntegrator, Integrator},
     light::{DiffuseAreaLight, Light, PointLight},
     material::{matte::Matte, MaterialsEnum},
     math::Transform,
@@ -21,17 +20,18 @@ use rusttracer::{
     },
     shapes::{mesh::Triangle, sphere::Sphere},
     test_scenes::cornell_box,
-    textures::{checkerboard::CheckerboardTexture, constant::ConstantTexture},
+    textures::constant::ConstantSpectrumTexture,
     vec3, Bounds2f, Point3f,
 };
+use rusttracer::integrators::simple_path::SimplePathIntegrator;
 
 fn main() {
     env_logger::init();
 
     let scene = cornell_box();
-    let mut integrator = DebugNormalIntegrator::new(scene);
+    // let mut integrator = DebugNormalIntegrator::new(scene);
     // let mut integrator = RandomWalkIntegrator::new(scene, 5, 2u32.pow(4));
-    // let mut integrator = SimplePathIntegrator::create(scene, 5, 2u32.pow(4));
+    let mut integrator = SimplePathIntegrator::create(scene, 5, 2u32.pow(4));
     integrator.render();
 }
 

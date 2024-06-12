@@ -1,5 +1,5 @@
-use arrayvec::ArrayVec;
 use derive_more::Deref;
+use itertools::Itertools;
 
 use crate::{
     math::utils::lerp,
@@ -7,28 +7,30 @@ use crate::{
     spectra::sampled_spectrum::SampledSpectrum,
 };
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 #[derive(Deref)]
 pub struct SampledWavelengths<const N: usize> {
     #[deref]
-    lambda: ArrayVec<f32, N>,
-    pdf: ArrayVec<f32, N>,
+    lambda: [f32; N],
+    pdf: [f32; N],
+    // lambda: ArrayVec<f32, N>,
+    // pdf: ArrayVec<f32, N>,
 }
 
 impl<const N: usize> SampledWavelengths<N> {
     pub fn sample_uniform(rnd_c: f32, lambda_min: f32, lambda_max: f32) -> Self {
         let mut swl = SampledWavelengths::default();
-        swl.lambda.push(lerp(lambda_min, lambda_max, rnd_c));
+        swl.lambda[0] = lerp(lambda_min, lambda_max, rnd_c);
 
         let delta = (lambda_max - lambda_min) / N as f32;
         for i in (1..N) {
-            let mut l = swl.lambda.last().unwrap() + delta;
+            let mut l = swl.lambda[i - 1] + delta;
             if (l > lambda_max) {
                 l = lambda_min + (l - lambda_max);
             }
-            swl.lambda.push(l);
-            swl.pdf.push(1. / (lambda_max - lambda_min));
+            swl.lambda[i] = l;
         }
+        swl.pdf.iter_mut().for_each(|x| *x = (lambda_max - lambda_min).recip());
 
         swl
     }
@@ -41,16 +43,16 @@ impl<const N: usize> SampledWavelengths<N> {
                 wl -= 1.
             }
             wl = sample_visible_wavelengths(wl);
-            swl.lambda.push(wl);
-            swl.pdf.push(visible_wavelengths_pdf(wl));
+            swl.lambda[i] = wl;
+            swl.pdf[i] = visible_wavelengths_pdf(wl);
         }
         swl
     }
 
-    pub fn secondary_terminate(&self) -> bool { self.pdf.iter().skip(1).any(|x| *x != 0.) }
+    pub fn secondary_terminated(&self) -> bool { self.pdf.iter().skip(1).any(|x| *x != 0.) }
 
     pub fn terminate_secondary(&mut self) {
-        if self.secondary_terminate() {
+        if self.secondary_terminated() {
             return;
         }
         self.pdf.iter_mut().skip(1).for_each(|x| *x = 0.);
@@ -58,4 +60,13 @@ impl<const N: usize> SampledWavelengths<N> {
     }
 
     pub fn pdf(&self) -> SampledSpectrum<N> { SampledSpectrum::new(self.pdf.clone()) }
+}
+
+impl<const N: usize> Default for SampledWavelengths<N> {
+    fn default() -> Self {
+        SampledWavelengths {
+            pdf: [0.; N],
+            lambda: [0.; N],
+        }
+    }
 }

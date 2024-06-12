@@ -1,23 +1,14 @@
 use std::sync::Arc;
 
 use image::{Pixel, Rgb};
+use num_traits::{One, Zero};
 use ouroboros::self_referencing;
 
-use crate::{
-    bxdf::BxDFFlags,
-    colors,
-    core::Ray,
-    integrators::{
-        ray::{RIState, RayIntegrator},
-        tile::TIState,
-        IState, Integrator,
-    },
-    light::{Light, LightSampler, UniformLightSampler},
-    math::{dot, Normed, Unit},
-    ray,
-    samplers::{IndependentSampler, Sampler, SamplerType, StratifiedSampler},
-    scene::Scene,
-};
+use crate::{bxdf::BxDFFlags, core::Ray, integrators::{
+    ray::{RIState, RayIntegrator},
+    tile::TIState,
+    IState, Integrator,
+}, light::{Light, LightSampler, UniformLightSampler}, math::{dot, Normed, Unit}, ray, SampledSpectrum, SampledWavelengths, samplers::{IndependentSampler, Sampler, SamplerType, StratifiedSampler}, scene::Scene};
 
 // TODO: or just copy lights for the light sampler?
 #[self_referencing]
@@ -58,16 +49,16 @@ impl SimplePathIntegrator {
 }
 
 impl RayIntegrator for SimplePathIntegrator {
-    fn light_incoming(&self, ray: &Ray, sampler: &mut SamplerType) -> Rgb<f32> {
+    fn light_incoming(&self, ray: &Ray, lambda: &SampledWavelengths, sampler: &mut SamplerType) -> SampledSpectrum{
         let mut ray = *ray;
         let mut depth = 0;
         // Total radiance from the current path
-        let mut radiance = colors::BLACK;
+        let mut radiance = SampledSpectrum::zero();
         // Fraction of radiance that arrives at the camera
-        let mut throughput = colors::WHITE;
+        let mut throughput = SampledSpectrum::one();
         let mut specular_bounce = true;
 
-        while throughput != colors::BLACK {
+        while !throughput.is_zero() {
             // Check for intersections with the scene
             let Some(mut interaction) = self.get_state().scene.cast_ray(&ray) else {
                 // TODO: sample infinite lights
@@ -76,9 +67,9 @@ impl RayIntegrator for SimplePathIntegrator {
 
             // Account for emissive materials
             if !self.borrow_sample_lights() || specular_bounce {
-                if let Some(mut emitted) = interaction.emitted_light() {
-                    emitted.apply2(&throughput, |e, t| e * t);
-                    radiance.apply2(&emitted, |r, e| r + e)
+                if let Some(mut emitted) = interaction.emitted_light(lambda) {
+                    emitted *= throughput;
+                    radiance += emitted;
                 }
             }
 
@@ -87,16 +78,16 @@ impl RayIntegrator for SimplePathIntegrator {
             }
             depth += 1;
 
-            let Some(bsdf) = interaction.get_bsdf(&ray, &self.borrow_state().scene.camera, sampler) else {
+            let Some(bsdf) = interaction.get_bsdf(&ray, lambda, &self.borrow_state().scene.camera, sampler) else {
                 // TODO: medias
                 continue;
             };
 
             if *self.borrow_sample_lights()
                 && let Some(sampled_light) = self.borrow_light_sampler().sample(&interaction, sampler.get_1d())
-                && let Some(light_sample) = sampled_light.light.sample_light(&interaction, sampler.get_2d())
+                && let Some(light_sample) = sampled_light.light.sample_light(&interaction,lambda, sampler.get_2d())
             {
-                if light_sample.pdf == 0. && light_sample.radiance == colors::BLACK {
+                if light_sample.pdf == 0. && light_sample.radiance.is_zero() {
                     break;
                 }
                 let mut reflected = bsdf.eval(*light_sample.incoming, *interaction.hit.outgoing);
@@ -105,7 +96,7 @@ impl RayIntegrator for SimplePathIntegrator {
                     /* TODO: shading_normal */ &interaction.hit.normal,
                 )
                 .abs();
-                reflected.apply(|x| x * cos);
+                reflected *= cos;
                 // TODO: scene.cast_ray -> bool
                 let ray = ray!(
                     interaction.hit.point + light_sample.incoming * 1e-3,
@@ -113,12 +104,12 @@ impl RayIntegrator for SimplePathIntegrator {
                 );
                 let t_max = (interaction.hit.point - light_sample.point).len() * 0.99;
                 let unoccluded = self.borrow_state().scene.cast_bounded_ray(&ray, t_max).is_none();
-                if reflected != colors::BLACK && unoccluded {
-                    reflected.apply2(&throughput, |r, t| r * t);
-                    reflected.apply2(&light_sample.radiance, |r, l| {
-                        r * l / (sampled_light.prob * light_sample.pdf)
-                    });
-                    radiance.apply2(&reflected, |r, e| r + e);
+                if !reflected.is_zero() && unoccluded {
+                    reflected *= throughput;
+                    reflected *= light_sample.radiance / (sampled_light.prob * light_sample.pdf);
+                    radiance += reflected;
+                    // TODO: reflected??
+                    // radiance.apply2(&reflected, |r, e| r + e);
                 }
             }
 
@@ -132,7 +123,9 @@ impl RayIntegrator for SimplePathIntegrator {
                 )
                 .abs()
                     / sample.pdf;
-                throughput.apply2(&sample.color, |t, s| t * s * coef);
+                
+                throughput *= sample.spectrum * coef;
+                // throughput.apply2(&sample.spectrum, |t, s| t * s * coef);
                 specular_bounce = sample.flags.contains(BxDFFlags::Specular);
                 // todo: si.spawn_ray
                 ray = ray!(

@@ -2,18 +2,15 @@
 
 use std::{cmp::Ordering, sync::Arc};
 
-use image::Rgb;
-
 use crate::{
     bxdf::BSDF,
-    colors,
     core::{interaction::Interaction, Ray},
     light::{Light, LightEnum},
     material::{Material, MaterialsEnum},
     math::{dot, Dot, Transform, Transformable},
     samplers::SamplerType,
     scene::cameras::Camera,
-    Normal3f, Vec3f,
+    Normal3f, SampledSpectrum, SampledWavelengths, Vec3f,
 };
 
 #[derive(Debug)]
@@ -68,21 +65,23 @@ impl SurfaceInteraction {
         }
     }
 
-    pub fn emitted_light(&self) -> Option<Rgb<f32>> {
-        self.area_light.as_ref().and_then(|x| x.radiance(self))
-        // if let Some(area_light) = &self.area_light {
-        //     area_light.radiance(&self)
-        // } else {
-        //     colors::BLACK
-        // }
+    pub fn emitted_light(&self, lambda: &SampledWavelengths) -> Option<SampledSpectrum> {
+        // todo: just return black?
+        self.area_light.as_ref().and_then(|x| x.radiance(self, lambda))
     }
 
-    pub fn get_bsdf(&mut self, ray: &Ray, camera: &dyn Camera, sampler: &mut SamplerType) -> Option<BSDF> {
+    pub fn get_bsdf(
+        &mut self,
+        ray: &Ray,
+        lambda: &SampledWavelengths,
+        camera: &dyn Camera,
+        sampler: &mut SamplerType,
+    ) -> Option<BSDF> {
         // TODO: spp, dyn
         // FIXME: not needed for now
         // self.calculate_differentials(ray, camera, 1)
         if let Some(material) = self.material.as_ref().map(|arc| arc.as_ref()) {
-            let bsdf: BSDF = material.get_bsdf(self);
+            let bsdf: BSDF = material.get_bsdf(self, lambda);
             Some(bsdf)
         } else {
             None

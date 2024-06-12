@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use crate::{core::SurfaceInteraction, textures::Texture};
+use crate::{core::SurfaceInteraction, SampledWavelengths, textures::SpectrumTexture};
 
 #[derive(Debug)]
 pub struct CheckerboardTexture<T> {
@@ -9,8 +9,8 @@ pub struct CheckerboardTexture<T> {
     pub size: f32,
 }
 
-impl<T: Copy + Debug> Texture<T> for CheckerboardTexture<T> {
-    fn evaluate(&self, surf_int: &SurfaceInteraction) -> T {
+impl<T: Copy + Debug> SpectrumTexture<T> for CheckerboardTexture<T> {
+    fn evaluate(&self, surf_int: &SurfaceInteraction, lambda: SampledWavelengths) -> T {
         let uv = surf_int.hit.uv;
         let u = uv.x % (self.size * 2.);
         let v = uv.y % (self.size * 2.);

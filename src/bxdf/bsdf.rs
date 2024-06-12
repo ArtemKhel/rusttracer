@@ -1,12 +1,12 @@
 use std::ops::Deref;
 
 use image::Rgb;
+use num_traits::Zero;
 
 use crate::{
     bxdf::bxdf::{BxDF, BxDFFlags, Shading},
-    colors,
     math::Frame,
-    Point2f, Vec3f,
+    Point2f, SampledSpectrum, Vec3f,
 };
 
 #[allow(clippy::upper_case_acronyms)]
@@ -15,9 +15,9 @@ pub struct BSDF {
     shading_frame: Frame<f32>,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct BSDFSample<T> {
-    pub color: Rgb<f32>,
+    pub spectrum: SampledSpectrum,
     pub incoming: T,
     pub pdf: f32,
     pub eta: f32,
@@ -25,9 +25,9 @@ pub struct BSDFSample<T> {
 }
 
 impl<T> BSDFSample<T> {
-    pub(crate) fn new(color: Rgb<f32>, incoming: T, pdf: f32, flags: BxDFFlags) -> Self {
+    pub(crate) fn new(spectrum: SampledSpectrum, incoming: T, pdf: f32, flags: BxDFFlags) -> Self {
         BSDFSample {
-            color,
+            spectrum,
             incoming,
             pdf,
             eta: 1.0,
@@ -46,12 +46,12 @@ impl BSDF {
         }
     }
 
-    pub fn eval(&self, incoming: Vec3f, outgoing: Vec3f) -> Rgb<f32> {
+    pub fn eval(&self, incoming: Vec3f, outgoing: Vec3f) -> SampledSpectrum {
         // TODO: normalized?
         let s_in = self.render_to_shading(incoming);
         let s_out = self.render_to_shading(outgoing);
         if s_out.z == 0.0 {
-            return colors::BLACK;
+            return SampledSpectrum::zero();
         }
         self.bxdf.eval(s_in, s_out)
     }
@@ -70,7 +70,7 @@ impl BSDF {
                 None
             } else {
                 Some(BSDFSample::new(
-                    sample.color,
+                    sample.spectrum,
                     self.shading_to_render(sample.incoming),
                     sample.pdf,
                     self.bxdf.flags(),

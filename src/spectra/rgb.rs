@@ -21,13 +21,21 @@ pub struct RGB {
     b: f32,
 }
 
+#[rustfmt::skip]
 impl RGB {
-    pub const BLACK: RGB = RGB { r: 0., g: 0., b: 0. };
-    pub const BLUE: RGB = RGB { r: 0., g: 0., b: 1. };
-    pub const GREEN: RGB = RGB { r: 0., g: 1., b: 0. };
-    pub const RED: RGB = RGB { r: 1., g: 0., b: 0. };
     pub const WHITE: RGB = RGB { r: 1., g: 1., b: 1. };
-
+    pub const BLACK: RGB = RGB { r: 0., g: 0., b: 0. };
+    pub const R: RGB = RGB { r: 1., g: 0., b: 0. };
+    pub const G: RGB = RGB { r: 0., g: 1., b: 0. };
+    pub const B: RGB = RGB { r: 0., g: 0., b: 1. };
+    pub const LIGHT_GRAY: RGB = RGB { r: 0.73, g: 0.73, b: 0.73 };
+    pub const DARK_GRAY: RGB = RGB { r: 0.4, g: 0.4, b: 0.4 };
+    pub const RED: RGB = RGB { r: 0.65, g: 0.05, b: 0.05 };
+    pub const GREEN: RGB = RGB { r: 0.12, g: 0.45, b: 0.15 };
+    pub const LIGHT_BLUE: RGB = RGB { r: 0.5, g: 0.8, b: 0.95 };
+    pub const DARK_BLUE: RGB = RGB { r: 0.2, g: 0.3, b: 0.5 };
+}
+impl RGB {
     pub fn has_nan(&self) -> bool { self.r.is_nan() || self.g.is_nan() || self.b.is_nan() }
 
     pub fn max(&self) -> f32 { self.r.max(self.g.max(self.b)) }

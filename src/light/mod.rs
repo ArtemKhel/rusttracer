@@ -2,12 +2,11 @@ use std::fmt::Debug;
 
 use bitflags::bitflags;
 pub use diffuse_area::DiffuseAreaLight;
-use image::Rgb;
 pub use light_sampler::LightSampler;
 pub use point::PointLight;
 pub use uniform_sampler::UniformLightSampler;
 
-use crate::{core::SurfaceInteraction, math::Unit, Point2f, Point3f, Vec3f};
+use crate::{core::SurfaceInteraction, math::Unit, Point2f, Point3f, SampledSpectrum, SampledWavelengths, Vec3f};
 
 mod base;
 mod diffuse_area;
@@ -17,14 +16,26 @@ mod uniform_sampler;
 
 #[enum_delegate::register]
 pub trait Light {
-    /// Total emitted power. Phi() in PBRT
-    fn flux(&self) -> Rgb<f32>;
+    // TODO: naming
+    /// Total emitted power.
+    /// Phi() in PBRT
+    fn flux(&self, lambda: &SampledWavelengths) -> SampledSpectrum;
+
     fn light_type(&self) -> LightType;
+
     /// sampleLi() in PBRT
-    fn sample_light(&self, surf_int: &SurfaceInteraction, rnd_p: Point2f) -> Option<LightSample>;
-    /// Radiance emitted back along the intersecting ray. L() in PBRT
+    fn sample_light(
+        &self,
+        surf_int: &SurfaceInteraction,
+        lambda: &SampledWavelengths,
+        rnd_p: Point2f,
+    ) -> Option<LightSample>;
+
+    /// Radiance emitted back along the intersecting ray. Only for area light.
     /// This method should never be called for any light that does not have geometry associated with it.
-    fn radiance(&self, surf_int: &SurfaceInteraction) -> Option<Rgb<f32>> { None }
+    /// L() in PBRT
+    fn radiance(&self, surf_int: &SurfaceInteraction, lambda: &SampledWavelengths) -> Option<SampledSpectrum> { None }
+
     // todo: fn pdf_incoming(&self, incoming: Vec3f, surf_int: &SurfaceInteraction) -> f32 {}
     //       fn Le(&self, ...) -> ... {}
 }
@@ -46,7 +57,7 @@ bitflags! {
 #[derive(Debug)]
 pub struct LightSample {
     /// Amount of radiance leaving the light source toward the receiving point
-    pub radiance: Rgb<f32>,
+    pub radiance: SampledSpectrum,
     /// Direction towards the light source from passed [SurfaceInteraction]
     pub incoming: Unit<Vec3f>,
     pub pdf: f32,

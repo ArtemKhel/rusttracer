@@ -44,7 +44,7 @@ impl BxDF for DielectricBxDF {
             let c = reflected / abs_cos_theta(incoming);
             let color = Rgb([c, c, c]);
             Some(BSDFSample {
-                color,
+                spectrum: color,
                 incoming,
                 pdf: prob_reflected,
                 eta: self.eta,
@@ -66,7 +66,7 @@ impl BxDF for DielectricBxDF {
                 let color = Rgb([c, c, c]);
                 // TODO: [PBRT] Account for non-symmetry with transmission to different medium
                 Some(BSDFSample {
-                    color,
+                    spectrum: color,
                     incoming,
                     pdf: 1. - prob_reflected,
                     eta: rel_eta,
