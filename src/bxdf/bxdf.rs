@@ -8,7 +8,8 @@ use num_traits::Zero;
 use crate::{
     bxdf::{
         bsdf::BSDFSample,
-        // conductor::ConductorBxDF, dielectric::DielectricBxDF,
+        conductor::ConductorBxDF, 
+        dielectric::DielectricBxDF,
         diffuse::DiffuseBxDF,
     },
     Point2f, SampledSpectrum, Vec3f,
@@ -72,6 +73,6 @@ pub trait BxDF {
 #[enum_delegate::implement(BxDF)]
 pub enum BxDFEnum {
     Diffuse(DiffuseBxDF),
-    // Conductor(ConductorBxDF),
-    // Dielectric(DielectricBxDF),
+    Conductor(ConductorBxDF),
+    Dielectric(DielectricBxDF),
 }

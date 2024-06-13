@@ -20,7 +20,7 @@ pub struct Matte {
 impl Material for Matte {
     type BxDF = BxDFEnum;
 
-    fn get_bxdf(&self, surf_int: &SurfaceInteraction, lambda: &SampledWavelengths) -> <Matte as Material>::BxDF {
+    fn get_bxdf(&self, surf_int: &SurfaceInteraction, lambda: &SampledWavelengths) -> Self::BxDF {
         let reflectance = self.reflectance.evaluate(surf_int, lambda).clamp(0., 1.);
         BxDFEnum::Diffuse(DiffuseBxDF::new(reflectance))
     }

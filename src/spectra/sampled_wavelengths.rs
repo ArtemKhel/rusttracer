@@ -59,7 +59,7 @@ impl<const N: usize> SampledWavelengths<N> {
         self.pdf[0] /= N as f32;
     }
 
-    pub fn pdf(&self) -> SampledSpectrum<N> { SampledSpectrum::new(self.pdf.clone()) }
+    pub fn pdf(&self) -> SampledSpectrum<N> { SampledSpectrum::new(self.pdf) }
 }
 
 impl<const N: usize> Default for SampledWavelengths<N> {

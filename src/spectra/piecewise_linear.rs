@@ -10,6 +10,7 @@ use crate::{
 
 #[derive(Clone, Debug)]
 pub struct PiecewiseLinearSpectrum {
+    // todo:stack alloc?
     lambdas: Vec<f32>,
     values: Vec<f32>,
 }
@@ -46,6 +47,7 @@ impl PiecewiseLinearSpectrum {
             values.push(from[len - 1]);
         }
 
+        debug_assert!(lambdas.windows(2).all(|x| x[0] <= x[1]));
         let mut spectrum = PiecewiseLinearSpectrum { lambdas, values };
 
         // Normalize to have luminance of 1.

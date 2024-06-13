@@ -3,19 +3,14 @@ use std::mem::offset_of;
 use derive_new::new;
 use image::Rgb;
 use log::debug;
-use num_traits::Signed;
+use num_traits::{Signed, Zero};
 
-use crate::{
-    bxdf::{
-        bsdf::BSDFSample,
-        bxdf::{BxDFFlags, Shading},
-        utils::{abs_cos_theta, cos_theta},
-        BxDF,
-    },
-    colors,
-    math::{utils::refract, Unit},
-    unit_normal3, unit_normal3_unchecked, vec3, Point2f, Vec3f,
-};
+use crate::{bxdf::{
+    bsdf::BSDFSample,
+    bxdf::{BxDFFlags, Shading},
+    utils::{abs_cos_theta, cos_theta},
+    BxDF,
+}, math::{utils::refract, Unit}, unit_normal3, unit_normal3_unchecked, vec3, Point2f, Vec3f, SampledSpectrum};
 
 #[derive(Debug)]
 #[derive(new)]
@@ -26,9 +21,9 @@ pub struct DielectricBxDF {
 impl BxDF for DielectricBxDF {
     fn flags(&self) -> BxDFFlags { BxDFFlags::SpecularTransmission | BxDFFlags::SpecularReflection }
 
-    fn eval(&self, incoming: Shading<Vec3f>, outgoing: Shading<Vec3f>) -> Rgb<f32> {
+    fn eval(&self, incoming: Shading<Vec3f>, outgoing: Shading<Vec3f>) -> SampledSpectrum {
         // TODO: microfacet
-        colors::BLACK
+        SampledSpectrum::zero()
     }
 
     fn sample(&self, rnd_p: Point2f, rnd_c: f32, outgoing: Shading<Vec3f>) -> Option<BSDFSample<Shading<Vec3f>>> {
@@ -42,7 +37,7 @@ impl BxDF for DielectricBxDF {
             // Sample reflected light
             let incoming: Shading<Vec3f> = vec3!(-outgoing.x, -outgoing.y, outgoing.z).into();
             let c = reflected / abs_cos_theta(incoming);
-            let color = Rgb([c, c, c]);
+            let color = SampledSpectrum::from(c);
             Some(BSDFSample {
                 spectrum: color,
                 incoming,
@@ -63,10 +58,10 @@ impl BxDF for DielectricBxDF {
             ) {
                 let incoming = Shading::from(incoming);
                 let c = transmitted / abs_cos_theta(incoming);
-                let color = Rgb([c, c, c]);
+                let spectrum = SampledSpectrum::from(c);
                 // TODO: [PBRT] Account for non-symmetry with transmission to different medium
                 Some(BSDFSample {
-                    spectrum: color,
+                    spectrum,
                     incoming,
                     pdf: 1. - prob_reflected,
                     eta: rel_eta,

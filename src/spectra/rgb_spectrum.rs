@@ -29,7 +29,7 @@ pub struct RGBUnboundedSpectrum {
 }
 
 impl RGBUnboundedSpectrum {
-    fn new(color_space: &RGBColorSpace, rgb: RGB) -> RGBUnboundedSpectrum {
+    pub(crate) fn new(color_space: &RGBColorSpace, rgb: RGB) -> RGBUnboundedSpectrum {
         let scale = match 2. * rgb.max() {
             0.0 => 1.,
             x => x,
@@ -78,24 +78,33 @@ mod tests {
     use rand::random;
 
     use super::*;
-    use crate::spectra::{rgb::sRGB, SampledSpectrum, SampledWavelengths};
+    use crate::spectra::{LAMBDA_MAX, LAMBDA_MIN, rgb::sRGB, SampledSpectrum, SampledWavelengths, VISIBLE_MAX, VISIBLE_MIN};
+    use crate::spectra::xyz::XYZ;
 
     #[test]
     fn test_albedo() {
-        // TODO: it fails after switching SS/SW from ArrayVec to regular array
+        // TODO: at some point it started to fail :(
+        let bl = RGB::BLACK;
+        let wh = RGB::WHITE;
         let r = RGB::R;
         let g = RGB::G;
         let b = RGB::B;
 
-        for rgb in [g, b] {
-            let mut spectrum = SampledSpectrum::<100>::default();
-            let lambda = SampledWavelengths::<100>::sample_visible(random());
-            let a = RGBAlbedoSpectrum::new(&sRGB, rgb);
-            let sample = a.sample(&lambda);
-            spectrum += sample;
-            let result = spectrum.to_rgb(&lambda, &sRGB);
+        let color_space = sRGB.clone();
 
-            assert_abs_diff_eq!(result, rgb);
+        for rgb in [bl, wh, r, g, b] {
+            let lambda = SampledWavelengths::<470>::sample_visible(random());
+            // let lambda = SampledWavelengths::<470>::sample_uniform(0., VISIBLE_MIN, VISIBLE_MAX);
+            let albedo = RGBAlbedoSpectrum::new(&sRGB, rgb);
+            // let albedo = RGBUnboundedSpectrum::new(&sRGB, rgb);
+            // let spectrum = albedo.sample(&lambda);
+            let spectrum = albedo.sample(&lambda) * color_space.illuminant.sample(&lambda);
+            let xyz = spectrum.to_xyz(&lambda);
+            let result = color_space.xyz_to_rgb(xyz);
+            let result2 = spectrum.to_rgb(&lambda, &sRGB);
+
+            assert_abs_diff_eq!(result, rgb, epsilon=0.01);
+            assert_abs_diff_eq!(result2, rgb, epsilon=0.01);
         }
     }
 }

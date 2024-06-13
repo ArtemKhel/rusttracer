@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use image::Rgb;
 
-// use crate::material::glass::Glass;
+use crate::material::glass::Glass;
 use crate::material::matte::Matte;
 use crate::{
     bxdf,
@@ -10,11 +10,11 @@ use crate::{
     core::{Ray, SurfaceInteraction},
     SampledSpectrum, SampledWavelengths,
 };
-// use crate::material::metal::Metal;
+use crate::material::metal::Metal;
 
 pub mod matte;
-// pub mod glass;
-// pub mod metal;
+pub mod glass;
+pub mod metal;
 
 #[enum_delegate::register]
 pub trait Material {
@@ -29,6 +29,6 @@ pub trait Material {
 #[enum_delegate::implement(Material)]
 pub enum MaterialsEnum {
     Matte(Matte),
-    // Metal(Metal),
-    // Glass(Glass),
+    Metal(Metal),
+    Glass(Glass),
 }

@@ -31,7 +31,7 @@ impl DenselySampledSpectrum {
 impl Spectrum for DenselySampledSpectrum {
     fn value(&self, wavelength: f32) -> f32 {
         let mut offset = wavelength.round() as usize;
-        if self.lambda_min <= offset || offset < self.lambda_max {
+        if (self.lambda_min..=self.lambda_max).contains(&offset){
             self.values[offset - self.lambda_min]
         } else {
             0.

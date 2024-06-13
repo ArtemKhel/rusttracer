@@ -92,7 +92,7 @@ pub struct RGBColorSpace {
     g: Point2f,
     b: Point2f,
     whitepoint: Point2f,
-    illuminant: Arc<SpectrumEnum>,
+    pub(super) illuminant: Arc<SpectrumEnum>,
     rgb_to_xyz: Matrix3<f32>,
     xyz_to_rgb: Matrix3<f32>,
     gamut: Gamut,
@@ -137,7 +137,7 @@ impl RGBColorSpace {
 
     pub fn xyz_to_rgb(&self, xyz: XYZ) -> RGB { RGB::from(self.xyz_to_rgb * Vec3f::from(xyz)) }
 
-    pub fn rgb_to_xyz(&self, rgb: RGB) -> XYZ { XYZ::from(self.xyz_to_rgb * Vec3f::from(rgb)) }
+    pub fn rgb_to_xyz(&self, rgb: RGB) -> XYZ { XYZ::from(self.rgb_to_xyz * Vec3f::from(rgb)) }
 }
 
 impl AbsDiffEq for RGB {
@@ -162,3 +162,61 @@ pub static sRGB: LazyLock<Arc<RGBColorSpace>> = LazyLock::new(|| {
         Gamut::sRGB,
     ))
 });
+
+#[cfg(test)]
+mod tests {
+    use std::io::Write;
+    use approx::assert_abs_diff_eq;
+    use crate::spectra::{RGBAlbedoSpectrum, RGBUnboundedSpectrum, Spectrum, VISIBLE_MIN};
+    use super::*;
+    
+    #[test]
+    fn from_xy_zero() {
+        let point = point2!(1.0, 0.0);
+        let res = XYZ::from_xy_Y(point, 0.5);
+        let exp = XYZ::new(0.0, 0.0, 0.0);
+        assert_eq!(res,exp);
+    }
+
+    #[test]
+    fn test_() {
+        let rgb = RGB::WHITE;
+        let poly = RGBUnboundedSpectrum::new(&sRGB.clone(), rgb);
+        let mut file = std::fs::File::create("./dump").unwrap();
+        for i in 360..=830{
+            let v = poly.value(i as f32);
+            file.write(format!("{i}-{v}\n").as_bytes());
+        }
+        file.flush();
+    }
+
+    #[test]
+    fn test_srgb() {
+        let color_space = sRGB.clone();
+        
+        let rgb = color_space.xyz_to_rgb(XYZ::new(1.0, 0.0, 0.0));
+        assert_abs_diff_eq!(3.2406, rgb.r, epsilon = 0.01);
+        assert_abs_diff_eq!(-0.9689, rgb.g, epsilon = 0.01);
+        assert_abs_diff_eq!(0.0557, rgb.b, epsilon = 0.01);
+
+        let rgb = color_space.xyz_to_rgb(XYZ::new(0.0, 1.0, 0.0));
+        assert_abs_diff_eq!(-1.5372, rgb.r, epsilon = 0.01);
+        assert_abs_diff_eq!(1.8758, rgb.g, epsilon = 0.01);
+        assert_abs_diff_eq!(-0.2040, rgb.b, epsilon = 0.01);
+
+        let rgb = color_space.xyz_to_rgb(XYZ::new(0.0, 0.0, 1.0));
+        assert_abs_diff_eq!(-0.4986, rgb.r, epsilon = 0.01);
+        assert_abs_diff_eq!(0.0415, rgb.g, epsilon = 0.01);
+        assert_abs_diff_eq!(1.0570, rgb.b, epsilon = 0.01);
+    }
+    #[test]
+    fn test_rgb_xyz_rgb() {
+        let color_space = sRGB.clone();
+        let rgbs = [RGB::WHITE, RGB::BLACK, RGB::R, RGB::G, RGB::B, RGB::RED, RGB::GREEN, RGB::LIGHT_BLUE];
+        for rgb in rgbs{
+            let xyz = color_space.rgb_to_xyz(rgb);
+            let res = color_space.xyz_to_rgb(xyz);
+            assert_abs_diff_eq!(res,rgb)
+        }
+    }
+}

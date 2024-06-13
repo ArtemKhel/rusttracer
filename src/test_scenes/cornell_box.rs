@@ -22,6 +22,9 @@ use crate::{
     textures::{constant::ConstantSpectrumTexture, SpectrumTexture},
     vec3, Bounds2f,
 };
+use crate::material::glass::Glass;
+use crate::material::metal::Metal;
+use crate::spectra::{ConstantSpectrum, RGBUnboundedSpectrum};
 
 fn base_box(
     left_wall: &Arc<MaterialsEnum>,
@@ -120,18 +123,19 @@ pub fn cornell_box() -> Scene {
     let matte_red = Arc::new(MaterialsEnum::Matte(Matte {
         reflectance: const_red.clone() as _,
     }));
-    // let metal = Arc::new(MaterialsEnum::Metal(Metal {
-    //     reflectance: const_white.clone(),
-    //     eta: const_white.clone(),
-    //     k: const_white.clone(),
-    // }));
-    // let glass = Arc::new(MaterialsEnum::Glass(Glass {
-    //     spectrum: const_gray.clone(),
-    //     ior: 1.5,
-    // }));
+    let metal = Arc::new(MaterialsEnum::Metal(Metal {
+        reflectance: const_white.clone(),
+        eta: const_white.clone(),
+        k: const_white.clone(),
+    }));
+    let glass = Arc::new(MaterialsEnum::Glass(Glass {
+        spectrum: const_gray.clone(),
+        ior: 1.5,
+    }));
 
     // let mut cornell_box = base_box(&matte_green, &matte_red, &metal, &matte_gray, &glass);
     let mut cornell_box = base_box(&matte_green, &matte_red, &matte_gray, &matte_gray);
+    
     let light_shape = Arc::new(Quad::new(
         point3!(250., 950., 250.),
         vec3!(500., 0., 0.),
@@ -140,6 +144,7 @@ pub fn cornell_box() -> Scene {
     ));
     let d65 = NamedSpectra::IlluminantD65.get();
     let light_source = Arc::new(LightEnum::DiffuseArea(DiffuseAreaLight::new(
+        // Arc::new(SpectrumEnum::Constant(ConstantSpectrum::new(1.))),
         d65.clone(),
         1.5,
         Transform::id(),
@@ -158,12 +163,17 @@ pub fn cornell_box() -> Scene {
         .map(Arc::new)
         .map(|x| SimplePrimitive {
             shape: x,
-            material: matte_gray.clone(),
+            material: glass.clone(),
         })
         .map(PrimitiveEnum::Simple)
         .map(Arc::new)
         .collect();
     cornell_box.extend(tri);
+    
+    cornell_box.push(Arc::new(PrimitiveEnum::Simple(SimplePrimitive{
+        shape: Arc::new(Sphere{radius:100., transform:Transform::translate(vec3!(150.,100.,150.))}),
+        material:glass.clone()
+    })));
 
     let objects = PrimitiveEnum::BVH(BVH::new(cornell_box, 8));
     let lights = vec![light_source as _];

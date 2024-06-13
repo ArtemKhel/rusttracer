@@ -166,6 +166,7 @@ impl_axis_index!(Matrix3, Axis3, Vec3<T>, (X, x), (Y, y), (Z, z));
 
 #[cfg(test)]
 mod tests {
+    use approx::assert_abs_diff_eq;
     use super::*;
 
     #[test]
@@ -175,5 +176,17 @@ mod tests {
 
         assert_eq!(input.determinant(), -12.);
         assert_eq!(input.invert().unwrap(), expected)
+    }
+    
+    #[test]
+    fn test_mul_vec() {
+        let mat = Matrix3::from_elements(
+            1.,2.,3.,
+            4.,5.,6.,
+            7.,8.,9.,
+        );
+        let vec = vec3!(3.,2.,1.);
+        let expected = vec3!(10.,28.,46.);
+        assert_abs_diff_eq!(mat * vec, expected);
     }
 }
