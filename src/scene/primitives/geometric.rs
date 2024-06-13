@@ -5,7 +5,7 @@ use derive_new::new;
 use crate::{
     aggregates::{Aabb, Bounded},
     core::{Ray, SurfaceInteraction},
-    light::{Light, LightEnum},
+    light::LightEnum,
     material::MaterialsEnum,
     scene::primitives::Primitive,
     shapes::{BoundedIntersectable, Intersectable},
@@ -34,6 +34,9 @@ impl Intersectable for GeometricPrimitive {
             None
         }
     }
+
+    // TODO: useless?
+    fn check_intersect(&self, ray: &Ray, t_max: f32) -> bool { self.shape.check_intersect(ray, t_max) }
 }
 
 impl Primitive for GeometricPrimitive {}

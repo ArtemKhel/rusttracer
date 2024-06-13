@@ -96,6 +96,29 @@ impl Intersectable for Quad {
             None
         }
     }
+
+    fn check_intersect(&self, ray: &Ray, t_max: f32) -> bool {
+        let denom = self.normal.dot(&ray.dir);
+        if denom.abs() < Self::PADDING {
+            return false;
+        }
+
+        let t = (self.d - self.normal.dot(&ray.origin.coords)) / denom;
+        if t < 0.0 {
+            return false;
+        }
+
+        let hit_point = ray.at(t);
+        let planar_hit_point = hit_point - self.a;
+        let alpha = dot(&self.w, &cross(&planar_hit_point, &self.ab));
+        let beta = dot(&self.w, &cross(&self.ac, &planar_hit_point));
+
+        if (0.0..=1.0).contains(&alpha) && (0.0..=1.0).contains(&beta) {
+            true
+        } else {
+            false
+        }
+    }
 }
 
 impl Bounded<f32> for Quad {

@@ -24,12 +24,8 @@ pub trait Light {
     fn light_type(&self) -> LightType;
 
     /// sampleLi() in PBRT
-    fn sample_light(
-        &self,
-        surf_int: &SurfaceInteraction,
-        lambda: &SampledWavelengths,
-        rnd_p: Point2f,
-    ) -> Option<LightSample>;
+    fn sample(&self, surf_int: &SurfaceInteraction, lambda: &SampledWavelengths, rnd_p: Point2f)
+        -> Option<LightSample>;
 
     /// Radiance emitted back along the intersecting ray. Only for area light.
     /// This method should never be called for any light that does not have geometry associated with it.

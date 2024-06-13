@@ -31,6 +31,14 @@ impl Intersectable for PrimitiveEnum {
             PrimitiveEnum::BVH(prim) => prim.intersect(ray, t_max),
         }
     }
+
+    fn check_intersect(&self, ray: &Ray, t_max: f32) -> bool {
+        match self {
+            PrimitiveEnum::Simple(prim) => prim.check_intersect(ray, t_max),
+            PrimitiveEnum::Geometric(prim) => prim.check_intersect(ray, t_max),
+            PrimitiveEnum::BVH(prim) => prim.check_intersect(ray, t_max),
+        }
+    }
 }
 
 impl Bounded<f32> for PrimitiveEnum {

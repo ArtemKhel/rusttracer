@@ -3,12 +3,26 @@ use std::sync::Arc;
 use image::{Pixel, Rgb};
 use num_traits::{One, Zero};
 use ouroboros::self_referencing;
+use rand::Rng;
 
-use crate::{bxdf::BxDFFlags, core::Ray, integrators::{
-    ray::{RIState, RayIntegrator},
-    tile::TIState,
-    IState, Integrator,
-}, light::{Light, LightSampler, UniformLightSampler}, math::{dot, Normed, Unit}, ray, SampledSpectrum, SampledWavelengths, samplers::{IndependentSampler, Sampler, SamplerType, StratifiedSampler}, scene::Scene};
+use crate::{
+    bxdf::BxDFFlags,
+    core::Ray,
+    integrators::{
+        ray::{RIState, RayIntegrator},
+        tile::TIState,
+        IState, Integrator,
+    },
+    light::{Light, LightSampler, UniformLightSampler},
+    math::{dot, Normed, Unit},
+    ray,
+    samplers::{
+        utils::{sample_uniform_hemisphere, sample_uniform_sphere, uniform_hemisphere_pdf, uniform_sphere_pdf},
+        IndependentSampler, Sampler, SamplerType, StratifiedSampler,
+    },
+    scene::Scene,
+    SampledSpectrum, SampledWavelengths,
+};
 
 // TODO: or just copy lights for the light sampler?
 #[self_referencing]
@@ -49,7 +63,7 @@ impl SimplePathIntegrator {
 }
 
 impl RayIntegrator for SimplePathIntegrator {
-    fn light_incoming(&self, ray: &Ray, lambda: &SampledWavelengths, sampler: &mut SamplerType) -> SampledSpectrum{
+    fn light_incoming(&self, ray: &Ray, lambda: &mut SampledWavelengths, sampler: &mut SamplerType) -> SampledSpectrum {
         let mut ray = *ray;
         let mut depth = 0;
         // Total radiance from the current path
@@ -61,7 +75,7 @@ impl RayIntegrator for SimplePathIntegrator {
         while !throughput.is_zero() {
             // Check for intersections with the scene
             let Some(mut interaction) = self.get_state().scene.cast_ray(&ray) else {
-                // TODO: sample infinite lights
+                // TODO: [infinite lights]
                 break;
             };
 
@@ -85,55 +99,62 @@ impl RayIntegrator for SimplePathIntegrator {
 
             if *self.borrow_sample_lights()
                 && let Some(sampled_light) = self.borrow_light_sampler().sample(&interaction, sampler.get_1d())
-                && let Some(light_sample) = sampled_light.light.sample_light(&interaction,lambda, sampler.get_2d())
+                && let Some(sample) = sampled_light.light.sample(&interaction, lambda, sampler.get_2d())
+                && sample.pdf != 0.
+                && !sample.radiance.is_zero()
             {
-                if light_sample.pdf == 0. && light_sample.radiance.is_zero() {
-                    break;
-                }
-                let mut reflected = bsdf.eval(*light_sample.incoming, *interaction.hit.outgoing);
-                let cos = dot(
-                    &light_sample.incoming,
-                    /* TODO: shading_normal */ &interaction.hit.normal,
-                )
-                .abs();
+                // TODO: check occlusion before this?
+                let mut reflected = bsdf.eval(*sample.incoming, *interaction.hit.outgoing);
+                // TODO: shading_normal
+                let cos = dot(&sample.incoming, &interaction.hit.normal).abs();
                 reflected *= cos;
-                // TODO: scene.cast_ray -> bool
-                let ray = ray!(
-                    interaction.hit.point + light_sample.incoming * 1e-3,
-                    light_sample.incoming
-                );
-                let t_max = (interaction.hit.point - light_sample.point).len() * 0.99;
-                let unoccluded = self.borrow_state().scene.cast_bounded_ray(&ray, t_max).is_none();
-                if !reflected.is_zero() && unoccluded {
-                    reflected *= throughput;
-                    reflected *= light_sample.radiance / (sampled_light.prob * light_sample.pdf);
+
+                let is_unoccluded =
+                    self.borrow_state()
+                        .scene
+                        .unoccluded(interaction.hit.point, sample.incoming, sample.point);
+                if !reflected.is_zero() && is_unoccluded {
+                    reflected *= throughput * sample.radiance / (sampled_light.prob * sample.pdf);
                     radiance += reflected;
-                    // TODO: reflected??
-                    // radiance.apply2(&reflected, |r, e| r + e);
                 }
             }
 
-            if *self.borrow_sample_bsdf() {
-                let Some(sample) = bsdf.sample(*interaction.hit.outgoing, sampler.get_2d(), sampler.get_1d()) else {
-                    break;
-                };
-                let coef = dot(
+            if *self.borrow_sample_bsdf()
+                && let Some(sample) = bsdf.sample(*interaction.hit.outgoing, sampler.get_2d(), sampler.get_1d())
+            {
+                let cos = dot(
                     &sample.incoming,
                     /* TODO: shading normal */ &interaction.hit.normal,
                 )
                 .abs()
                     / sample.pdf;
-                
-                throughput *= sample.spectrum * coef;
-                // throughput.apply2(&sample.spectrum, |t, s| t * s * coef);
+
+                throughput *= sample.spectrum * cos;
                 specular_bounce = sample.flags.contains(BxDFFlags::Specular);
-                // todo: si.spawn_ray
-                ray = ray!(
-                    interaction.hit.point + sample.incoming * 1e-3,
-                    Unit::from_unchecked(sample.incoming)
-                );
+                ray = interaction.spawn_ray(Unit::from_unchecked(sample.incoming));
             } else {
-                // todo uniformly sample
+                // Uniformly sample sphere or hemisphere to get new path direction
+                let flags = bsdf.flags();
+
+                let (incoming, pdf) = if flags.contains(BxDFFlags::Reflection & BxDFFlags::Transmission) {
+                    (sample_uniform_sphere(sampler.get_2d()), uniform_sphere_pdf())
+                } else {
+                    let mut incoming = sample_uniform_hemisphere(sampler.get_2d());
+                    let pdf = uniform_hemisphere_pdf();
+                    let in_out_in_different_hemispheres = (dot(&interaction.hit.outgoing, &interaction.hit.normal)
+                        * dot(&incoming, &interaction.hit.normal))
+                        < 0.;
+                    if flags.contains(BxDFFlags::Reflection) && in_out_in_different_hemispheres {
+                        incoming = -incoming;
+                    } else if flags.contains(BxDFFlags::Transmission) && !in_out_in_different_hemispheres {
+                        incoming = -incoming;
+                    };
+                    (incoming, pdf)
+                };
+                let cos = dot(&incoming, &interaction.hit.normal /* TODO: shading */).abs();
+                throughput *= bsdf.eval(*incoming, *interaction.hit.outgoing) * cos / pdf;
+                specular_bounce = false;
+                ray = interaction.spawn_ray(incoming)
             }
         }
         radiance

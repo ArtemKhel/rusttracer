@@ -3,7 +3,7 @@ use std::sync::Arc;
 use crate::{
     aggregates::BVH,
     light::{DiffuseAreaLight, LightEnum, PointLight},
-    material::{matte::Matte, MaterialsEnum},
+    material::{glass::Glass, matte::Matte, metal::Metal, MaterialsEnum},
     math::{axis::Axis3, Transform},
     point2, point3,
     scene::{
@@ -12,19 +12,17 @@ use crate::{
         primitives::{geometric::GeometricPrimitive, simple::SimplePrimitive, PrimitiveEnum},
         Scene,
     },
-    shapes::{quad::Quad, sphere::Sphere},
+    shapes::quad::Quad,
     spectra::{
         named::NamedSpectra,
+        piecewise_linear::PiecewiseLinearSpectrum,
         rgb::{sRGB, RGB},
-        RGBAlbedoSpectrum, SpectrumEnum,
+        RGBAlbedoSpectrum, SpectrumEnum, VISIBLE_MAX, VISIBLE_MIN,
     },
     test_scenes::teapot_triangles,
-    textures::{constant::ConstantSpectrumTexture, SpectrumTexture},
+    textures::constant::ConstantSpectrumTexture,
     vec3, Bounds2f,
 };
-use crate::material::glass::Glass;
-use crate::material::metal::Metal;
-use crate::spectra::{ConstantSpectrum, RGBUnboundedSpectrum};
 
 fn base_box(
     left_wall: &Arc<MaterialsEnum>,
@@ -130,15 +128,15 @@ pub fn cornell_box() -> Scene {
     }));
     let glass = Arc::new(MaterialsEnum::Glass(Glass {
         spectrum: const_gray.clone(),
-        ior: 1.5,
+        ior: SpectrumEnum::PiecewiseLinear(PiecewiseLinearSpectrum::new(&[VISIBLE_MIN, VISIBLE_MAX], &[2.5, 1.5])),
     }));
 
     // let mut cornell_box = base_box(&matte_green, &matte_red, &metal, &matte_gray, &glass);
     let mut cornell_box = base_box(&matte_green, &matte_red, &matte_gray, &matte_gray);
-    
+
     let light_shape = Arc::new(Quad::new(
         point3!(250., 950., 250.),
-        vec3!(500., 0., 0.),
+        vec3!(50., 0., 0.),
         vec3!(0., 0., 500.),
         Transform::id(),
     ));
@@ -157,7 +155,11 @@ pub fn cornell_box() -> Scene {
     };
     cornell_box.push(Arc::new(PrimitiveEnum::Geometric(light)));
 
-    let tri = teapot_triangles(Transform::scale_uniform(150.).then_translate(vec3!(500., 0., 500.)));
+    let tri = teapot_triangles(
+        Transform::scale_uniform(2500.)
+            .then_rotate_degrees(Axis3::X, 90.)
+            .then_translate(vec3!(500., 500., 500.)),
+    );
     let tri: Vec<Arc<PrimitiveEnum>> = tri
         .into_iter()
         .map(Arc::new)
@@ -169,14 +171,24 @@ pub fn cornell_box() -> Scene {
         .map(Arc::new)
         .collect();
     cornell_box.extend(tri);
-    
-    cornell_box.push(Arc::new(PrimitiveEnum::Simple(SimplePrimitive{
-        shape: Arc::new(Sphere{radius:100., transform:Transform::translate(vec3!(150.,100.,150.))}),
-        material:glass.clone()
-    })));
+
+    // cornell_box.push(Arc::new(PrimitiveEnum::Simple(SimplePrimitive {
+    //     shape: Arc::new(Sphere {
+    //         radius: 300.,
+    //         transform: Transform::translate(vec3!(500., 400., 500.)),
+    //     }),
+    //     material: glass.clone(),
+    // })));
 
     let objects = PrimitiveEnum::BVH(BVH::new(cornell_box, 8));
-    let lights = vec![light_source as _];
+    let lights = vec![
+        light_source as _,
+        // Arc::new(LightEnum::Point(PointLight::new(
+        //     d65.clone(),
+        //     500_000.,
+        //     Transform::translate(vec3!(200., 200., 500.)),
+        // ))),
+    ];
     // let lights = vec![Arc::new(LightEnum::Point(PointLight::new(
     //     NamedSpectra::IlluminantD65.get(),
     //     1.,

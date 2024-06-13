@@ -17,7 +17,7 @@ use crate::{
 };
 
 pub(super) trait RayIntegrator: TileIntegrator {
-    fn light_incoming(&self, ray: &Ray, lambda: &SampledWavelengths, sampler: &mut SamplerType) -> SampledSpectrum;
+    fn light_incoming(&self, ray: &Ray, lambda: &mut SampledWavelengths, sampler: &mut SamplerType) -> SampledSpectrum;
     fn get_ri_state(&self) -> &RIState;
 }
 
@@ -34,7 +34,7 @@ where T: RayIntegrator
 {
     fn evaluate_pixel(&self, pixel: Point2us, sampler: &mut SamplerType) {
         let state = self.get_state();
-        let lambda = state.scene.camera.get_film().sample_wavelengths(sampler.get_1d());
+        let mut lambda = state.scene.camera.get_film().sample_wavelengths(sampler.get_1d());
         let sample = CameraSample::new(pixel, sampler);
 
         // TODO: [AA] should be diff ray.
@@ -42,7 +42,7 @@ where T: RayIntegrator
         //       [filters] should account for CameraRay weight
         //       [realistic camera] need to know about wavelengths
         let ray = state.scene.camera.generate_ray(sample);
-        let spectrum = self.light_incoming(&ray, &lambda, sampler);
+        let spectrum = self.light_incoming(&ray, &mut lambda, sampler);
 
         let mut arc_film = state.scene.camera.get_film();
         unsafe {

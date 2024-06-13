@@ -7,7 +7,8 @@ use crate::{
     core::{interaction::Interaction, Ray},
     light::{Light, LightEnum},
     material::{Material, MaterialsEnum},
-    math::{dot, Dot, Transform, Transformable},
+    math::{dot, Dot, Transform, Transformable, Unit},
+    ray,
     samplers::SamplerType,
     scene::cameras::Camera,
     Normal3f, SampledSpectrum, SampledWavelengths, Vec3f,
@@ -73,7 +74,7 @@ impl SurfaceInteraction {
     pub fn get_bsdf(
         &mut self,
         ray: &Ray,
-        lambda: &SampledWavelengths,
+        lambda: &mut SampledWavelengths,
         camera: &dyn Camera,
         sampler: &mut SamplerType,
     ) -> Option<BSDF> {
@@ -86,6 +87,13 @@ impl SurfaceInteraction {
         } else {
             None
         }
+    }
+
+    pub fn spawn_ray(&self, dir: Unit<Vec3f>) -> Ray {
+        let scale = 1e-3_f32.copysign(dot(&dir, &self.hit.normal));
+        let origin = self.hit.point + **self.hit.normal * scale;
+        // let origin = self.hit.point + *dir * 1e-3;
+        ray!(origin, dir)
     }
 
     pub fn set_material_properties(&mut self, material: &Arc<MaterialsEnum>, area_light: Option<&Arc<LightEnum>>) {

@@ -8,6 +8,7 @@ use crate::{
 };
 
 pub mod debug_normal;
+mod path;
 pub mod random_walk;
 mod ray;
 pub mod simple_path;

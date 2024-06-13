@@ -78,3 +78,19 @@ impl Spectrum for PiecewiseLinearSpectrum {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::spectra::{VISIBLE_MAX, VISIBLE_MIN};
+
+    #[test]
+    fn test() {
+        let pwl = PiecewiseLinearSpectrum::new(&[VISIBLE_MIN, VISIBLE_MAX], &[1., 2.]);
+        assert_eq!(pwl.value(360.0), 1.);
+        assert_eq!(pwl.value(477.5), 1.25);
+        assert_eq!(pwl.value(595.0), 1.5);
+        assert_eq!(pwl.value(712.5), 1.75);
+        assert_eq!(pwl.value(830.0), 2.);
+    }
+}

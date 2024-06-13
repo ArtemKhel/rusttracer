@@ -4,14 +4,17 @@ use image::Rgb;
 use num_traits::Zero;
 
 use crate::{
-    bxdf::bxdf::{BxDF, BxDFFlags, Shading},
+    bxdf::{
+        bxdf::{BxDF, BxDFFlags, Shading},
+        BxDFEnum,
+    },
     math::Frame,
     Point2f, SampledSpectrum, Vec3f,
 };
 
 #[allow(clippy::upper_case_acronyms)]
 pub struct BSDF {
-    bxdf: Box<dyn BxDF>,
+    bxdf: BxDFEnum,
     shading_frame: Frame<f32>,
 }
 
@@ -38,13 +41,15 @@ impl<T> BSDFSample<T> {
 
 impl BSDF {
     // TODO: shading
-    pub fn new(shading_normal: Vec3f, shading_dp_du: Vec3f, bxdf: Box<dyn BxDF>) -> Self {
+    pub fn new(shading_normal: Vec3f, shading_dp_du: Vec3f, bxdf: BxDFEnum) -> Self {
         // TODO: frame sometimes with NaNs
         Self {
             bxdf,
             shading_frame: Frame::from_x_z(shading_dp_du, shading_normal),
         }
     }
+
+    pub fn flags(&self) -> BxDFFlags { self.bxdf.flags() }
 
     pub fn eval(&self, incoming: Vec3f, outgoing: Vec3f) -> SampledSpectrum {
         // TODO: normalized?
@@ -64,9 +69,7 @@ impl BSDF {
             return None;
         }
         if let Some(mut sample) = self.bxdf.sample(rnd_p, rnd_c, s_out) {
-            if sample.pdf == 0.0 || sample.incoming.z == 0.0
-            /* || RGB==0 */
-            {
+            if sample.pdf == 0.0 || sample.incoming.z == 0.0 || sample.spectrum.is_zero() {
                 None
             } else {
                 Some(BSDFSample::new(
@@ -91,7 +94,7 @@ impl BSDF {
     }
 
     fn render_to_shading(&self, vec3f: Vec3f) -> Shading<Vec3f> {
-        self.shading_frame.to_local_wrap::<Shading<Vec3f>>(vec3f as _)
+        self.shading_frame.to_local_wrap::<Shading<_>>(vec3f as _)
     }
 
     fn shading_to_render(&self, vec3f: Shading<Vec3f>) -> Vec3f { self.shading_frame.from_local_unwrap(vec3f) }

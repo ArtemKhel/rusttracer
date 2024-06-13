@@ -374,6 +374,56 @@ impl Intersectable for BVH<f32> {
         }
         closest
     }
+
+    fn check_intersect(&self, ray: &Ray, t_max: f32) -> bool {
+        if self.nodes.is_empty() {
+            return false;
+        }
+        let mut stack = Vec::with_capacity(self.height * 2);
+        stack.push(0);
+
+        let mut t_max = t_max;
+
+        let inv_dir = ray.dir.map(f32::recip);
+        let inv_bounds = ray.dir.map(Sign::from);
+
+        while let Some(node_id) = stack.pop() {
+            match self.nodes[node_id] {
+                BVHLinearNode::Interior {
+                    bounds,
+                    axis,
+                    second_child_offset,
+                } => {
+                    if bounds.hit_fast(ray, inv_dir, inv_bounds, t_max) {
+                        if ray.dir[axis] >= 0. {
+                            stack.push(second_child_offset);
+                            stack.push(node_id + 1);
+                        } else {
+                            stack.push(node_id + 1);
+                            stack.push(second_child_offset);
+                        }
+                    }
+                }
+
+                BVHLinearNode::Leaf {
+                    bounds,
+                    first_offset,
+                    n_primitives,
+                } => {
+                    if bounds.hit_fast(ray, inv_dir, inv_bounds, t_max) {
+                        let curr_closest = self.primitives[first_offset..first_offset + n_primitives]
+                            .iter()
+                            .any(|obj| obj.check_intersect(ray, t_max));
+
+                        if curr_closest {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
 }
 
 impl<T: Number> Bounded<T> for BVH<T> {

@@ -5,12 +5,16 @@ use image::Rgb;
 use log::debug;
 use num_traits::{Signed, Zero};
 
-use crate::{bxdf::{
-    bsdf::BSDFSample,
-    bxdf::{BxDFFlags, Shading},
-    utils::{abs_cos_theta, cos_theta},
-    BxDF,
-}, math::{utils::refract, Unit}, unit_normal3, unit_normal3_unchecked, vec3, Point2f, Vec3f, SampledSpectrum};
+use crate::{
+    bxdf::{
+        bsdf::BSDFSample,
+        bxdf::{BxDFFlags, Shading},
+        utils::{abs_cos_theta, cos_theta},
+        BxDF,
+    },
+    math::{utils::refract, Unit},
+    unit_normal3, unit_normal3_unchecked, vec3, Point2f, SampledSpectrum, Vec3f,
+};
 
 #[derive(Debug)]
 #[derive(new)]
@@ -29,14 +33,12 @@ impl BxDF for DielectricBxDF {
     fn sample(&self, rnd_p: Point2f, rnd_c: f32, outgoing: Shading<Vec3f>) -> Option<BSDFSample<Shading<Vec3f>>> {
         // TODO: flags, microfacet
         // TODO: or use Schlick's approximation
-        let reflected = fresnel_dielectric(cos_theta(outgoing), self.eta);
-        let transmitted = 1. - reflected;
+        let prob_reflected = fresnel_dielectric(cos_theta(outgoing), self.eta);
 
-        let prob_reflected = reflected / (reflected + transmitted);
         if rnd_c < prob_reflected {
             // Sample reflected light
             let incoming: Shading<Vec3f> = vec3!(-outgoing.x, -outgoing.y, outgoing.z).into();
-            let c = reflected / abs_cos_theta(incoming);
+            let c = prob_reflected / abs_cos_theta(incoming);
             let color = SampledSpectrum::from(c);
             Some(BSDFSample {
                 spectrum: color,
@@ -49,6 +51,7 @@ impl BxDF for DielectricBxDF {
             // TODO: outgoing should be unit as a Ray.dir. Need to change BSDF.sample param to Unit<> and make Shading
             //       work with other wrappers. Marker trait for Vector wrappers may be useful. Same for BSDFSample
 
+            let prob_transmitted = 1. - prob_reflected;
             // Sample transmitted light
             // Should always be Some(), but float rounding errors exist
             if let Some((incoming, rel_eta)) = refract(
@@ -57,13 +60,13 @@ impl BxDF for DielectricBxDF {
                 self.eta,
             ) {
                 let incoming = Shading::from(incoming);
-                let c = transmitted / abs_cos_theta(incoming);
+                let c = prob_transmitted / abs_cos_theta(incoming);
                 let spectrum = SampledSpectrum::from(c);
                 // TODO: [PBRT] Account for non-symmetry with transmission to different medium
                 Some(BSDFSample {
                     spectrum,
                     incoming,
-                    pdf: 1. - prob_reflected,
+                    pdf: prob_transmitted,
                     eta: rel_eta,
                     flags: self.flags(),
                 })

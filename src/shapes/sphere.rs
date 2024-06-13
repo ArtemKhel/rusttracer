@@ -8,12 +8,11 @@ use crate::{
     core::{Interaction, Ray, SurfaceInteraction},
     math::{
         cross, dot, utils::spherical_coordinates::spherical_phi, Dot, Normed, Number, Point3, Transform, Transformable,
-        Unit,
     },
     point2, point3, ray,
     samplers::utils::{sample_uniform_cone, sample_uniform_sphere},
     shapes::{Intersectable, Samplable, ShapeSample},
-    vec3, Point2f, Point3f, Vec3f,
+    vec3, Point2f, Point3f,
 };
 
 #[derive(Default, Debug, Clone, Copy, new)]
@@ -113,6 +112,15 @@ impl Intersectable for Sphere {
             Some(surf_int)
         } else {
             None
+        }
+    }
+
+    fn check_intersect(&self, ray: &Ray, t_max: f32) -> bool {
+        let ray = ray.inv_transform(&self.transform);
+        if let Some(_) = self.basic_intersect(ray, t_max) {
+            true
+        } else {
+            false
         }
     }
 }

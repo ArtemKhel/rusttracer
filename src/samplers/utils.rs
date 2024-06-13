@@ -1,10 +1,8 @@
 use std::f32::consts::{FRAC_2_PI, FRAC_PI_4, PI};
 
-use log::warn;
 use num_traits::Zero;
 
 use crate::{
-    breakpoint,
     math::{utils::spherical_coordinates::spherical_direction, Unit, Vec3},
     point2,
     spectra::{VISIBLE_MAX, VISIBLE_MIN},
@@ -32,6 +30,18 @@ pub fn sample_uniform_sphere(u: Point2f) -> Unit<Vec3<f32>> {
     let z = phi.cos();
     unit3_unchecked!(x, y, z)
 }
+
+pub const fn uniform_sphere_pdf() -> f32 { 1. / (4. * PI) }
+
+pub fn sample_uniform_hemisphere(u: Point2f) -> Unit<Vec3<f32>> {
+    let theta = 2. * PI * u.x;
+    let phi = u.y.acos();
+    let x = phi.sin() * theta.cos();
+    let y = phi.sin() * theta.sin();
+    let z = phi.cos();
+    unit3_unchecked!(x, y, z)
+}
+pub const fn uniform_hemisphere_pdf() -> f32 { 1. / (2. * PI) }
 
 pub fn sample_uniform_cone(u: Point2f, max_cos_theta: f32) -> Vec3f {
     let cos_theta = (1. - u.x) + u.x * max_cos_theta;

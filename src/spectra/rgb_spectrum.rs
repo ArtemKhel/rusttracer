@@ -78,8 +78,9 @@ mod tests {
     use rand::random;
 
     use super::*;
-    use crate::spectra::{LAMBDA_MAX, LAMBDA_MIN, rgb::sRGB, SampledSpectrum, SampledWavelengths, VISIBLE_MAX, VISIBLE_MIN};
-    use crate::spectra::xyz::XYZ;
+    use crate::spectra::{
+        rgb::sRGB, xyz::XYZ, SampledSpectrum, SampledWavelengths, LAMBDA_MAX, LAMBDA_MIN, VISIBLE_MAX, VISIBLE_MIN,
+    };
 
     #[test]
     fn test_albedo() {
@@ -103,8 +104,8 @@ mod tests {
             let result = color_space.xyz_to_rgb(xyz);
             let result2 = spectrum.to_rgb(&lambda, &sRGB);
 
-            assert_abs_diff_eq!(result, rgb, epsilon=0.01);
-            assert_abs_diff_eq!(result2, rgb, epsilon=0.01);
+            assert_abs_diff_eq!(result, rgb, epsilon = 0.01);
+            assert_abs_diff_eq!(result2, rgb, epsilon = 0.01);
         }
     }
 }

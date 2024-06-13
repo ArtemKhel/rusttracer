@@ -14,6 +14,7 @@ pub mod sphere;
 
 pub trait Intersectable {
     fn intersect(&self, ray: &Ray, t_max: f32) -> Option<SurfaceInteraction>;
+    fn check_intersect(&self, ray: &Ray, t_max: f32) -> bool;
 }
 
 pub struct ShapeSample {

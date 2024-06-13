@@ -38,7 +38,6 @@ thread_local = "1.1.8"
 #minifb = "0.25.0"
 
 obj = "0.10.2"
-lazy_static = "1.4.0"
 # tobj = "4.0.2"
 # obj-rs = "0.7.1"
 
@@ -55,5 +54,5 @@ opt-level = 0
 
 [profile.release]
 opt-level = 3
-#lto = "fat"
 #lto = "thin"
+#lto = "fat"

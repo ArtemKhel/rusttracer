@@ -2,8 +2,13 @@ use std::sync::Arc;
 
 use image::Rgb;
 
-use crate::{bxdf::{BxDFEnum, ConductorBxDF, DiffuseBxDF, BSDF}, core::SurfaceInteraction, material::Material, SampledSpectrum, SampledWavelengths};
-use crate::textures::SpectrumTexture;
+use crate::{
+    bxdf::{BxDFEnum, ConductorBxDF, DiffuseBxDF, BSDF},
+    core::SurfaceInteraction,
+    material::Material,
+    textures::SpectrumTexture,
+    SampledSpectrum, SampledWavelengths,
+};
 
 #[derive(Debug)]
 pub struct Metal {
@@ -16,8 +21,8 @@ pub struct Metal {
 impl Material for Metal {
     type BxDF = BxDFEnum;
 
-    fn get_bxdf(&self, surf_int: &SurfaceInteraction, lambda: &SampledWavelengths) -> Self::BxDF {
-        let reflectance = self.reflectance.evaluate(surf_int,lambda);
+    fn get_bxdf(&self, surf_int: &SurfaceInteraction, lambda: &mut SampledWavelengths) -> Self::BxDF {
+        let reflectance = self.reflectance.evaluate(surf_int, lambda);
         let eta = SampledSpectrum::from(1.);
         let k = 2. * reflectance.sqrt() / (SampledSpectrum::from(1.) - reflectance).sqrt();
         // let eta = self.eta.evaluate(surf_int, lambda);
@@ -25,9 +30,8 @@ impl Material for Metal {
         BxDFEnum::Conductor(ConductorBxDF::new(eta, k))
     }
 
-    fn get_bsdf(&self, surf_int: &SurfaceInteraction, lambda: &SampledWavelengths) -> BSDF {
-            let bxdf = self.get_bxdf(surf_int, lambda);
-            // todo: box
-            BSDF::new(**surf_int.hit.normal, surf_int.dp_du, Box::new(bxdf))
+    fn get_bsdf(&self, surf_int: &SurfaceInteraction, lambda: &mut SampledWavelengths) -> BSDF {
+        let bxdf = self.get_bxdf(surf_int, lambda);
+        BSDF::new(**surf_int.hit.normal, surf_int.dp_du, bxdf)
     }
 }

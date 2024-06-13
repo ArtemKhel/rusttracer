@@ -1,17 +1,19 @@
-use std::array;
-use std::iter::zip;
+use std::{array, iter::zip};
 
 use derive_new::new;
 use ndarray::array;
 use num_complex::Complex32;
 use num_traits::Zero;
 
-use crate::{bxdf::{
-    bsdf::BSDFSample,
-    bxdf::{BxDFFlags, Shading},
-    BxDF,
-    utils::abs_cos_theta,
-}, Point2f, SampledSpectrum, vec3, Vec3f};
+use crate::{
+    bxdf::{
+        bsdf::BSDFSample,
+        bxdf::{BxDFFlags, Shading},
+        utils::abs_cos_theta,
+        BxDF,
+    },
+    vec3, Point2f, SampledSpectrum, Vec3f,
+};
 
 #[derive(Debug, Copy, Clone)]
 #[derive(new)]

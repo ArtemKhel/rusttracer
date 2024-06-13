@@ -39,7 +39,7 @@ impl Light for PointLight {
 
     fn light_type(&self) -> LightType { self.base.light_type }
 
-    fn sample_light(
+    fn sample(
         &self,
         surf_int: &SurfaceInteraction,
         lambda: &SampledWavelengths,
@@ -48,8 +48,9 @@ impl Light for PointLight {
         let point = point3!(0., 0., 0.).transform(&self.base.light_to_render);
         let vec = point - surf_int.hit.point;
         let incoming = vec.to_unit();
-        let distance = vec.len_squared();
-        let radiance = self.spectrum.sample(lambda) * self.scale / distance;
+        let distance_sqr = vec.len_squared();
+        // TODO: more gradual fall-off?
+        let radiance = self.spectrum.sample(lambda) * self.scale / distance_sqr;
         Some(LightSample {
             radiance,
             incoming,

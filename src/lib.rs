@@ -13,6 +13,7 @@
 #![feature(isqrt)]
 #![feature(let_chains)]
 #![feature(lazy_cell)]
+#![feature(const_fn_floating_point_arithmetic)]
 
 use std::{ops::DerefMut, sync::atomic::AtomicU32};
 

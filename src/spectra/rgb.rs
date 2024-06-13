@@ -166,16 +166,18 @@ pub static sRGB: LazyLock<Arc<RGBColorSpace>> = LazyLock::new(|| {
 #[cfg(test)]
 mod tests {
     use std::io::Write;
+
     use approx::assert_abs_diff_eq;
-    use crate::spectra::{RGBAlbedoSpectrum, RGBUnboundedSpectrum, Spectrum, VISIBLE_MIN};
+
     use super::*;
-    
+    use crate::spectra::{RGBAlbedoSpectrum, RGBUnboundedSpectrum, Spectrum, VISIBLE_MIN};
+
     #[test]
     fn from_xy_zero() {
         let point = point2!(1.0, 0.0);
         let res = XYZ::from_xy_Y(point, 0.5);
         let exp = XYZ::new(0.0, 0.0, 0.0);
-        assert_eq!(res,exp);
+        assert_eq!(res, exp);
     }
 
     #[test]
@@ -183,7 +185,7 @@ mod tests {
         let rgb = RGB::WHITE;
         let poly = RGBUnboundedSpectrum::new(&sRGB.clone(), rgb);
         let mut file = std::fs::File::create("./dump").unwrap();
-        for i in 360..=830{
+        for i in 360..=830 {
             let v = poly.value(i as f32);
             file.write(format!("{i}-{v}\n").as_bytes());
         }
@@ -193,7 +195,7 @@ mod tests {
     #[test]
     fn test_srgb() {
         let color_space = sRGB.clone();
-        
+
         let rgb = color_space.xyz_to_rgb(XYZ::new(1.0, 0.0, 0.0));
         assert_abs_diff_eq!(3.2406, rgb.r, epsilon = 0.01);
         assert_abs_diff_eq!(-0.9689, rgb.g, epsilon = 0.01);
@@ -212,11 +214,20 @@ mod tests {
     #[test]
     fn test_rgb_xyz_rgb() {
         let color_space = sRGB.clone();
-        let rgbs = [RGB::WHITE, RGB::BLACK, RGB::R, RGB::G, RGB::B, RGB::RED, RGB::GREEN, RGB::LIGHT_BLUE];
-        for rgb in rgbs{
+        let rgbs = [
+            RGB::WHITE,
+            RGB::BLACK,
+            RGB::R,
+            RGB::G,
+            RGB::B,
+            RGB::RED,
+            RGB::GREEN,
+            RGB::LIGHT_BLUE,
+        ];
+        for rgb in rgbs {
             let xyz = color_space.rgb_to_xyz(rgb);
             let res = color_space.xyz_to_rgb(xyz);
-            assert_abs_diff_eq!(res,rgb)
+            assert_abs_diff_eq!(res, rgb)
         }
     }
 }

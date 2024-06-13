@@ -7,11 +7,11 @@ use num_traits::Zero;
 
 use crate::{
     bxdf::{
-        bsdf::BSDFSample,
-        conductor::ConductorBxDF, 
-        dielectric::DielectricBxDF,
-        diffuse::DiffuseBxDF,
+        bsdf::BSDFSample, conductor::ConductorBxDF, dielectric::DielectricBxDF, diffuse::DiffuseBxDF,
+        utils::abs_cos_theta,
     },
+    math::dot,
+    samplers::utils::{sample_uniform_hemisphere, uniform_hemisphere_pdf},
     Point2f, SampledSpectrum, Vec3f,
 };
 
@@ -67,7 +67,43 @@ pub trait BxDF {
     fn sample(&self, rnd_p: Point2f, rnd_c: f32, outgoing: Shading<Vec3f>) -> Option<BSDFSample<Shading<Vec3f>>>;
 
     fn pdf(&self, incoming: Shading<Vec3f>, outgoing: Shading<Vec3f>) -> f32;
-    // TODO:  fn rho()
+
+    ///
+    fn hd_reflectance<const N: usize>(
+        &self,
+        outgoing: Shading<Vec3f>,
+        rnd_p: &[Point2f; N],
+        rnd_c: &[f32; N],
+    ) -> SampledSpectrum {
+        // TODO: perfect reflectors/transmitters?
+        let mut spectrum = SampledSpectrum::zero();
+        for i in 0..N {
+            if let Some(sample) = self.sample(rnd_p[i], rnd_c[i], outgoing) {
+                let cos = abs_cos_theta(sample.incoming);
+                spectrum += sample.spectrum * cos / sample.pdf
+            }
+        }
+        spectrum / N as f32
+    }
+
+    ///
+    fn hh_reflectance<const N: usize>(
+        &self,
+        rnd_p_out: &[Point2f; N],
+        rnd_p: &[Point2f; N],
+        rnd_c: &[f32; N],
+    ) -> SampledSpectrum {
+        let mut spectrum = SampledSpectrum::zero();
+        for i in 0..N {
+            let outgoing = Shading::from(*sample_uniform_hemisphere(rnd_p_out[i]));
+            let out_pdf = uniform_hemisphere_pdf();
+            if let Some(sample) = self.sample(rnd_p[i], rnd_c[i], outgoing) {
+                let cos = abs_cos_theta(sample.incoming);
+                spectrum += sample.spectrum * cos / (sample.pdf * out_pdf)
+            }
+        }
+        spectrum / N as f32
+    }
 }
 
 #[enum_delegate::implement(BxDF)]

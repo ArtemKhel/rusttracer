@@ -60,6 +60,7 @@ where T: TileIntegrator + Sync + Send
             while start < spp {
                 info!("Starting wave {}-{}", start, till);
 
+                // tiles.iter().for_each(|&tile_bounds| {
                 tiles.par_iter().panic_fuse().for_each(|&tile_bounds| {
                     iproduct!(
                         (tile_bounds.min.y..tile_bounds.max.y),

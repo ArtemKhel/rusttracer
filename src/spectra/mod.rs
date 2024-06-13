@@ -16,7 +16,7 @@ mod constant;
 mod densely_sampled;
 mod gamut;
 pub mod named;
-mod piecewise_linear;
+pub mod piecewise_linear;
 pub mod rgb;
 mod rgb_spectrum;
 pub mod sampled_spectrum;

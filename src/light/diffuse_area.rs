@@ -51,7 +51,7 @@ impl Light for DiffuseAreaLight {
 
     fn light_type(&self) -> LightType { LightType::Area }
 
-    fn sample_light(
+    fn sample(
         &self,
         surf_int: &SurfaceInteraction,
         lambda: &SampledWavelengths,

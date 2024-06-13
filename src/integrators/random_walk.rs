@@ -26,7 +26,7 @@ unsafe impl Sync for RandomWalkIntegrator {}
 unsafe impl Send for RandomWalkIntegrator {}
 
 impl RayIntegrator for RandomWalkIntegrator {
-    fn light_incoming(&self, ray: &Ray, lambda: &SampledWavelengths, sampler: &mut SamplerType) -> SampledSpectrum {
+    fn light_incoming(&self, ray: &Ray, lambda: &mut SampledWavelengths, sampler: &mut SamplerType) -> SampledSpectrum {
         self.random_walk(ray, lambda, 0, sampler)
     }
 
@@ -52,7 +52,7 @@ impl RandomWalkIntegrator {
     fn random_walk(
         &self,
         ray: &Ray,
-        lambda: &SampledWavelengths,
+        lambda: &mut SampledWavelengths,
         depth: u32,
         sampler: &mut SamplerType,
     ) -> SampledSpectrum {
@@ -65,7 +65,7 @@ impl RandomWalkIntegrator {
             }
 
             if let Some(bsdf) = interaction.get_bsdf(ray, lambda, &self.state.scene.camera, sampler) {
-                // todo: infinite lights
+                // todo: [infinite lights]
                 let incoming = sample_uniform_sphere(sampler.get_2d());
                 let cos_in_out = dot(&incoming, &interaction.hit.normal).abs();
                 let radiance = bsdf.eval(*incoming, *interaction.hit.outgoing) * cos_in_out;

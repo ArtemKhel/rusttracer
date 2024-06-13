@@ -30,6 +30,9 @@ impl Intersectable for SimplePrimitive {
             None
         }
     }
+
+    // TODO: useless?
+    fn check_intersect(&self, ray: &Ray, t_max: f32) -> bool { self.shape.check_intersect(ray, t_max) }
 }
 
 impl Primitive for SimplePrimitive {}

@@ -7,10 +7,10 @@ use num_traits::{One, Zero};
 
 use crate::spectra::{
     cie::{CIE, CIE_Y_INTEGRAL},
-    rgb::{RGB, RGBColorSpace},
+    rgb::{RGBColorSpace, RGB},
     sampled_wavelengths::SampledWavelengths,
-    Spectrum,
     xyz::XYZ,
+    Spectrum,
 };
 
 #[derive(Clone, Copy, Debug)]
@@ -26,18 +26,18 @@ impl<const N: usize> SampledSpectrum<N> {
     pub fn has_nan(&self) -> bool { self.iter().any(|x| x.is_nan()) }
 
     pub fn avg(&self) -> f32 { self.values.iter().sum::<f32>() / (self.values.len() as f32) }
-    pub fn sqrt(mut self) -> Self { self.values.iter_mut().for_each(|x| *x = x.sqrt()); self }
+
+    pub fn sqrt(mut self) -> Self {
+        self.values.iter_mut().for_each(|x| *x = x.sqrt());
+        self
+    }
 
     pub fn to_xyz(&self, lambda: &SampledWavelengths<N>) -> XYZ {
         let x = CIE::X.get().sample(lambda);
         let y = CIE::Y.get().sample(lambda);
         let z = CIE::Z.get().sample(lambda);
         let pdf = lambda.pdf();
-        XYZ::new(
-            (x * self / pdf).avg(),
-            (y * self / pdf).avg(),
-            (z * self / pdf).avg(),
-        ) / CIE_Y_INTEGRAL
+        XYZ::new((x * self / pdf).avg(), (y * self / pdf).avg(), (z * self / pdf).avg()) / CIE_Y_INTEGRAL
     }
 
     pub fn to_rgb(&self, lambda: &SampledWavelengths<N>, color_space: &RGBColorSpace) -> RGB {
@@ -123,7 +123,7 @@ gen_ops!(
 gen_ops!(
     <|const N: usize>;
     types SampledSpectrum<N>, f32;
-    
+
     for *= call |x: &mut SampledSpectrum<N>, y: &f32| x.iter_mut().for_each(|x| *x *= y);
     for /= call |x: &mut SampledSpectrum<N>, y: &f32| if *y!=0. {x.iter_mut().for_each(|x| *x *= y)} else {x.iter_mut().for_each(|x| *x = 0.)};
 );

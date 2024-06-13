@@ -49,7 +49,7 @@ impl<const N: usize> SampledWavelengths<N> {
         swl
     }
 
-    pub fn secondary_terminated(&self) -> bool { self.pdf.iter().skip(1).any(|x| *x != 0.) }
+    pub fn secondary_terminated(&self) -> bool { self.pdf.iter().skip(1).all(|x| *x == 0.) }
 
     pub fn terminate_secondary(&mut self) {
         if self.secondary_terminated() {
