@@ -42,7 +42,6 @@ impl<T> BSDFSample<T> {
 impl<'a> BSDF<'a> {
     // TODO: shading
     pub fn new(shading_normal: Vec3f, shading_dp_du: Vec3f, bxdf: &'a mut BxDFEnum) -> Self {
-        // TODO: frame sometimes with NaNs
         Self {
             bxdf,
             shading_frame: Frame::from_x_z(shading_dp_du, shading_normal),

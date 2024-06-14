@@ -24,7 +24,6 @@ use crate::{
     },
 };
 
-// TODO: generate base structs using macro
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 #[derive(new, Neg, Add, Sub, Mul, Div, AddAssign, SubAssign, MulAssign, DivAssign)]
 pub struct Vec3<T> {

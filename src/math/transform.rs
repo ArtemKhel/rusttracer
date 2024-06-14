@@ -34,7 +34,6 @@ impl<T: Number> Transform<T> {
     }
 
     pub fn from_matrix(mat: Matrix4<T>) -> Self {
-        // TODO: unwraps
         Transform {
             inv: mat.invert().unwrap(),
             mat,

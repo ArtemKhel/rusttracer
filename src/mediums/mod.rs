@@ -25,7 +25,7 @@ impl Medium {
 
 impl Intersectable for Medium {
     fn hit(&self, ray: &Ray) -> Option<Hit> {
-        // TODO: assuming convex shape and ray starting outside a medium
+        // TO DO: assuming convex shape and ray starting outside a medium
         match self.shape.hit(ray) {
             None => None,
             Some(first_hit) => {

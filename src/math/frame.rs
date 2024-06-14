@@ -1,6 +1,6 @@
 use std::ops::Deref;
 
-use approx::AbsDiffEq;
+use approx::{AbsDiffEq, assert_abs_diff_eq};
 
 use crate::{
     math::{cross, dot, Normed, Number, Unit, Vec3},
@@ -10,23 +10,15 @@ use crate::{
 // Represents a rotation that aligns three orthonormal vectors in a coordinate
 // system with the x, y, z axes.
 #[derive(Debug, Copy, Clone, PartialEq)]
-// TODO: visibility
 pub struct Frame<T> {
-    pub x: Unit<Vec3<T>>,
-    pub y: Unit<Vec3<T>>,
-    pub z: Unit<Vec3<T>>,
+    x: Unit<Vec3<T>>,
+    y: Unit<Vec3<T>>,
+    z: Unit<Vec3<T>>,
 }
 
 #[allow(clippy::wrong_self_convention)]
 impl<T: Number> Frame<T> {
     fn new(x: Vec3<T>, y: Vec3<T>, z: Vec3<T>) -> Self {
-        // TODO
-        // #[cfg(debug_assertions)]
-        // {
-        //     assert!(dot(&x, &y).abs() < T::epsilon());
-        //     assert!(dot(&x, &z).abs() < T::epsilon());
-        //     assert!(dot(&y, &z).abs() < T::epsilon());
-        // }
         Frame {
             x: x.to_unit(),
             y: y.to_unit(),

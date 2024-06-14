@@ -23,9 +23,6 @@ pub struct Aabb<T> {
 }
 
 impl<T: Number> Aabb<T> {
-    // TODO:
-    const PADDING: f32 = 1e-4;
-
     pub fn center(&self) -> Point3<T> { Point3::from(*self.min + (self.max - self.min) / (T::one() + T::one())) }
 
     pub fn max_dimension(&self) -> Axis3 {
@@ -41,7 +38,6 @@ impl<T: Number> Aabb<T> {
 
     pub fn from_points(p1: Point3<T>, p2: Point3<T>) -> Self {
         let mut aabb = Aabb::new(Point3::min_coords(p1, p2), Point3::max_coords(p1, p2));
-        Self::pad(&mut aabb);
         aabb
     }
 
@@ -49,14 +45,20 @@ impl<T: Number> Aabb<T> {
         Aabb::new(Point3::min_coords(self.min, p), Point3::max_coords(self.max, p))
     }
 
-    fn pad(aabb: &mut Aabb<T>) {
-        let padding = T::from(Self::PADDING).unwrap();
+    /// Offset of a point (in local coordinates) within this AABB 
+    pub fn offset(&self, point: Point3<T>) -> Vec3<T> {
+        // let padding = T::from(Self::PADDING).unwrap();
+        let mut offset = point - self.min;
         for axis in Axis3::iter() {
-            if aabb.max[axis] - aabb.min[axis] < padding {
-                aabb.min[axis] -= padding;
-                aabb.max[axis] += padding;
+            let delta = self.max[axis] - self.min[axis];
+            if delta == T::zero() {
+                offset[axis] = T::zero();
+            } else {
+                offset[axis] /= delta;
             }
+            debug_assert!((T::zero()..=T::one()).contains(&offset[axis]));
         }
+        offset
     }
 
     pub fn hit(&self, ray: &Ray<T>, mut t_max: T) -> bool {
@@ -93,17 +95,6 @@ impl<T: Number> Aabb<T> {
         }
         // if t_min > ray_t_max || t_max < T::zero() { SKIP.fetch_add(1, Relaxed); }
         t_min < ray_t_max && t_max > T::zero()
-    }
-
-    pub fn offset(&self, point: Point3<T>) -> Vec3<T> {
-        let padding = T::from(Self::PADDING).unwrap();
-        let mut offset = point - self.min;
-        for axis in Axis3::iter() {
-            let delta = (self.max[axis] - self.min[axis]).max(padding);
-            offset[axis] /= delta;
-            debug_assert!((T::zero()..=T::one()).contains(&offset[axis]));
-        }
-        offset
     }
 
     pub fn surface_area(&self) -> T {
@@ -211,7 +202,7 @@ impl<T: Number> Transformable<T> for Aabb<T> {
     }
 }
 
-impl<T: Number + AbsDiffEq<Epsilon = T>> AbsDiffEq for Aabb<T> {
+impl<T: Number + AbsDiffEq<Epsilon=T>> AbsDiffEq for Aabb<T> {
     type Epsilon = T;
 
     fn default_epsilon() -> Self::Epsilon { T::epsilon() }
@@ -227,8 +218,9 @@ mod tests {
 
     use approx::assert_abs_diff_eq;
 
-    use super::*;
     use crate::{ray, unit3};
+
+    use super::*;
 
     #[test]
     fn test_aabb() {

@@ -26,6 +26,7 @@ use crate::{normal3, unit3, unit_normal3};
 // TODO:
 //  - proper generic bounds
 //  - reduce copy-paste
+//  - marker trait for Vector wrappers
 //  - storage primitive for N elements that vectors/points/rgb/xyz/... would wrap? probably would require some trait
 //    shenanigans, but it will reduce code duplication
 //  - fp error aware operations?

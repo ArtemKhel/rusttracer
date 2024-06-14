@@ -45,7 +45,6 @@ where Inner: Normed<Output = T> + Div<T, Output = Inner> + Copy
     }
 }
 
-// TODO: add marker trait for any Vec wrapper
 macro_rules! impl_unwrapping_add_sub {
     ($(($Trait:ident, $func:ident)),*) => {$(
         // unit - unit

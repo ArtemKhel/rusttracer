@@ -22,6 +22,8 @@ use crate::{
     unit_normal3, vec3,
 };
 
+// TODO: allocator
+
 type Pair<T> = (T, T);
 
 #[derive(Debug)]
