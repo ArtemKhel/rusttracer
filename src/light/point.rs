@@ -19,7 +19,6 @@ pub struct PointLight {
 }
 
 impl PointLight {
-    // todo: new from rgb?
     pub fn new(spectrum: Arc<SpectrumEnum>, scale: f32, light_to_render: Transform<f32>) -> Self {
         PointLight {
             spectrum,
@@ -49,7 +48,6 @@ impl Light for PointLight {
         let vec = point - surf_int.hit.point;
         let incoming = vec.to_unit();
         let distance_sqr = vec.len_squared();
-        // TODO: more gradual fall-off?
         let radiance = self.spectrum.sample(lambda) * self.scale / distance_sqr;
         Some(LightSample {
             radiance,

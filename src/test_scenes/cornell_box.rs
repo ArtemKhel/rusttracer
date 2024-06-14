@@ -4,7 +4,7 @@ use either::Either;
 
 use crate::{
     aggregates::BVH,
-    light::{DiffuseAreaLight, LightEnum},
+    light::{DiffuseAreaLight, LightEnum, PointLight, Spotlight},
     material::{glass::Glass, matte::Matte, metal::Metal, MaterialsEnum},
     math::{axis::Axis3, Transform},
     point2, point3,

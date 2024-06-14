@@ -17,7 +17,7 @@ pub mod metal;
 
 #[enum_delegate::register]
 pub trait Material {
-    // todo: remove?
+    // TODO: useless in current implementation, remove?
     type BxDF;
     fn get_bsdf<'a>(
         &self,

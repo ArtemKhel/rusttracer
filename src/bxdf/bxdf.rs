@@ -48,7 +48,7 @@ impl BxDFSampleType {
 
 #[derive(Debug, Copy, Clone)]
 #[derive(From, Deref, DerefMut)]
-/// Vector in local coordinates for material evaluation. X and Y lie on surface, Z is normal
+/// Vector in local coordinates for material evaluation. X and Y lie on the surface, Z is normal
 pub struct Shading<T> {
     vec: T,
 }

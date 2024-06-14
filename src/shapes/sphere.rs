@@ -21,7 +21,7 @@ use crate::{
 pub struct Sphere {
     // pub center: Point3<T>,
     pub radius: f32,
-    pub transform: Transform<f32>,
+    pub object_to_world: Transform<f32>,
 }
 
 impl Sphere {
@@ -107,10 +107,10 @@ impl Sphere {
 
 impl Intersectable for Sphere {
     fn intersect(&self, ray: &Ray, t_max: f32) -> Option<SurfaceInteraction> {
-        let ray = ray.inv_transform(&self.transform);
+        let ray = ray.inv_transform(&self.object_to_world);
         if let Some(interaction) = self.basic_intersect(ray, t_max) {
             let mut surf_int = self.calculate_surface_interaction(interaction);
-            surf_int = surf_int.transform(&self.transform);
+            surf_int = surf_int.transform(&self.object_to_world);
             Some(surf_int)
         } else {
             None
@@ -118,7 +118,7 @@ impl Intersectable for Sphere {
     }
 
     fn check_intersect(&self, ray: &Ray, t_max: f32) -> bool {
-        let ray = ray.inv_transform(&self.transform);
+        let ray = ray.inv_transform(&self.object_to_world);
         if let Some(_) = self.basic_intersect(ray, t_max) {
             true
         } else {
@@ -130,7 +130,7 @@ impl Intersectable for Sphere {
 impl Samplable for Sphere {
     fn sample(&self, rnd_p: Point2f) -> Option<ShapeSample> {
         let point_obj = point3!(self.radius * *sample_uniform_sphere(rnd_p));
-        let normal = point_obj.to_normal().transform(&self.transform).to_unit();
+        let normal = point_obj.to_normal().transform(&self.object_to_world).to_unit();
 
         let phi = spherical_phi(*point_obj);
         let theta = (point_obj.z / self.radius).acos();
@@ -145,14 +145,14 @@ impl Samplable for Sphere {
                 outgoing: Default::default(),
                 uv: point2!(u, v),
             }
-            .transform(&self.transform),
+            .transform(&self.object_to_world),
             pdf: self.area().recip(),
         })
     }
 
     fn sample_from_point(&self, origin: Point3f, rnd_p: Point2f) -> Option<ShapeSample> {
         // TODO: doesn't work
-        let point = origin.inv_transform(&self.transform);
+        let point = origin.inv_transform(&self.object_to_world);
         if point.len_squared() < self.radius.powi(2) + 1e-4 {
             let mut ss = self.sample(rnd_p).unwrap();
             let incoming = ss.hit.point - point;
@@ -166,7 +166,7 @@ impl Samplable for Sphere {
         let interaction = self
             .basic_intersect(ray!(point, sampled_dir), f32::INFINITY)
             .unwrap()
-            .inv_transform(&self.transform);
+            .inv_transform(&self.object_to_world);
         Some(ShapeSample {
             hit: interaction,
             pdf: 1. / (2. * PI * (1. - max_cos_theta)),
@@ -254,7 +254,7 @@ impl Samplable for Sphere {
     fn pdf(&self, interaction: &Interaction) -> f32 { self.area().recip() }
 
     fn pdf_incoming(&self, interaction: &SurfaceInteraction, incoming: Unit<Vec3f>) -> f32 {
-        let center = point3!().inv_transform(&self.transform);
+        let center = point3!().inv_transform(&self.object_to_world);
         let origin = interaction.hit.point;
         if (origin - center).len_squared() < self.radius.powi(2) {
             let ray = interaction.spawn_ray(incoming);
@@ -284,7 +284,7 @@ impl Samplable for Sphere {
 impl Bounded<f32> for Sphere {
     fn bound(&self) -> Aabb<f32> {
         let vec = vec3!(self.radius);
-        Aabb::from_points(Point3::from(vec), Point3::from(-vec)).transform(&self.transform)
+        Aabb::from_points(Point3::from(vec), Point3::from(-vec)).transform(&self.object_to_world)
     }
 }
 

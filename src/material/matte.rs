@@ -16,7 +16,6 @@ pub struct Matte {
     pub reflectance: Arc<SpectrumTextureEnum>,
 }
 
-// TODO: rgb for now, will need refactoring for spectrum
 impl Material for Matte {
     type BxDF = BxDFEnum;
 

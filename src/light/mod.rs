@@ -4,6 +4,7 @@ use bitflags::bitflags;
 pub use diffuse_area::DiffuseAreaLight;
 pub use light_sampler::LightSampler;
 pub use point::PointLight;
+pub use spotlight::Spotlight;
 pub use uniform_sampler::UniformLightSampler;
 
 use crate::{core::SurfaceInteraction, math::Unit, Point2f, Point3f, SampledSpectrum, SampledWavelengths, Vec3f};
@@ -12,8 +13,10 @@ mod base;
 mod diffuse_area;
 mod light_sampler;
 mod point;
+mod spotlight;
 mod uniform_sampler;
 
+// TODO: new from rgb?
 #[enum_delegate::register]
 pub trait Light {
     // TODO: naming
@@ -70,5 +73,6 @@ pub struct LightSample {
 #[enum_delegate::implement(Light)]
 pub enum LightEnum {
     Point(PointLight),
+    Spot(Spotlight),
     DiffuseArea(DiffuseAreaLight),
 }
