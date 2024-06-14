@@ -32,7 +32,11 @@ pub trait Light {
     /// L() in PBRT
     fn radiance(&self, surf_int: &SurfaceInteraction, lambda: &SampledWavelengths) -> Option<SampledSpectrum> { None }
 
-    // todo: fn pdf_incoming(&self, incoming: Vec3f, surf_int: &SurfaceInteraction) -> f32 {}
+    // Returns the value of the PDF for sampling the given direction `incoming` from the point
+    // Assume that a ray from `surf_int` in direction `incoming` has already been found to intersect the light source
+    fn pdf_incoming(&self, incoming: Unit<Vec3f>, surf_int: &SurfaceInteraction) -> f32;
+
+    // todo: for infinite lights
     //       fn Le(&self, ...) -> ... {}
 }
 

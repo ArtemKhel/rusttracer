@@ -155,5 +155,13 @@ impl Samplable for Quad {
 
     fn pdf(&self, interaction: &Interaction) -> f32 { todo!() }
 
+    fn pdf_incoming(&self, interaction: &SurfaceInteraction, incoming: Unit<Vec3f>) -> f32 {
+        // TODO: !!!
+        let dir = interaction.hit.point - self.a;
+        let cos = dot(&incoming, &dir).abs();
+        let dist = dir.len_squared();
+        self.area() * cos / dist
+    }
+
     fn area(&self) -> f32 { cross(&self.ab, &self.ac).len() }
 }

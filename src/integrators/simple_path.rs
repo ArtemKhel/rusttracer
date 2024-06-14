@@ -105,7 +105,7 @@ impl RayIntegrator for SimplePathIntegrator {
             {
                 // TODO: check occlusion before this?
                 let mut reflected = bsdf.eval(*sample.incoming, *interaction.hit.outgoing);
-                // TODO: shading_normal
+                // TODO: [shading_normal]
                 let cos = dot(&sample.incoming, &interaction.hit.normal).abs();
                 reflected *= cos;
 
@@ -120,18 +120,14 @@ impl RayIntegrator for SimplePathIntegrator {
             }
 
             if *self.borrow_sample_bsdf()
-                && let Some(sample) = bsdf.sample(*interaction.hit.outgoing, sampler.get_2d(), sampler.get_1d())
+                && let Some(bsdf_sample) = bsdf.sample(*interaction.hit.outgoing, sampler.get_2d(), sampler.get_1d())
             {
-                let cos = dot(
-                    &sample.incoming,
-                    /* TODO: shading normal */ &interaction.hit.normal,
-                )
-                .abs()
-                    / sample.pdf;
+                // TODO: [shading_normal]
+                let cos = dot(&bsdf_sample.incoming, &interaction.hit.normal).abs() / bsdf_sample.pdf;
 
-                throughput *= sample.spectrum * cos;
-                specular_bounce = sample.flags.contains(BxDFFlags::Specular);
-                ray = interaction.spawn_ray(Unit::from_unchecked(sample.incoming));
+                throughput *= bsdf_sample.spectrum * cos;
+                specular_bounce = bsdf_sample.flags.contains(BxDFFlags::Specular);
+                ray = interaction.spawn_ray(Unit::from_unchecked(bsdf_sample.incoming));
             } else {
                 // Uniformly sample sphere or hemisphere to get new path direction
                 let flags = bsdf.flags();

@@ -16,6 +16,8 @@ use crate::{
     unit_normal3, unit_normal3_unchecked, vec3, Point2f, SampledSpectrum, Vec3f,
 };
 
+// TODO: [Bidirectional] transport mode
+
 #[derive(Debug)]
 #[derive(new)]
 pub struct DielectricBxDF {

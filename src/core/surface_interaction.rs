@@ -14,7 +14,7 @@ use crate::{
     Normal3f, SampledSpectrum, SampledWavelengths, Vec3f,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Default, Clone)]
 pub struct SurfaceInteraction {
     // TODO: wrap some of them into structs?
     pub hit: Interaction,

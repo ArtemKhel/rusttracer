@@ -7,10 +7,7 @@ use itertools::Itertools;
 use num_traits::Pow;
 use rusttracer::{
     aggregates::BVH,
-    integrators::{
-        debug_normal::DebugNormalIntegrator, random_walk::RandomWalkIntegrator, simple_path::SimplePathIntegrator,
-        Integrator,
-    },
+    integrators::{DebugNormalIntegrator, Integrator, PathIntegrator, RandomWalkIntegrator, SimplePathIntegrator},
     light::{DiffuseAreaLight, Light, PointLight},
     material::{matte::Matte, MaterialsEnum},
     math::Transform,
@@ -34,6 +31,7 @@ fn main() {
     // let mut integrator = DebugNormalIntegrator::new(scene);
     // let mut integrator = RandomWalkIntegrator::new(scene, 5, 2u32.pow(4));
     let mut integrator = SimplePathIntegrator::create(scene, 6, 2u32.pow(4));
+    // let mut integrator = PathIntegrator::create(scene, 6, 2u32.pow(4));
     integrator.render();
 }
 

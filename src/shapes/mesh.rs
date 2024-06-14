@@ -3,10 +3,7 @@ use num_traits::Pow;
 use crate::{
     aggregates::Aabb,
     core::{Interaction, Ray, SurfaceInteraction},
-    math::{
-        cross, dot, utils::local_normal, Cross, Dot, Frame, Normed, Number, Point3, Transform, Transformable, Unit,
-        Vec3,
-    },
+    math::{cross, dot, utils::local_normal, Cross, Dot, Frame, Normed, Number, Transform, Transformable, Unit},
     shapes::{Bounded, Intersectable, Samplable, ShapeSample},
     Point2f, Point3f, Vec3f,
 };
@@ -130,6 +127,14 @@ impl Samplable for Triangle {
     fn sample_from_point(&self, point: Point3f, rnd_p: Point2f) -> Option<ShapeSample> { todo!() }
 
     fn pdf(&self, interaction: &Interaction) -> f32 { todo!() }
+
+    fn pdf_incoming(&self, interaction: &SurfaceInteraction, incoming: Unit<Vec3f>) -> f32 {
+        // TODO: !!!
+        let dir = interaction.hit.point - self.a;
+        let cos = dot(&incoming, &dir).abs();
+        let dist = dir.len_squared();
+        self.area() * cos / dist
+    }
 
     fn area(&self) -> f32 { todo!() }
 }

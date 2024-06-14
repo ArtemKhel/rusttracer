@@ -9,7 +9,7 @@ use crate::{
     Normal3f, Point2f, Point3f, Vec3f,
 };
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy)]
 #[derive(new)]
 pub struct Interaction {
     pub point: Point3f,

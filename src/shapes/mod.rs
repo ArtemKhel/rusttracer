@@ -3,8 +3,8 @@ use std::fmt::Debug;
 use crate::{
     aggregates::Bounded,
     core::{Interaction, Ray, SurfaceInteraction},
-    math::Number,
-    Point2f, Point3f,
+    math::{Number, Unit},
+    Point2f, Point3f, Vec3f,
 };
 
 pub mod mesh;
@@ -28,6 +28,9 @@ pub trait Samplable {
     fn sample_from_point(&self, point: Point3f, rnd_p: Point2f) -> Option<ShapeSample>;
     // TODO: pdf_from_point?
     fn pdf(&self, interaction: &Interaction) -> f32;
+    // Returns the shape’s probability of sampling a point on the light such that the incident direction at the
+    // reference point is `incoming`
+    fn pdf_incoming(&self, interaction: &SurfaceInteraction, incoming: Unit<Vec3f>) -> f32;
     /// Surface area of the object
     fn area(&self) -> f32;
 }

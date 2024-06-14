@@ -1,18 +1,20 @@
 use std::{default::Default, f32::consts::PI, fmt::Debug, ops::Deref};
 
 use derive_new::new;
-use num_traits::Pow;
+use num_traits::{real::Real, Pow};
 
 use crate::{
     aggregates::{Aabb, Bounded},
     core::{Interaction, Ray, SurfaceInteraction},
     math::{
-        cross, dot, utils::spherical_coordinates::spherical_phi, Dot, Normed, Number, Point3, Transform, Transformable,
+        cross, dot,
+        utils::spherical_coordinates::{spherical_direction, spherical_phi},
+        Dot, Frame, Normed, Number, Point3, Transform, Transformable, Unit,
     },
     point2, point3, ray,
     samplers::utils::{sample_uniform_cone, sample_uniform_sphere},
     shapes::{Intersectable, Samplable, ShapeSample},
-    vec3, Point2f, Point3f,
+    vec3, Normal3f, Point2f, Point3f, Vec3f,
 };
 
 #[derive(Default, Debug, Clone, Copy, new)]
@@ -148,8 +150,9 @@ impl Samplable for Sphere {
         })
     }
 
-    fn sample_from_point(&self, point: Point3f, rnd_p: Point2f) -> Option<ShapeSample> {
-        let point = point.inv_transform(&self.transform);
+    fn sample_from_point(&self, origin: Point3f, rnd_p: Point2f) -> Option<ShapeSample> {
+        // TODO: doesn't work
+        let point = origin.inv_transform(&self.transform);
         if point.len_squared() < self.radius.powi(2) + 1e-4 {
             // todo: corner cases, rounding error
             let mut ss = self.sample(rnd_p).unwrap();
@@ -169,9 +172,112 @@ impl Samplable for Sphere {
             hit: interaction,
             pdf: 1. / (2. * PI * (1. - max_cos_theta)),
         })
+
+        // let p_center: Point3f = point3!().transform(&self.transform);
+        // let p_origin: Point3f = origin;
+        // // Sample uniformly on sphere if $\pt{}$ is inside it
+        // if (p_origin-p_center).len_squared() <= self.radius.powi(2) {
+        //     // Sample shape by area and compute incident direction _wi_
+        //     let mut ss = self.sample(rnd_p).expect("Sphere sample() failed!");
+        //     let wi = ss.hit.point - origin;
+        //     if wi.len_squared() == 0.0 {
+        //         return None;
+        //     }
+        //     let wi = wi.to_unit();
+        //
+        //     // Convert area sampling PDF in _ss_ to solid angle measure
+        //     ss.pdf /= dot(&ss.hit.normal, &-wi) / (origin - ss.hit.point).len_squared();
+        //     if ss.pdf.is_infinite() {
+        //         return None;
+        //     }
+        //     return Some(ss);
+        // }
+        //
+        // // Sample sphere uniformly inside subtended cone
+        // // Compute quantities related to the $\theta_\roman{max}$ for cone
+        // let sin_theta_max = self.radius / (origin - p_center).len();
+        // let sin2_theta_max = (sin_theta_max).powi(2);
+        // let cos_theta_max = (1.0 - sin2_theta_max).sqrt();
+        // let mut one_minus_cos_theta_max = 1.0 - cos_theta_max;
+        //
+        // // Compute $\theta$ and $\phi$ values for sample in cone
+        // let mut cos_theta = (cos_theta_max - 1.0) * rnd_p.x + 1.0;
+        // let mut sin2_theta = 1.0 - cos_theta.powi(2);
+        // /* sin^2(1.5 deg) */
+        // if sin2_theta_max < 0.00068523
+        // {
+        //     // Compute cone sample via Taylor series expansion for small angles
+        //     sin2_theta = sin2_theta_max * rnd_p.x;
+        //     cos_theta = (1.0 - sin2_theta).sqrt();
+        //     one_minus_cos_theta_max = sin2_theta_max / 2.0;
+        // }
+        //
+        // // Compute angle $\alpha$ from center of sphere to sampled point on surface
+        // let cos_alpha = sin2_theta / sin_theta_max
+        //     + cos_theta * (1.0 - sin2_theta / sin_theta_max.powi(2)).sqrt();
+        // let sin_alpha = (1.0 - cos_alpha.powi(2)).sqrt();
+        //
+        // // Compute surface normal and sampled point on sphere
+        // let phi = rnd_p.y * 2.0 * PI;
+        // let w = spherical_direction(sin_alpha, cos_alpha, phi);
+        // let sampling_frame = Frame::from_z(p_center - origin);
+        // let normal_sign = if /*self.reverse_orientation */ false { -1.0 } else { 1.0 };
+        // let n = Normal3f::new(sampling_frame.from_local(-w)* normal_sign) ;
+        // let p = p_center + vec3!(n.x, n.y, n.z) * self.radius;
+        //
+        // // Return _ShapeSample_ for sampled point on sphere
+        // // Compute $(u,v)$ coordinates for sampled point on sphere
+        // let p_obj = p.inv_transform(&self.transform);
+        // let theta = (p_obj.z / self.radius).acos();
+        // let mut sphere_phi = f32::atan2(p_obj.y, p_obj.x);
+        // if sphere_phi < 0.0 {
+        //     sphere_phi += 2.0 * PI;
+        // }
+        // let uv = Point2f::new(
+        //     sphere_phi,
+        //     theta,
+        // );
+        //
+        // debug_assert_ne!(one_minus_cos_theta_max, 0.0); // very small far away sphere
+        // let interaction = Interaction {
+        //     point: p,
+        //     t: 0.,
+        //     outgoing: Unit::from_unchecked(Vec3f::default()),
+        //     normal: n.to_unit(),
+        //     uv,
+        // };
+        // Some(ShapeSample {
+        //     hit: interaction,
+        //     pdf: 1.0 / (2.0 * PI * one_minus_cos_theta_max),
+        // })
     }
 
     fn pdf(&self, interaction: &Interaction) -> f32 { self.area().recip() }
+
+    fn pdf_incoming(&self, interaction: &SurfaceInteraction, incoming: Unit<Vec3f>) -> f32 {
+        let center = point3!().inv_transform(&self.transform);
+        let origin = interaction.hit.point;
+        if (origin - center).len_squared() < self.radius.powi(2) {
+            let ray = interaction.spawn_ray(incoming);
+            let Some(int) = self.intersect(&ray, f32::INFINITY) else {
+                return 0.;
+            };
+            let mut pdf = self.area().recip()
+                / dot(&int.hit.normal, &-incoming).abs()
+                / (interaction.hit.point - int.hit.point).len_squared();
+            if pdf.is_infinite() {
+                0.
+            } else {
+                pdf
+            }
+        } else {
+            let sin2_theta_max = self.radius.powi(2) / (interaction.hit.point - center).len_squared();
+            let cos_theta_max = (1. - sin2_theta_max).sqrt();
+            let one_minus_cos_theta_max = 1. - cos_theta_max;
+            // TODO: Compute more accurate oneMinusCosThetaMax for small solid angle
+            (2. * PI * one_minus_cos_theta_max).recip()
+        }
+    }
 
     fn area(&self) -> f32 { 4. * PI * self.radius.powi(2) }
 }

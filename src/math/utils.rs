@@ -17,20 +17,11 @@ where T: Copy + One + Add<Output = T> + Sub<Output = T> + Mul<Output = T> {
     (T::one() - t) * a + t * b
 }
 
-// pub fn reflect<T: Number>(vec: &Vec3<T>, normal: &Vec3<T>) -> Unit<Vec3<T>> {
-//     let _2 = (T::one() + T::one());
-//     (*vec - (*normal * dot(vec, normal) * _2)).to_unit()
-// }
-
-// pub fn refract<T: Number>(ray: &Unit<Vec3<T>>, normal: &Unit<Normal3<T>>, refraction_coef_ratio: T) -> Unit<Vec3<T>>
-// {     let mut cos_theta = dot(ray.deref(), normal.deref());
-//     let sign = cos_theta.signum();
-//     // cos_theta *= sign;
-//     // Derefs for the deref god!
-//     let perpend = (**ray + ***normal * cos_theta * sign) * refraction_coef_ratio;
-//     let parallel = ***normal * -T::pow(T::abs(T::one() - perpend.len_squared()), 0.5);
-//     (perpend + parallel).to_unit()
-// }
+pub fn power_heuristic(n_f: usize, f_pdf: f32, n_g: usize, g_pdf: f32) -> f32 {
+    let f = n_f as f32 * f_pdf;
+    let g = n_g as f32 * g_pdf;
+    f.powi(2) / (f.powi(2) + g.powi(2))
+}
 
 /// Computes refracted vector for a given both outward-facing vector and normal and a refractive index ratio
 ///

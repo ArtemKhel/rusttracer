@@ -1,17 +1,21 @@
+pub use debug_normal::DebugNormalIntegrator;
 use image::{ImageBuffer, Rgb};
+pub use random_walk::RandomWalkIntegrator;
 use rayon::iter::ParallelIterator;
+pub use simple_path::SimplePathIntegrator;
 
 use crate::{
     math::Point2,
     scene::{cameras::Camera, film::Film, Scene},
     Int, Point2u,
 };
+// pub use path::PathIntegrator;
 
-pub mod debug_normal;
-mod path;
-pub mod random_walk;
+mod debug_normal;
+// mod path;
+mod random_walk;
 mod ray;
-pub mod simple_path;
+mod simple_path;
 mod tile;
 
 // #[enum_delegate::implement(Integrator)]

@@ -12,7 +12,7 @@ use crate::{
         primitives::{geometric::GeometricPrimitive, simple::SimplePrimitive, PrimitiveEnum},
         Scene,
     },
-    shapes::quad::Quad,
+    shapes::{quad::Quad, sphere::Sphere},
     spectra::{
         named::NamedSpectra,
         piecewise_linear::PiecewiseLinearSpectrum,
@@ -134,12 +134,14 @@ pub fn cornell_box() -> Scene {
     // let mut cornell_box = base_box(&matte_green, &matte_red, &metal, &matte_gray, &glass);
     let mut cornell_box = base_box(&matte_green, &matte_red, &matte_gray, &matte_gray);
 
-    let light_shape = Arc::new(Quad::new(
-        point3!(250., 950., 250.),
-        vec3!(50., 0., 0.),
-        vec3!(0., 0., 500.),
-        Transform::id(),
-    ));
+    let light_shape = Arc::new(
+        Quad::new(
+            point3!(250., 950., 250.),
+            vec3!(50., 0., 0.),
+            vec3!(0., 0., 500.),
+            Transform::id(),
+        ), // Sphere::new(50., Transform::translate(vec3!(100., 900., 500.)))
+    );
     let d65 = NamedSpectra::IlluminantD65.get();
     let light_source = Arc::new(LightEnum::DiffuseArea(DiffuseAreaLight::new(
         // Arc::new(SpectrumEnum::Constant(ConstantSpectrum::new(1.))),

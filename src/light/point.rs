@@ -5,10 +5,10 @@ use image::{Pixel, Rgb};
 use crate::{
     core::SurfaceInteraction,
     light::{base::BaseLight, Light, LightSample, LightType},
-    math::{Normed, Transform, Transformable},
+    math::{Normed, Transform, Transformable, Unit},
     point3,
     spectra::{Spectrum, SpectrumEnum},
-    Point2f, SampledSpectrum, SampledWavelengths,
+    Point2f, SampledSpectrum, SampledWavelengths, Vec3f,
 };
 
 #[derive(Debug)]
@@ -58,4 +58,6 @@ impl Light for PointLight {
             point,
         })
     }
+
+    fn pdf_incoming(&self, incoming: Unit<Vec3f>, surf_int: &SurfaceInteraction) -> f32 { 0. }
 }
