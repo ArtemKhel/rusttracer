@@ -15,7 +15,6 @@ pub struct RayDifferential<T> {
 #[derive(new)]
 pub struct Ray<T: Number> {
     pub origin: Point3<T>,
-    // TODO: normalize if needed?
     pub dir: Unit<Vec3<T>>,
     // pub medium: Option<M>
     pub diff: Option<RayDifferential<T>>, // TODO: scale

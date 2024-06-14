@@ -13,8 +13,8 @@ use crate::{
 };
 
 #[allow(clippy::upper_case_acronyms)]
-pub struct BSDF {
-    bxdf: BxDFEnum,
+pub struct BSDF<'a> {
+    bxdf: &'a mut BxDFEnum,
     shading_frame: Frame<f32>,
 }
 
@@ -39,9 +39,9 @@ impl<T> BSDFSample<T> {
     }
 }
 
-impl BSDF {
+impl<'a> BSDF<'a> {
     // TODO: shading
-    pub fn new(shading_normal: Vec3f, shading_dp_du: Vec3f, bxdf: BxDFEnum) -> Self {
+    pub fn new(shading_normal: Vec3f, shading_dp_du: Vec3f, bxdf: &'a mut BxDFEnum) -> Self {
         // TODO: frame sometimes with NaNs
         Self {
             bxdf,

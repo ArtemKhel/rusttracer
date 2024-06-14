@@ -84,7 +84,13 @@ impl Intersectable for Triangle {
             let normal = local_normal(normal, ray).to_normal().to_unit();
             let f = Frame::from_z(**normal);
             let si = SurfaceInteraction::new(
-                Interaction::new(hit_point, normal, t, -ray.dir, Point2f::default()),
+                Interaction {
+                    point: hit_point,
+                    normal,
+                    t,
+                    outgoing: -ray.dir,
+                    uv: Point2f::default(),
+                },
                 *f.y,
                 *f.z,
                 Default::default(),

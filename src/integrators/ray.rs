@@ -1,6 +1,8 @@
 use std::sync::Arc;
 
+use bumpalo::Bump;
 use derive_more::Deref;
+use itertools::all;
 
 use crate::{
     core::Ray,
@@ -17,7 +19,13 @@ use crate::{
 };
 
 pub(super) trait RayIntegrator: TileIntegrator {
-    fn light_incoming(&self, ray: &Ray, lambda: &mut SampledWavelengths, sampler: &mut SamplerType) -> SampledSpectrum;
+    fn light_incoming(
+        &self,
+        ray: &Ray,
+        lambda: &mut SampledWavelengths,
+        sampler: &mut SamplerType,
+        alloc: &mut Bump,
+    ) -> SampledSpectrum;
     fn get_ri_state(&self) -> &RIState;
 }
 
@@ -32,7 +40,7 @@ pub(super) struct RIState {
 impl<T> TileIntegrator for T
 where T: RayIntegrator
 {
-    fn evaluate_pixel(&self, pixel: Point2us, sampler: &mut SamplerType) {
+    fn evaluate_pixel(&self, pixel: Point2us, sampler: &mut SamplerType, alloc: &mut Bump) {
         let state = self.get_state();
         let mut lambda = state.scene.camera.get_film().sample_wavelengths(sampler.get_1d());
         let sample = CameraSample::new(pixel, sampler);
@@ -42,7 +50,7 @@ where T: RayIntegrator
         //       [filters] should account for CameraRay weight
         //       [realistic camera] need to know about wavelengths
         let ray = state.scene.camera.generate_ray(sample);
-        let spectrum = self.light_incoming(&ray, &mut lambda, sampler);
+        let spectrum = self.light_incoming(&ray, &mut lambda, sampler, alloc);
 
         let mut arc_film = state.scene.camera.get_film();
         unsafe {

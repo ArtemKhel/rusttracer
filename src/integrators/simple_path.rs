@@ -1,6 +1,5 @@
-use std::sync::Arc;
-
-use image::{Pixel, Rgb};
+use bumpalo::Bump;
+use image::Pixel;
 use num_traits::{One, Zero};
 use ouroboros::self_referencing;
 use rand::Rng;
@@ -15,16 +14,15 @@ use crate::{
     },
     light::{Light, LightSampler, UniformLightSampler},
     math::{dot, Normed, Unit},
-    ray,
     samplers::{
         utils::{sample_uniform_hemisphere, sample_uniform_sphere, uniform_hemisphere_pdf, uniform_sphere_pdf},
-        IndependentSampler, Sampler, SamplerType, StratifiedSampler,
+        Sampler, SamplerType, StratifiedSampler,
     },
     scene::Scene,
     SampledSpectrum, SampledWavelengths,
 };
 
-// TODO: or just copy lights for the light sampler?
+// TODO: or just copy lights for the light sampler? same for PathIntegrator
 #[self_referencing]
 pub struct SimplePathIntegrator {
     state: RIState,
@@ -63,7 +61,13 @@ impl SimplePathIntegrator {
 }
 
 impl RayIntegrator for SimplePathIntegrator {
-    fn light_incoming(&self, ray: &Ray, lambda: &mut SampledWavelengths, sampler: &mut SamplerType) -> SampledSpectrum {
+    fn light_incoming(
+        &self,
+        ray: &Ray,
+        lambda: &mut SampledWavelengths,
+        sampler: &mut SamplerType,
+        alloc: &mut Bump,
+    ) -> SampledSpectrum {
         let mut ray = *ray;
         let mut depth = 0;
         // Total radiance from the current path
@@ -92,7 +96,8 @@ impl RayIntegrator for SimplePathIntegrator {
             }
             depth += 1;
 
-            let Some(bsdf) = interaction.get_bsdf(&ray, lambda, &self.borrow_state().scene.camera, sampler) else {
+            let Some(bsdf) = interaction.get_bsdf(&ray, lambda, &self.borrow_state().scene.camera, sampler, alloc)
+            else {
                 // TODO: medias
                 continue;
             };
@@ -103,27 +108,26 @@ impl RayIntegrator for SimplePathIntegrator {
                 && sample.pdf != 0.
                 && !sample.radiance.is_zero()
             {
-                // TODO: check occlusion before this?
-                let mut reflected = bsdf.eval(*sample.incoming, *interaction.hit.outgoing);
-                // TODO: [shading_normal]
-                let cos = dot(&sample.incoming, &interaction.hit.normal).abs();
-                reflected *= cos;
-
-                let is_unoccluded =
+                let unoccluded =
                     self.borrow_state()
                         .scene
                         .unoccluded(interaction.hit.point, sample.incoming, sample.point);
-                if !reflected.is_zero() && is_unoccluded {
-                    reflected *= throughput * sample.radiance / (sampled_light.prob * sample.pdf);
-                    radiance += reflected;
+
+                if unoccluded {
+                    let cos = dot(&sample.incoming, &interaction.shading.normal).abs();
+                    let mut reflected = bsdf.eval(*sample.incoming, *interaction.hit.outgoing) * cos;
+
+                    if !reflected.is_zero() && unoccluded {
+                        reflected *= throughput * sample.radiance / (sampled_light.prob * sample.pdf);
+                        radiance += reflected;
+                    }
                 }
             }
 
             if *self.borrow_sample_bsdf()
                 && let Some(bsdf_sample) = bsdf.sample(*interaction.hit.outgoing, sampler.get_2d(), sampler.get_1d())
             {
-                // TODO: [shading_normal]
-                let cos = dot(&bsdf_sample.incoming, &interaction.hit.normal).abs() / bsdf_sample.pdf;
+                let cos = dot(&bsdf_sample.incoming, &interaction.shading.normal).abs() / bsdf_sample.pdf;
 
                 throughput *= bsdf_sample.spectrum * cos;
                 specular_bounce = bsdf_sample.flags.contains(BxDFFlags::Specular);
@@ -147,7 +151,7 @@ impl RayIntegrator for SimplePathIntegrator {
                     };
                     (incoming, pdf)
                 };
-                let cos = dot(&incoming, &interaction.hit.normal /* TODO: shading */).abs();
+                let cos = dot(&incoming, &interaction.shading.normal).abs();
                 throughput *= bsdf.eval(*incoming, *interaction.hit.outgoing) * cos / pdf;
                 specular_bounce = false;
                 ray = interaction.spawn_ray(incoming)

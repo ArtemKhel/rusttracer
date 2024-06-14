@@ -7,7 +7,7 @@ use itertools::Itertools;
 use num_traits::Pow;
 use rusttracer::{
     aggregates::BVH,
-    integrators::{DebugNormalIntegrator, Integrator, PathIntegrator, RandomWalkIntegrator, SimplePathIntegrator},
+    integrators::{DebugNormalIntegrator, Integrator, RandomWalkIntegrator, SimplePathIntegrator},
     light::{DiffuseAreaLight, Light, PointLight},
     material::{matte::Matte, MaterialsEnum},
     math::Transform,

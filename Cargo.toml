@@ -35,6 +35,7 @@ thread_local = "1.1.8"
 #zerocopy = { version = "0.7.34", features = ["derive"] }
 
 # TODO:
+bumpalo = "3.16.0"
 #minifb = "0.25.0"
 
 obj = "0.10.2"

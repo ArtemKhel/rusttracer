@@ -20,7 +20,6 @@ use crate::{
 };
 use crate::math::Unit;
 
-// TODO: or just copy lights for the light sampler?
 #[self_referencing]
 pub struct PathIntegrator {
     state: RIState,
@@ -76,8 +75,7 @@ impl PathIntegrator {
             && !sample.radiance.is_zero()
         {
             // Evaluate BSDF for light sample and check light visibility
-            // TODO: [shading_normal]
-            let cos = dot(&sample.incoming, &interaction.hit.normal).abs();
+            let cos = dot(&sample.incoming, &interaction.shading.normal).abs();
             let reflected = bsdf.eval(*sample.incoming, *interaction.hit.outgoing);
             let is_unoccluded =
                 self.borrow_state()
@@ -163,8 +161,7 @@ impl RayIntegrator for PathIntegrator {
             };
 
             // Update path state variables after surface scattering
-            // TODO: [shading_normal]
-            let cos = dot(&bsdf_sample.incoming, &interaction.hit.normal).abs();
+            let cos = dot(&bsdf_sample.incoming, &interaction.shading.normal).abs();
             throughput *= bsdf_sample.spectrum * cos;
             // TODO: [LayeredBxDF]
             prob_bsdf = bsdf_sample.pdf;
@@ -177,7 +174,7 @@ impl RayIntegrator for PathIntegrator {
 
             // TODO:
             ray = interaction.spawn_ray(Unit::from_unchecked(bsdf_sample.incoming));
-            
+
             // TODO: Possibly terminate the path with Russian roulette
         }
 

@@ -5,6 +5,7 @@ use std::{
     sync::Arc,
 };
 
+use bumpalo::Bump;
 use derive_more::Deref;
 use image::Rgb;
 use itertools::{iproduct, Itertools};
@@ -34,7 +35,7 @@ pub(super) struct TIState {
 
 pub(super) trait TileIntegrator: Integrator {
     // TODO: in PBRT it also takes sample_index. None of the current integrators use it, but subsequent may
-    fn evaluate_pixel(&self, pixel: Point2us, sampler: &mut SamplerType);
+    fn evaluate_pixel(&self, pixel: Point2us, sampler: &mut SamplerType, alloc: &mut Bump);
     fn get_ti_state(&self) -> &TIState;
 }
 
@@ -55,6 +56,7 @@ where T: TileIntegrator + Sync + Send
         // That may be a problem. Though rayon uses thread pool and tests show that threads keep
         // their id between waves, it may not always be the case, so who knows?
         let mut thread_local_sampler = ThreadLocal::<RefCell<SamplerType>>::new();
+        let mut thread_local_alloc = ThreadLocal::<RefCell<Bump>>::new();
 
         let rendering_time = time_it(|| {
             while start < spp {
@@ -69,14 +71,19 @@ where T: TileIntegrator + Sync + Send
                     )
                     .for_each(|(y, x, sample_index)| {
                         let pixel_coords = point2!(x, y);
+
                         let mut thread_sampler = thread_local_sampler
                             .get_or(|| RefCell::new(self.get_ti_state().sampler.clone()))
                             .borrow_mut();
 
+                        let mut thread_alloc = thread_local_alloc.get_or(|| RefCell::new(Bump::new())).borrow_mut();
+
                         // breakpoint!(x==100 && y==150);
 
                         thread_sampler.start_pixel_sample(pixel_coords, sample_index);
-                        self.evaluate_pixel(pixel_coords, &mut thread_sampler);
+                        self.evaluate_pixel(pixel_coords, &mut thread_sampler, &mut thread_alloc);
+
+                        thread_alloc.reset()
                     });
                 });
                 start = till;

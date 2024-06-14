@@ -10,7 +10,7 @@ use crate::{
 };
 
 #[derive(Debug, Default, Clone, Copy)]
-#[derive(new)]
+// #[derive(new)]
 pub struct Interaction {
     pub point: Point3f,
     pub normal: Unit<Normal3f>,
@@ -22,7 +22,6 @@ pub struct Interaction {
 
 impl Transformable<f32> for Interaction {
     fn transform(&self, trans: &Transform<f32>) -> Self {
-        // TODO: don't normalize normals and outgoings?
         Interaction {
             point: self.point.transform(trans),
             normal: self.normal.transform(trans).to_unit(),

@@ -1,13 +1,16 @@
 use std::fmt::Debug;
 
+use bumpalo::Bump;
 use image::Rgb;
 
+use crate::material::matte::Matte;
 use crate::{
     bxdf,
     bxdf::{BxDF, BSDF},
     core::{Ray, SurfaceInteraction},
-    material::{glass::Glass, matte::Matte, metal::Metal},
-    SampledSpectrum, SampledWavelengths,
+    material::{glass::Glass, metal::Metal},
+    SampledSpectrum,
+    SampledWavelengths,
 };
 
 pub mod glass;
@@ -16,11 +19,14 @@ pub mod metal;
 
 #[enum_delegate::register]
 pub trait Material {
-    // #[enum_delegate(unify = "enum_wrap")]
     // todo: remove?
     type BxDF;
-    fn get_bxdf(&self, surf_int: &SurfaceInteraction, lambda: &mut SampledWavelengths) -> Self::BxDF;
-    fn get_bsdf(&self, surf_int: &SurfaceInteraction, lambda: &mut SampledWavelengths) -> BSDF;
+    fn get_bsdf<'a>(
+        &self,
+        surf_int: &SurfaceInteraction,
+        lambda: &mut SampledWavelengths,
+        alloc: &'a mut Bump,
+    ) -> BSDF<'a>;
 }
 
 #[derive(Debug)]

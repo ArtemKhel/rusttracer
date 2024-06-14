@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use bumpalo::Bump;
 use image::codecs::avif::ColorSpace;
 use num_traits::Zero;
 
@@ -29,7 +30,13 @@ unsafe impl Sync for DebugNormalIntegrator {}
 unsafe impl Send for DebugNormalIntegrator {}
 
 impl RayIntegrator for DebugNormalIntegrator {
-    fn light_incoming(&self, ray: &Ray, lambda: &mut SampledWavelengths, sampler: &mut SamplerType) -> SampledSpectrum {
+    fn light_incoming(
+        &self,
+        ray: &Ray,
+        lambda: &mut SampledWavelengths,
+        sampler: &mut SamplerType,
+        alloc: &mut Bump,
+    ) -> SampledSpectrum {
         self.normal_as_rgb(ray, lambda)
     }
 

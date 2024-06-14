@@ -2,28 +2,43 @@
 
 use std::{cmp::Ordering, sync::Arc};
 
+use bumpalo::Bump;
+
 use crate::{
     bxdf::BSDF,
     core::{interaction::Interaction, Ray},
     light::{Light, LightEnum},
     material::{Material, MaterialsEnum},
-    math::{dot, Dot, Transform, Transformable, Unit},
+    math::{dot, Dot, Normed, Transform, Transformable, Unit},
     ray,
     samplers::SamplerType,
-    scene::cameras::Camera,
+    scene::cameras::{Camera, CameraType},
     Normal3f, SampledSpectrum, SampledWavelengths, Vec3f,
 };
 
 #[derive(Debug, Default, Clone)]
-pub struct SurfaceInteraction {
-    // TODO: wrap some of them into structs?
-    pub hit: Interaction,
-    // pub uv: Point2f,
+pub struct SurfaceShading {
+    pub normal: Unit<Normal3f>,
+
     pub dp_du: Vec3f,
     pub dp_dv: Vec3f,
 
     pub dn_du: Normal3f,
     pub dn_dv: Normal3f,
+}
+
+#[derive(Debug, Default, Clone)]
+pub struct SurfaceInteraction {
+    // TODO: wrap some of them into structs?
+    pub hit: Interaction,
+
+    pub dp_du: Vec3f,
+    pub dp_dv: Vec3f,
+
+    pub dn_du: Normal3f,
+    pub dn_dv: Normal3f,
+
+    pub shading: SurfaceShading,
 
     pub dp_dx: Vec3f,
     pub dp_dy: Vec3f,
@@ -32,6 +47,7 @@ pub struct SurfaceInteraction {
     pub dv_dx: f32,
     pub du_dy: f32,
     pub dv_dy: f32,
+
     pub material: Option<Arc<MaterialsEnum>>,
     pub area_light: Option<Arc<LightEnum>>,
 }
@@ -47,12 +63,20 @@ impl SurfaceInteraction {
     ) -> Self {
         SurfaceInteraction {
             hit: interaction,
-            // uv,
+            //
             dp_du,
             dp_dv,
             //
             dn_du,
             dn_dv,
+            //
+            shading: SurfaceShading {
+                normal: interaction.normal,
+                dp_du,
+                dp_dv,
+                dn_du,
+                dn_dv,
+            },
             //
             dp_dx: Vec3f::default(),
             dp_dy: Vec3f::default(),
@@ -67,24 +91,26 @@ impl SurfaceInteraction {
     }
 
     pub fn emitted_light(&self, lambda: &SampledWavelengths) -> Option<SampledSpectrum> {
-        // todo: just return black?
         self.area_light.as_ref().and_then(|x| x.radiance(self, lambda))
     }
 
-    pub fn get_bsdf(
+    pub fn get_bsdf<'a>(
         &mut self,
         ray: &Ray,
         lambda: &mut SampledWavelengths,
-        camera: &dyn Camera,
+        camera: &CameraType,
         sampler: &mut SamplerType,
-    ) -> Option<BSDF> {
-        // TODO: spp, dyn
+        alloc: &'a mut Bump,
+    ) -> Option<BSDF<'a>> {
         // FIXME: not needed for now
-        // self.calculate_differentials(ray, camera, 1)
+        // self.calculate_differentials(ray, camera, sampler.samples_per_pixel())
+
         if let Some(material) = self.material.as_ref().map(|arc| arc.as_ref()) {
-            let bsdf: BSDF = material.get_bsdf(self, lambda);
+            // TODO: [normal maps] [displacement maps]
+            let bsdf: BSDF = material.get_bsdf(self, lambda, alloc);
             Some(bsdf)
         } else {
+            // Interface between two types of participating media.
             None
         }
     }
@@ -169,13 +195,33 @@ impl SurfaceInteraction {
         };
     }
 
-    /// MaterialsEnum may return an unset BSDF to indicate an interface between
-    /// two scattering media that does not itself scatter light.
-    /// In this case, it is necessary to spawn a new ray in the same direction,
-    /// but past the intersection on the surface.
+    /// MaterialsEnum may return an unset BSDF to indicate an interface between two scattering media that does not
+    /// itself scatter light. In this case, it is necessary to spawn a new ray in the same direction, but past the
+    /// intersection on the surface.
     pub fn skip_interaction(ray: Ray, t: f32) { todo!() }
 }
 
+impl Transformable<f32> for SurfaceShading {
+    fn transform(&self, trans: &Transform<f32>) -> Self {
+        SurfaceShading {
+            normal: self.normal.transform(&trans).to_unit(),
+            dp_du: self.dp_du.transform(&trans),
+            dp_dv: self.dp_dv.transform(&trans),
+            dn_du: self.dn_du.transform(&trans),
+            dn_dv: self.dn_dv.transform(&trans),
+        }
+    }
+
+    fn inv_transform(&self, trans: &Transform<f32>) -> Self {
+        SurfaceShading {
+            normal: self.normal.inv_transform(&trans).to_unit(),
+            dp_du: self.dp_du.inv_transform(&trans),
+            dp_dv: self.dp_dv.inv_transform(&trans),
+            dn_du: self.dn_du.inv_transform(&trans),
+            dn_dv: self.dn_dv.inv_transform(&trans),
+        }
+    }
+}
 impl Transformable<f32> for SurfaceInteraction {
     fn transform(&self, trans: &Transform<f32>) -> Self {
         SurfaceInteraction {
@@ -185,6 +231,8 @@ impl Transformable<f32> for SurfaceInteraction {
 
             dn_du: self.dn_du.transform(trans),
             dn_dv: self.dn_dv.transform(trans),
+
+            shading: self.shading.transform(trans),
 
             dp_dx: self.dp_dx.transform(trans),
             dp_dy: self.dp_dx.transform(trans),
@@ -206,6 +254,8 @@ impl Transformable<f32> for SurfaceInteraction {
 
             dn_du: self.dn_du.inv_transform(trans),
             dn_dv: self.dn_dv.inv_transform(trans),
+
+            shading: self.shading.inv_transform(trans),
 
             dp_dx: self.dp_dx.inv_transform(trans),
             dp_dy: self.dp_dx.inv_transform(trans),

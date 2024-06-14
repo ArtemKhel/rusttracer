@@ -85,7 +85,13 @@ impl Intersectable for Quad {
             let normal = unit_normal3_unchecked!(local_normal(*self.normal, ray));
             let f = Frame::from_z(**normal);
             let si = SurfaceInteraction::new(
-                Interaction::new(hit_point, normal, t, -ray.dir, Point2f::default()),
+                Interaction {
+                    point: hit_point,
+                    normal,
+                    t,
+                    outgoing: -ray.dir,
+                    uv: Point2f::default(),
+                },
                 *f.y,
                 *f.z,
                 Default::default(),

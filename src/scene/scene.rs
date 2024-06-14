@@ -31,7 +31,7 @@ impl Scene {
 
     pub fn unoccluded(&self, from: Point3f, dir: Unit<Vec3f>, to: Point3f) -> bool {
         // Technically, `dir` is redundant, but it is already available from LightSample.
-        // TODO: add id to intersection?
+        // TODO: add id to objects and check intersection with it?
         let ray = ray!(from + dir * 1e-3, dir);
         let t_max = (to - from).len() * 0.99;
         !self.objects.check_intersect(&ray, t_max)

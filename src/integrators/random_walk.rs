@@ -1,5 +1,6 @@
 use std::f32::consts::PI;
 
+use bumpalo::Bump;
 use image::Pixel;
 use num_traits::Zero;
 
@@ -26,8 +27,14 @@ unsafe impl Sync for RandomWalkIntegrator {}
 unsafe impl Send for RandomWalkIntegrator {}
 
 impl RayIntegrator for RandomWalkIntegrator {
-    fn light_incoming(&self, ray: &Ray, lambda: &mut SampledWavelengths, sampler: &mut SamplerType) -> SampledSpectrum {
-        self.random_walk(ray, lambda, 0, sampler)
+    fn light_incoming(
+        &self,
+        ray: &Ray,
+        lambda: &mut SampledWavelengths,
+        sampler: &mut SamplerType,
+        alloc: &mut Bump,
+    ) -> SampledSpectrum {
+        self.random_walk(ray, lambda, 0, sampler, alloc)
     }
 
     fn get_ri_state(&self) -> &RIState { &self.state }
@@ -55,6 +62,7 @@ impl RandomWalkIntegrator {
         lambda: &mut SampledWavelengths,
         depth: u32,
         sampler: &mut SamplerType,
+        alloc: &mut Bump,
     ) -> SampledSpectrum {
         let closest_hit = self.state.scene.cast_ray(ray);
         if let Some(mut interaction) = closest_hit {
@@ -64,7 +72,7 @@ impl RandomWalkIntegrator {
                 return emitted;
             }
 
-            if let Some(bsdf) = interaction.get_bsdf(ray, lambda, &self.state.scene.camera, sampler) {
+            if let Some(bsdf) = interaction.get_bsdf(ray, lambda, &self.state.scene.camera, sampler, alloc) {
                 // todo: [infinite lights]
                 let incoming = sample_uniform_sphere(sampler.get_2d());
                 let cos_in_out = dot(&incoming, &interaction.hit.normal).abs();
@@ -76,7 +84,7 @@ impl RandomWalkIntegrator {
                 // TODO: SI.spawn_ray
                 // TODO: ray offset
                 let incoming_ray = ray!(interaction.hit.point + **interaction.hit.normal * 1e-3, incoming);
-                let incoming_radiance = self.random_walk(&incoming_ray, lambda, depth + 1, sampler);
+                let incoming_radiance = self.random_walk(&incoming_ray, lambda, depth + 1, sampler, alloc);
 
                 radiance * incoming_radiance * 4. * PI + emitted
             } else {
