@@ -8,16 +8,15 @@ use crate::{
     core::SurfaceInteraction,
     material::Material,
     spectra::{Spectrum, SpectrumEnum},
-    textures::SpectrumTexture,
+    textures::{SpectrumTexture, SpectrumTextureEnum},
     SampledWavelengths,
 };
 
 #[derive(Debug)]
 pub struct Glass {
-    // TODO: spectrum texture in pbrt
     pub ior: SpectrumEnum,
     // pub roughness: f32,
-    pub spectrum: Arc<dyn SpectrumTexture>,
+    pub spectrum: Arc<SpectrumTextureEnum>,
 }
 
 impl Material for Glass {

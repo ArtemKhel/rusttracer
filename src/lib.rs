@@ -36,6 +36,7 @@ pub mod utils;
 
 type Int = i32;
 type UInt = u32;
+type Pair<T> = (T, T);
 pub type Point2f = math::Point2<f32>;
 pub type Point2i = math::Point2<Int>;
 pub type Point2u = math::Point2<UInt>;

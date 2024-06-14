@@ -7,14 +7,13 @@ use crate::{
     bxdf::{BxDFEnum, DiffuseBxDF, BSDF},
     core::SurfaceInteraction,
     material::Material,
-    textures::SpectrumTexture,
+    textures::{SpectrumTexture, SpectrumTextureEnum},
     SampledSpectrum, SampledWavelengths,
 };
 
 #[derive(Debug)]
 pub struct Matte {
-    // todo: dyn
-    pub reflectance: Arc<dyn SpectrumTexture>,
+    pub reflectance: Arc<SpectrumTextureEnum>,
 }
 
 // TODO: rgb for now, will need refactoring for spectrum

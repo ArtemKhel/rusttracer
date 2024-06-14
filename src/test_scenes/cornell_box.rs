@@ -1,8 +1,10 @@
 use std::sync::Arc;
 
+use either::Either;
+
 use crate::{
     aggregates::BVH,
-    light::{DiffuseAreaLight, LightEnum, PointLight},
+    light::{DiffuseAreaLight, LightEnum},
     material::{glass::Glass, matte::Matte, metal::Metal, MaterialsEnum},
     math::{axis::Axis3, Transform},
     point2, point3,
@@ -12,7 +14,7 @@ use crate::{
         primitives::{geometric::GeometricPrimitive, simple::SimplePrimitive, PrimitiveEnum},
         Scene,
     },
-    shapes::{quad::Quad, sphere::Sphere},
+    shapes::quad::Quad,
     spectra::{
         named::NamedSpectra,
         piecewise_linear::PiecewiseLinearSpectrum,
@@ -20,7 +22,7 @@ use crate::{
         RGBAlbedoSpectrum, SpectrumEnum, VISIBLE_MAX, VISIBLE_MIN,
     },
     test_scenes::teapot_triangles,
-    textures::constant::ConstantSpectrumTexture,
+    textures::{constant::ConstantSpectrumTexture, SpectrumTextureEnum},
     vec3, Bounds2f,
 };
 
@@ -107,10 +109,10 @@ pub fn cornell_box() -> Scene {
     let green = Arc::new(SpectrumEnum::RGBAlbedo(RGBAlbedoSpectrum::new(&sRGB, RGB::GREEN)));
     let red = Arc::new(SpectrumEnum::RGBAlbedo(RGBAlbedoSpectrum::new(&sRGB, RGB::RED)));
 
-    let const_white = Arc::new(ConstantSpectrumTexture { value: white });
-    let const_gray = Arc::new(ConstantSpectrumTexture { value: light_gray });
-    let const_green = Arc::new(ConstantSpectrumTexture { value: green });
-    let const_red = Arc::new(ConstantSpectrumTexture { value: red });
+    let const_white: Arc<SpectrumTextureEnum> = Arc::new(ConstantSpectrumTexture { value: white }.into());
+    let const_gray: Arc<SpectrumTextureEnum> = Arc::new(ConstantSpectrumTexture { value: light_gray }.into());
+    let const_green: Arc<SpectrumTextureEnum> = Arc::new(ConstantSpectrumTexture { value: green }.into());
+    let const_red: Arc<SpectrumTextureEnum> = Arc::new(ConstantSpectrumTexture { value: red }.into());
 
     let matte_gray = Arc::new(MaterialsEnum::Matte(Matte {
         reflectance: const_gray.clone() as _,
@@ -122,9 +124,7 @@ pub fn cornell_box() -> Scene {
         reflectance: const_red.clone() as _,
     }));
     let metal = Arc::new(MaterialsEnum::Metal(Metal {
-        reflectance: const_white.clone(),
-        eta: const_white.clone(),
-        k: const_white.clone(),
+        reflectance: Either::Left(const_white.clone()),
     }));
     let glass = Arc::new(MaterialsEnum::Glass(Glass {
         spectrum: const_gray.clone(),

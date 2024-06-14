@@ -22,12 +22,10 @@ use crate::{
     normal3, point3,
     scene::primitives::PrimitiveEnum,
     shapes::Intersectable,
-    unit_normal3, vec3,
+    unit_normal3, vec3, Pair,
 };
 
 // TODO: allocator
-
-type Pair<T> = (T, T);
 
 #[derive(Debug)]
 pub struct BVH<T: Number> {
