@@ -86,7 +86,6 @@ struct BVHSplitBucket<T: Number> {
 // TODO: generic
 impl BVH<f32> {
     pub fn new(primitives: Vec<Arc<PrimitiveEnum>>, mut max_in_node: usize) -> BVH<f32> {
-        // TODO: allocators
         let bounds = primitives.iter().fold(Aabb::default(), |acc, p| acc + p.bound());
 
         let mut primitives_info: Vec<BVHPrimitiveInfo<f32>> = Vec::with_capacity(primitives.len());

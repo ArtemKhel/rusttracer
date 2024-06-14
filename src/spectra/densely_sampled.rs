@@ -10,7 +10,6 @@ use crate::spectra::{
 pub struct DenselySampledSpectrum {
     lambda_min: usize,
     lambda_max: usize,
-    // TODO: stack allocated?
     values: Vec<f32>,
 }
 

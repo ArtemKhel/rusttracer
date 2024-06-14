@@ -10,7 +10,6 @@ use crate::{
 
 #[derive(Clone, Debug)]
 pub struct PiecewiseLinearSpectrum {
-    // todo:stack alloc?
     lambdas: Vec<f32>,
     values: Vec<f32>,
 }

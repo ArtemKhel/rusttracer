@@ -73,7 +73,6 @@ impl Film for RGBFilm {
     fn sample_wavelengths(&self, rnd_c: f32) -> SampledWavelengths { SampledWavelengths::sample_visible(rnd_c) }
 
     fn write_image(&self, path: &str) -> ImageResult<()> {
-        // TODO: zero-copy
         // TODO: white balance / linear_to_gamma
         let raw_pixels: Vec<f32> = self
             .pixels

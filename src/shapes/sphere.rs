@@ -154,7 +154,6 @@ impl Samplable for Sphere {
         // TODO: doesn't work
         let point = origin.inv_transform(&self.transform);
         if point.len_squared() < self.radius.powi(2) + 1e-4 {
-            // todo: corner cases, rounding error
             let mut ss = self.sample(rnd_p).unwrap();
             let incoming = ss.hit.point - point;
             ss.pdf /= dot(&ss.hit.normal, &-incoming).abs() / (point - ss.hit.point).len_squared();

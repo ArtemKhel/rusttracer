@@ -44,7 +44,6 @@ pub struct CameraSample {
 
 impl CameraSample {
     pub fn new(pixel: Point2us, sampler: &mut SamplerType) -> Self {
-        // TODO: filters.
         // Offset from discrete pixels to continuous one
         // Disc. |---0---|---1---|---2---|
         // Cont. 0-------1-------2-------3

@@ -1,4 +1,5 @@
 use std::{ops::Deref, sync::Arc};
+use std::cmp::max;
 
 use crate::{
     core::{ray::RayDifferential, Ray},
@@ -29,8 +30,6 @@ pub struct BaseCameraConfig {
 
 impl BaseCamera {
     pub(super) fn generate_differential_ray<C: Camera>(camera: C, sample: CameraSample) -> Ray {
-        // TODO: camera knows nothing about resolution
-
         let rx = camera.generate_ray({
             let mut s: CameraSample = sample;
             // TODO: what?
@@ -83,7 +82,7 @@ impl BaseCamera {
         // let spp_scale = if options.disable_pixel_jitter {
         //     1.0
         // } else {
-        //     Float::max(0.125, 1.0 / (samples_per_pixel as Float).sqrt())
+        //     max(0.125, 1.0 / (samples_per_pixel as f32).sqrt())
         // };
         let spp_scale = (samples_per_pixel as f32).sqrt().recip().max(0.125);
 
