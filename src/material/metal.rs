@@ -1,6 +1,6 @@
 use std::sync::Arc;
-use bumpalo::Bump;
 
+use bumpalo::Bump;
 use image::Rgb;
 
 use crate::{
@@ -33,7 +33,7 @@ impl Material for Metal {
         let k = 2. * reflectance.sqrt() / (SampledSpectrum::from(1.) - reflectance).sqrt();
         // let eta = self.eta.evaluate(surf_int, lambda);
         // let k = self.k.evaluate(surf_int, lambda);
-        
+
         let bxdf = alloc.alloc(BxDFEnum::Conductor(ConductorBxDF::new(eta, k)));
         BSDF::new(**surf_int.hit.normal, surf_int.dp_du, bxdf)
     }

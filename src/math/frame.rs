@@ -1,6 +1,6 @@
 use std::ops::Deref;
 
-use approx::{AbsDiffEq, assert_abs_diff_eq};
+use approx::{assert_abs_diff_eq, AbsDiffEq};
 
 use crate::{
     math::{cross, dot, Normed, Number, Unit, Vec3},

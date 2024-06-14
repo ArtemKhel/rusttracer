@@ -1,5 +1,4 @@
-use std::{ops::Deref, sync::Arc};
-use std::cmp::max;
+use std::{cmp::max, ops::Deref, sync::Arc};
 
 use crate::{
     core::{ray::RayDifferential, Ray},

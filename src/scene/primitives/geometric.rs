@@ -7,7 +7,7 @@ use crate::{
     core::{Ray, SurfaceInteraction},
     light::LightEnum,
     material::MaterialsEnum,
-    scene::primitives::Primitive,
+    scene::primitives::{simple::SimplePrimitive, Primitive},
     shapes::{BoundedIntersectable, Intersectable},
 };
 
@@ -20,6 +20,9 @@ pub struct GeometricPrimitive {
     // medium_interface
     // alpha
 }
+
+unsafe impl Send for GeometricPrimitive {}
+unsafe impl Sync for GeometricPrimitive {}
 
 impl Bounded<f32> for GeometricPrimitive {
     fn bound(&self) -> Aabb<f32> { self.shape.bound() }

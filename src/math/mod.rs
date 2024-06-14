@@ -24,7 +24,8 @@ pub use vec4::Vec4;
 use crate::{normal3, unit3, unit_normal3};
 
 // TODO:
-//  - proper generic bounds
+//  - proper generic bounds + for bvh
+//  - move aabb to math?
 //  - reduce copy-paste
 //  - marker trait for Vector wrappers
 //  - storage primitive for N elements that vectors/points/rgb/xyz/... would wrap? probably would require some trait

@@ -17,6 +17,9 @@ pub struct SimplePrimitive {
     pub material: Arc<MaterialsEnum>,
 }
 
+unsafe impl Send for SimplePrimitive {}
+unsafe impl Sync for SimplePrimitive {}
+
 impl Bounded<f32> for SimplePrimitive {
     fn bound(&self) -> Aabb<f32> { self.shape.bound() }
 }

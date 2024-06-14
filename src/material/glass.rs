@@ -1,6 +1,6 @@
 use std::{cmp::PartialEq, marker::PhantomData, sync::Arc};
-use bumpalo::Bump;
 
+use bumpalo::Bump;
 use image::Rgb;
 
 use crate::{
@@ -35,7 +35,7 @@ impl Material for Glass {
             SpectrumEnum::Constant(_) => {}
             _ => lambda.terminate_secondary(),
         }
-        
+
         let bxdf = alloc.alloc(BxDFEnum::Dielectric(DielectricBxDF::new(first_wavelength_ior)));
         BSDF::new(**surf_int.hit.normal, surf_int.dp_du, bxdf)
     }

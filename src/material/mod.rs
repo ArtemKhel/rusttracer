@@ -3,14 +3,12 @@ use std::fmt::Debug;
 use bumpalo::Bump;
 use image::Rgb;
 
-use crate::material::matte::Matte;
 use crate::{
     bxdf,
     bxdf::{BxDF, BSDF},
     core::{Ray, SurfaceInteraction},
-    material::{glass::Glass, metal::Metal},
-    SampledSpectrum,
-    SampledWavelengths,
+    material::{glass::Glass, matte::Matte, metal::Metal},
+    SampledSpectrum, SampledWavelengths,
 };
 
 pub mod glass;

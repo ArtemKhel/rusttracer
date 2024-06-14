@@ -45,7 +45,7 @@ impl<T: Number> Aabb<T> {
         Aabb::new(Point3::min_coords(self.min, p), Point3::max_coords(self.max, p))
     }
 
-    /// Offset of a point (in local coordinates) within this AABB 
+    /// Offset of a point (in local coordinates) within this AABB
     pub fn offset(&self, point: Point3<T>) -> Vec3<T> {
         // let padding = T::from(Self::PADDING).unwrap();
         let mut offset = point - self.min;
@@ -202,7 +202,7 @@ impl<T: Number> Transformable<T> for Aabb<T> {
     }
 }
 
-impl<T: Number + AbsDiffEq<Epsilon=T>> AbsDiffEq for Aabb<T> {
+impl<T: Number + AbsDiffEq<Epsilon = T>> AbsDiffEq for Aabb<T> {
     type Epsilon = T;
 
     fn default_epsilon() -> Self::Epsilon { T::epsilon() }
@@ -218,9 +218,8 @@ mod tests {
 
     use approx::assert_abs_diff_eq;
 
-    use crate::{ray, unit3};
-
     use super::*;
+    use crate::{ray, unit3};
 
     #[test]
     fn test_aabb() {

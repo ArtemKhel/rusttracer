@@ -3,12 +3,7 @@ use std::sync::Arc;
 use crate::{
     aggregates::BVH,
     light::{DiffuseAreaLight, LightEnum, PointLight},
-    material::{
-        glass::Glass,
-        matte::Matte,
-        metal::Metal,
-        MaterialsEnum,
-    },
+    material::{glass::Glass, matte::Matte, metal::Metal, MaterialsEnum},
     math::{axis::Axis3, Transform},
     point2, point3,
     scene::{

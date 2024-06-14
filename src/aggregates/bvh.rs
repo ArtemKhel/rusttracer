@@ -2,7 +2,10 @@ use std::{
     cmp::max,
     fmt::Debug,
     ops::{AddAssign, Deref, DerefMut},
-    sync::Arc,
+    sync::{
+        atomic::{AtomicUsize, Ordering},
+        Arc, Mutex,
+    },
 };
 
 use derive_new::new;
@@ -83,7 +86,6 @@ struct BVHSplitBucket<T: Number> {
     bounds: Aabb<T>,
 }
 
-// TODO: generic
 impl BVH<f32> {
     pub fn new(primitives: Vec<Arc<PrimitiveEnum>>, mut max_in_node: usize) -> BVH<f32> {
         let bounds = primitives.iter().fold(Aabb::default(), |acc, p| acc + p.bound());
@@ -98,22 +100,24 @@ impl BVH<f32> {
             })
         }
 
-        let mut ordered_primitives: Vec<Arc<PrimitiveEnum>> = Vec::with_capacity(primitives.len());
-        let mut total_nodes = 0_usize; // TODO: atomic (+parallel)
+        let mut ordered_primitives: Mutex<Vec<Arc<PrimitiveEnum>>> = Mutex::new(Vec::with_capacity(primitives.len()));
+        let mut total_nodes = AtomicUsize::new(0);
         max_in_node = max_in_node.min(255);
         let root = Self::recursive_build(
             &primitives,
             &mut primitives_info,
             &mut ordered_primitives,
-            &mut total_nodes,
+            &total_nodes,
             SplitMethod::SAH,
             max_in_node,
         );
 
         let height = Self::height(&root);
         debug!("BVH height: {height}");
+        let total_nodes = total_nodes.into_inner();
         let root = Self::flatten(root, total_nodes);
 
+        let ordered_primitives = ordered_primitives.into_inner().unwrap();
         BVH {
             primitives: ordered_primitives,
             nodes: root,
@@ -124,12 +128,12 @@ impl BVH<f32> {
     fn recursive_build(
         primitives: &[Arc<PrimitiveEnum>],
         primitives_info: &mut [BVHPrimitiveInfo<f32>],
-        ordered_primitives: &mut Vec<Arc<PrimitiveEnum>>,
-        total_nodes: &mut usize,
+        ordered_primitives: &Mutex<Vec<Arc<PrimitiveEnum>>>,
+        total_nodes: &AtomicUsize,
         split_method: SplitMethod,
         max_in_node: usize,
     ) -> BVHBuildNode<f32> {
-        *total_nodes += 1;
+        total_nodes.fetch_add(1, Ordering::Release);
 
         let bounds = primitives_info.iter().fold(Aabb::default(), |acc, p| acc + p.bounds);
         if primitives_info.len() == 1 {
@@ -147,24 +151,27 @@ impl BVH<f32> {
 
         if let Some((left, right)) = Self::partition(primitives_info, centroid_bounds, axis, split_method, max_in_node)
         {
-            // TODO: rayon::join
-            let children = (
-                Box::new(Self::recursive_build(
-                    primitives,
-                    left,
-                    ordered_primitives,
-                    total_nodes,
-                    split_method,
-                    max_in_node,
-                )),
-                Box::new(Self::recursive_build(
-                    primitives,
-                    right,
-                    ordered_primitives,
-                    total_nodes,
-                    split_method,
-                    max_in_node,
-                )),
+            let children = join(
+                || {
+                    Box::new(Self::recursive_build(
+                        primitives,
+                        left,
+                        ordered_primitives,
+                        total_nodes,
+                        split_method,
+                        max_in_node,
+                    ))
+                },
+                || {
+                    Box::new(Self::recursive_build(
+                        primitives,
+                        right,
+                        ordered_primitives,
+                        total_nodes,
+                        split_method,
+                        max_in_node,
+                    ))
+                },
             );
             BVHBuildNode::new_interior(bounds, children, axis)
         } else {
@@ -253,12 +260,13 @@ impl BVH<f32> {
     fn build_leaf(
         primitives: &[Arc<PrimitiveEnum>],
         primitives_info: &[BVHPrimitiveInfo<f32>],
-        ordered_primitives: &mut Vec<Arc<PrimitiveEnum>>,
+        ordered_primitives: &Mutex<Vec<Arc<PrimitiveEnum>>>,
         bounds: Aabb<f32>,
     ) -> BVHBuildNode<f32> {
-        let first_offset = ordered_primitives.len();
+        let mut vec = ordered_primitives.lock().unwrap();
+        let first_offset = vec.len();
         for prim_info in primitives_info {
-            ordered_primitives.push(primitives[prim_info.index].clone())
+            vec.push(primitives[prim_info.index].clone())
         }
         BVHBuildNode::new_leaf(bounds, first_offset, primitives_info.len())
     }
