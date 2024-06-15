@@ -11,7 +11,8 @@ use crate::{math::Transform, point3, shapes::mesh::Triangle, Point3f};
 // pub use spheres::spheres;
 // pub use teapot::teapot;
 pub fn teapot_triangles(transform: Transform<f32>) -> Vec<Triangle> {
-    let obj = obj::Obj::load("./data/prism.obj").unwrap();
+    // let obj = obj::Obj::load("./data/prism.obj").unwrap();
+    let obj = obj::Obj::load("./data/teapot.obj").unwrap();
     let vertices: Vec<Point3f> = obj.data.position.iter().map(|x| point3!(x[0], x[1], x[2])).collect();
     let normals = obj.data.normal;
     let group = obj.data.objects.first().unwrap().groups.first().unwrap();

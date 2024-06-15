@@ -23,6 +23,7 @@ use rusttracer::{
     textures::constant::ConstantSpectrumTexture,
     vec3, Bounds2f, Point3f,
 };
+use rusttracer::integrators::PathIntegrator;
 
 fn main() {
     env_logger::init();
@@ -30,8 +31,8 @@ fn main() {
     let scene = cornell_box();
     // let mut integrator = DebugNormalIntegrator::new(scene);
     // let mut integrator = RandomWalkIntegrator::new(scene, 5, 2u32.pow(4));
-    let mut integrator = SimplePathIntegrator::create(scene, 6, 2u32.pow(4));
-    // let mut integrator = PathIntegrator::create(scene, 6, 2u32.pow(4));
+    // let mut integrator = SimplePathIntegrator::create(scene, 6, 2u32.pow(4));
+    let mut integrator = PathIntegrator::create(scene, 6, 2u32.pow(4));
     integrator.render();
 }
 

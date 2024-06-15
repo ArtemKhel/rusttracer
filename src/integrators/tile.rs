@@ -58,7 +58,7 @@ where T: TileIntegrator + Sync + Send
         let mut thread_local_sampler = ThreadLocal::<RefCell<SamplerType>>::new();
         let mut thread_local_alloc = ThreadLocal::<RefCell<Bump>>::new();
 
-        let rendering_time = time_it(|| {
+        let (_, rendering_time) = time_it(|| {
             while start < spp {
                 info!("Starting wave {}-{}", start, till);
 

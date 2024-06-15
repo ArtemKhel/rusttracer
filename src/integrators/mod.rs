@@ -9,10 +9,10 @@ use crate::{
     scene::{cameras::Camera, film::Film, Scene},
     Int, Point2u,
 };
-// pub use path::PathIntegrator;
+pub use path::PathIntegrator;
 
 mod debug_normal;
-// mod path;
+mod path;
 mod random_walk;
 mod ray;
 mod simple_path;

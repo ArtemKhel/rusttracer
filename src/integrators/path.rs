@@ -1,3 +1,4 @@
+use bumpalo::Bump;
 use image::Pixel;
 use num_complex::ComplexFloat;
 use num_traits::{One, Zero};
@@ -100,7 +101,7 @@ impl PathIntegrator {
 }
 
 impl RayIntegrator for PathIntegrator {
-    fn light_incoming(&self, ray: &Ray, lambda: &mut SampledWavelengths, sampler: &mut SamplerType) -> SampledSpectrum {
+    fn light_incoming(&self, ray: &Ray, lambda: &mut SampledWavelengths, sampler: &mut SamplerType, alloc: &mut Bump) -> SampledSpectrum {
         let mut ray = *ray;
         let mut depth = 0;
         // Total radiance from the current path
@@ -137,7 +138,7 @@ impl RayIntegrator for PathIntegrator {
                 }
             }
 
-            let Some(bsdf) = interaction.get_bsdf(&ray, lambda, &self.borrow_state().scene.camera, sampler) else {
+            let Some(bsdf) = interaction.get_bsdf(&ray, lambda, &self.borrow_state().scene.camera, sampler, alloc) else {
                 // TODO: medias
                 continue;
             };

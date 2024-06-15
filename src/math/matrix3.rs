@@ -1,7 +1,8 @@
+use std::iter::Sum;
 use std::ops::{Index, Mul};
 
 use arrayvec::ArrayVec;
-use itertools::Itertools;
+use itertools::{iproduct, Itertools};
 use num_traits::Zero;
 use strum::IntoEnumIterator;
 
@@ -57,9 +58,9 @@ impl<T: Number> Matrix3<T> {
         }
     }
 
-    pub fn from_array(array: &[T; 9]) -> Self {
+    pub fn from_array(a: &[T; 9]) -> Self {
         Self::from_elements(
-            array[0], array[1], array[2], array[3], array[4], array[5], array[6], array[7], array[8],
+            a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
         )
     }
 
@@ -123,14 +124,14 @@ impl<T: Number> Matrix3<T> {
     }
 }
 
-impl<T: Number> Mul for Matrix3<T> {
+impl<T: Number + Sum> Mul for Matrix3<T> {
     type Output = Matrix3<T>;
 
     fn mul(self, rhs: Self) -> Self::Output {
         Matrix3::from_array(
-            &Axis3::iter()
-                .cartesian_product(Axis3::iter())
-                .map(|(i, j)| self[i][j] * rhs[j][i])
+            &iproduct!(Axis3::iter(), Axis3::iter()).map(|(i, j)| {
+                Axis3::iter().map(|k| self[i][k] * rhs[k][j]).sum()
+            })
                 .collect::<ArrayVec<T, 9>>()
                 .into_inner()
                 .unwrap(),
@@ -185,5 +186,12 @@ mod tests {
         let vec = vec3!(3., 2., 1.);
         let expected = vec3!(10., 28., 46.);
         assert_abs_diff_eq!(mat * vec, expected);
+    }
+
+    #[test]
+    fn test_mul_mat() {
+        let mat = Matrix3::from_elements(1., 2., 3., 4., 5., 6., 7., 8., 9.);
+        let expected = Matrix3::from_elements(30., 36., 42., 66., 81., 96., 102., 126., 150.);
+        assert_eq!(mat * mat, expected)
     }
 }

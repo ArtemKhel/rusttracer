@@ -83,7 +83,7 @@ impl StratifiedSampler {
     }
 }
 
-// TODO: somehow it is worse then independent. why?
+// TODO: somehow it is worse then independent. why? Stat tests seem fine
 impl Sampler for StratifiedSampler {
     fn samples_per_pixel(&self) -> u32 { self.samples_per_pixel }
 
@@ -124,13 +124,33 @@ impl Sampler for StratifiedSampler {
 
 #[cfg(test)]
 mod tests {
+    use std::io::Write;
     use approx::{assert_abs_diff_eq, assert_abs_diff_ne};
 
     use super::*;
     use crate::point2;
 
     #[test]
-    fn test_fn() {}
+    fn test_fn() {
+        let seed = 42;
+        let mut sampler = StratifiedSampler::new(5, 5, true, seed);
+        
+        let mut one = std::fs::File::create("./dump_1d").unwrap();
+        let mut two = std::fs::File::create("./dump_2d").unwrap();
+        let n = 1_000;
+
+        sampler.start_pixel_sample(point2!(1, 2), 3);
+        for i in (0..n){
+            let s = sampler.get_1d();
+            one.write(format!("{}\n", s).as_bytes());
+        }
+
+        sampler.start_pixel_sample(point2!(1, 2), 3);
+        for i in (0..n){
+            let s = sampler.get_2d();
+            two.write(format!("{} {}\n", s.x, s.y).as_bytes());
+        }
+    }
 
     #[test]
     fn test_reproducibility() {

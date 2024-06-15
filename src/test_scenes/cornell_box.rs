@@ -25,6 +25,7 @@ use crate::{
     textures::{constant::ConstantSpectrumTexture, SpectrumTextureEnum},
     vec3, Bounds2f,
 };
+use crate::spectra::RGBIlluminantSpectrum;
 
 fn base_box(
     left_wall: &Arc<MaterialsEnum>,
@@ -144,7 +145,7 @@ pub fn cornell_box() -> Scene {
     );
     let d65 = NamedSpectra::IlluminantD65.get();
     let light_source = Arc::new(LightEnum::DiffuseArea(DiffuseAreaLight::new(
-        // Arc::new(SpectrumEnum::Constant(ConstantSpectrum::new(1.))),
+        // Arc::new(SpectrumEnum::RGBIlluminant(RGBIlluminantSpectrum::new(&sRGB, RGB::LIGHT_BLUE))),
         d65.clone(),
         1.5,
         Transform::id(),
@@ -158,16 +159,18 @@ pub fn cornell_box() -> Scene {
     cornell_box.push(Arc::new(PrimitiveEnum::Geometric(light)));
 
     let tri = teapot_triangles(
-        Transform::scale_uniform(2500.)
-            .then_rotate_degrees(Axis3::X, 90.)
-            .then_translate(vec3!(500., 500., 500.)),
+        Transform::id()
+            // .then_scale_uniform(2500.)
+            // .then_rotate_degrees(Axis3::X, 90.)
+            .then_scale_uniform(150.)
+            .then_translate(vec3!(500., 0., 500.)),
     );
     let tri: Vec<Arc<PrimitiveEnum>> = tri
         .into_iter()
         .map(Arc::new)
         .map(|x| SimplePrimitive {
             shape: x,
-            material: glass.clone(),
+            material: matte_gray.clone(),
         })
         .map(PrimitiveEnum::Simple)
         .map(Arc::new)

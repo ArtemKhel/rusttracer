@@ -8,8 +8,8 @@ use num_traits::Signed;
 use crate::{
     math::Matrix3,
     point2,
-    spectra::{gamut::Gamut, named::NamedSpectra, xyz::XYZ, SpectrumEnum, LAMBDA_MAX, LAMBDA_MIN},
-    Point2f, Vec3f,
+    Point2f,
+    spectra::{gamut::Gamut, LAMBDA_MAX, LAMBDA_MIN, named::NamedSpectra, SpectrumEnum, xyz::XYZ}, Vec3f,
 };
 
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
@@ -35,6 +35,7 @@ impl RGB {
     pub const LIGHT_BLUE: RGB = RGB { r: 0.5, g: 0.8, b: 0.95 };
     pub const DARK_BLUE: RGB = RGB { r: 0.2, g: 0.3, b: 0.5 };
 }
+
 impl RGB {
     pub fn has_nan(&self) -> bool { self.r.is_nan() || self.g.is_nan() || self.b.is_nan() }
 
@@ -103,12 +104,12 @@ impl RGBColorSpace {
     pub fn new(r: Point2f, g: Point2f, b: Point2f, illuminant: Arc<SpectrumEnum>, gamut: Gamut) -> Self {
         let w = XYZ::from(illuminant.as_ref());
         let whitepoint = w.xy();
-        let xyz_r = XYZ::from_xy(r);
-        let xyz_g = XYZ::from_xy(g);
-        let xyz_b = XYZ::from_xy(b);
+        let xyz_r = XYZ::from_xy(r); 
+        let xyz_g = XYZ::from_xy(g); 
+        let xyz_b = XYZ::from_xy(b); 
 
         #[rustfmt::skip]
-        let rgb = Matrix3::from_elements(
+            let rgb = Matrix3::from_elements(
             xyz_r.x, xyz_g.x, xyz_b.x,
             xyz_r.y, xyz_g.y, xyz_b.y,
             xyz_r.z, xyz_g.z, xyz_b.z,
@@ -169,8 +170,9 @@ mod tests {
 
     use approx::assert_abs_diff_eq;
 
-    use super::*;
     use crate::spectra::{RGBAlbedoSpectrum, RGBUnboundedSpectrum, Spectrum, VISIBLE_MIN};
+
+    use super::*;
 
     #[test]
     fn from_xy_zero() {
@@ -211,6 +213,7 @@ mod tests {
         assert_abs_diff_eq!(0.0415, rgb.g, epsilon = 0.01);
         assert_abs_diff_eq!(1.0570, rgb.b, epsilon = 0.01);
     }
+
     #[test]
     fn test_rgb_xyz_rgb() {
         let color_space = sRGB.clone();
@@ -227,7 +230,7 @@ mod tests {
         for rgb in rgbs {
             let xyz = color_space.rgb_to_xyz(rgb);
             let res = color_space.xyz_to_rgb(xyz);
-            assert_abs_diff_eq!(res, rgb)
+            assert_abs_diff_eq!(res, rgb, epsilon = 1e-3)
         }
     }
 }

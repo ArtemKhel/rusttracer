@@ -1,4 +1,4 @@
-use std::{f32::consts::PI, time::Instant};
+use std::time::Instant;
 
 use image::{Pixel, Rgb};
 
@@ -6,12 +6,13 @@ pub fn lerp(a: Rgb<f32>, b: Rgb<f32>, t: f32) -> Rgb<f32> { a.map2(&b, |a, b| (1
 
 pub(crate) fn linear_to_gamma(linear: Rgb<f32>) -> Rgb<f32> { linear.map(|x| if x > 0. { x.sqrt() } else { x }) }
 
-pub fn time_it<F>(f: F) -> f32
-where F: FnOnce() {
+pub fn time_it<F, Out>(f: F) -> (Out, f32)
+where F: FnOnce() -> Out {
     let start = Instant::now();
-    f();
+    let res = f();
     let end = Instant::now();
-    (end - start).as_secs_f32()
+    let time = (end - start).as_secs_f32();
+    (res, time)
 }
 
 #[macro_export]

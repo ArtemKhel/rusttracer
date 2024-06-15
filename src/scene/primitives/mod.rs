@@ -11,7 +11,6 @@ use crate::{
 pub mod geometric;
 pub mod simple;
 
-// TODO:
 pub trait Primitive: Bounded<f32> + Intersectable {}
 
 impl Primitive for BVH<f32> {}

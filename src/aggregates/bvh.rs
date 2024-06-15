@@ -3,27 +3,29 @@ use std::{
     fmt::Debug,
     ops::{AddAssign, Deref, DerefMut},
     sync::{
-        atomic::{AtomicUsize, Ordering},
-        Arc, Mutex,
+        Arc,
+        atomic::{AtomicUsize, Ordering}, Mutex,
     },
 };
+use std::time::Instant;
 
 use derive_new::new;
-use itertools::{partition, Itertools};
-use log::debug;
+use itertools::{Itertools, partition};
+use log::{debug, info};
 use num_traits::{Float, Zero};
 use rayon::join;
 
 use crate::{
-    aggregates::{aabb::Sign, Aabb, Bounded},
+    aggregates::{Aabb, aabb::Sign, Bounded},
     breakpoint,
     core::{Ray, SurfaceInteraction},
     math::{axis::Axis3, Normed, Number, Point3},
-    normal3, point3,
+    normal3, Pair,
+    point3,
     scene::primitives::PrimitiveEnum,
-    shapes::Intersectable,
-    unit_normal3, vec3, Pair,
+    shapes::Intersectable, unit_normal3, vec3,
 };
+use crate::utils::time_it;
 
 // TODO: allocator
 
@@ -86,41 +88,47 @@ struct BVHSplitBucket<T: Number> {
 
 impl BVH<f32> {
     pub fn new(primitives: Vec<Arc<PrimitiveEnum>>, mut max_in_node: usize) -> BVH<f32> {
-        let bounds = primitives.iter().fold(Aabb::default(), |acc, p| acc + p.bound());
+        info!("Building BVH ...");
+        let (bvh, time) = time_it(|| {
+            let bounds = primitives.iter().fold(Aabb::default(), |acc, p| acc + p.bound());
 
-        let mut primitives_info: Vec<BVHPrimitiveInfo<f32>> = Vec::with_capacity(primitives.len());
-        for (index, p) in primitives.iter().enumerate() {
-            let bounds = p.bound();
-            primitives_info.push(BVHPrimitiveInfo {
-                index,
-                bounds,
-                center: bounds.center(),
-            })
-        }
+            let mut primitives_info: Vec<BVHPrimitiveInfo<f32>> = Vec::with_capacity(primitives.len());
+            for (index, p) in primitives.iter().enumerate() {
+                let bounds = p.bound();
+                primitives_info.push(BVHPrimitiveInfo {
+                    index,
+                    bounds,
+                    center: bounds.center(),
+                })
+            }
 
-        let mut ordered_primitives: Mutex<Vec<Arc<PrimitiveEnum>>> = Mutex::new(Vec::with_capacity(primitives.len()));
-        let mut total_nodes = AtomicUsize::new(0);
-        max_in_node = max_in_node.min(255);
-        let root = Self::recursive_build(
-            &primitives,
-            &mut primitives_info,
-            &mut ordered_primitives,
-            &total_nodes,
-            SplitMethod::SAH,
-            max_in_node,
-        );
+            let mut ordered_primitives: Mutex<Vec<Arc<PrimitiveEnum>>> = Mutex::new(Vec::with_capacity(primitives.len()));
+            let mut total_nodes = AtomicUsize::new(0);
+            max_in_node = max_in_node.min(255);
+            let root = Self::recursive_build(
+                &primitives,
+                &mut primitives_info,
+                &mut ordered_primitives,
+                &total_nodes,
+                SplitMethod::SAH,
+                max_in_node,
+            );
 
-        let height = Self::height(&root);
-        debug!("BVH height: {height}");
-        let total_nodes = total_nodes.into_inner();
-        let root = Self::flatten(root, total_nodes);
+            let height = Self::height(&root);
+            let total_nodes = total_nodes.into_inner();
+            let root = Self::flatten(root, total_nodes);
+            info!("BVH height: {height}, {total_nodes} nodes");
 
-        let ordered_primitives = ordered_primitives.into_inner().unwrap();
-        BVH {
-            primitives: ordered_primitives,
-            nodes: root,
-            height,
-        }
+            let ordered_primitives = ordered_primitives.into_inner().unwrap();
+            BVH {
+                primitives: ordered_primitives,
+                nodes: root,
+                height,
+            }
+        });
+        
+        info!("BVH built in {time:.3}s");
+        bvh
     }
 
     fn recursive_build(
@@ -292,8 +300,8 @@ impl BVH<f32> {
                     let offset = lin_root.len();
                     match lin_root.get_mut(idx) {
                         Some(BVHLinearNode::Interior {
-                            second_child_offset, ..
-                        }) => *second_child_offset = offset,
+                                 second_child_offset, ..
+                             }) => *second_child_offset = offset,
                         _ => unreachable!(),
                     };
                     rec(children.1.as_ref(), lin_root);
@@ -445,8 +453,9 @@ impl<T: Number> Bounded<T> for BVH<T> {
 mod tests {
     use test::Bencher;
 
-    use super::*;
     use crate::{math::Transform, point3, ray, shapes::sphere::Sphere, unit3};
+
+    use super::*;
 
     extern crate test;
 

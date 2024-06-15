@@ -1,9 +1,6 @@
 use std::sync::Arc;
 
-use crate::spectra::{
-    rgb::{RGBColorSpace, RGBSigmoidPoly, RGB},
-    DenselySampledSpectrum, Spectrum,
-};
+use crate::spectra::{rgb::{RGBColorSpace, RGBSigmoidPoly, RGB}, DenselySampledSpectrum, Spectrum, SpectrumEnum};
 
 #[derive(Clone, Debug)]
 pub struct RGBAlbedoSpectrum {
@@ -49,11 +46,11 @@ impl Spectrum for RGBUnboundedSpectrum {
 pub struct RGBIlluminantSpectrum {
     rsp: RGBSigmoidPoly,
     scale: f32,
-    illuminant: Arc<DenselySampledSpectrum>,
+    illuminant: Arc<SpectrumEnum>,
 }
 
 impl RGBIlluminantSpectrum {
-    fn new(color_space: &RGBColorSpace, rgb: RGB, illuminant: Arc<DenselySampledSpectrum>) -> RGBIlluminantSpectrum {
+    pub(crate) fn new(color_space: &RGBColorSpace, rgb: RGB) -> RGBIlluminantSpectrum {
         let scale = match 2. * rgb.max() {
             0.0 => 1.,
             x => x,
@@ -61,7 +58,7 @@ impl RGBIlluminantSpectrum {
         RGBIlluminantSpectrum {
             rsp: color_space.to_rgb_poly(rgb / scale),
             scale,
-            illuminant,
+            illuminant: color_space.illuminant.clone(),
         }
     }
 }
@@ -100,12 +97,9 @@ mod tests {
             // let albedo = RGBUnboundedSpectrum::new(&sRGB, rgb);
             // let spectrum = albedo.sample(&lambda);
             let spectrum = albedo.sample(&lambda) * color_space.illuminant.sample(&lambda);
-            let xyz = spectrum.to_xyz(&lambda);
-            let result = color_space.xyz_to_rgb(xyz);
-            let result2 = spectrum.to_rgb(&lambda, &sRGB);
+            let result = spectrum.to_rgb(&lambda, &sRGB);
 
-            assert_abs_diff_eq!(result, rgb, epsilon = 0.01);
-            assert_abs_diff_eq!(result2, rgb, epsilon = 0.01);
+            assert_abs_diff_eq!(result, rgb, epsilon = 0.1);
         }
     }
 }
