@@ -1,5 +1,7 @@
-use std::iter::Sum;
-use std::ops::{Index, Mul};
+use std::{
+    iter::Sum,
+    ops::{Index, Mul},
+};
 
 use arrayvec::ArrayVec;
 use itertools::{iproduct, Itertools};
@@ -58,11 +60,7 @@ impl<T: Number> Matrix3<T> {
         }
     }
 
-    pub fn from_array(a: &[T; 9]) -> Self {
-        Self::from_elements(
-            a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-        )
-    }
+    pub fn from_array(a: &[T; 9]) -> Self { Self::from_elements(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8]) }
 
     pub fn row(&self, axis: Axis3) -> Vec3<T> { self[axis] }
 
@@ -129,9 +127,8 @@ impl<T: Number + Sum> Mul for Matrix3<T> {
 
     fn mul(self, rhs: Self) -> Self::Output {
         Matrix3::from_array(
-            &iproduct!(Axis3::iter(), Axis3::iter()).map(|(i, j)| {
-                Axis3::iter().map(|k| self[i][k] * rhs[k][j]).sum()
-            })
+            &iproduct!(Axis3::iter(), Axis3::iter())
+                .map(|(i, j)| Axis3::iter().map(|k| self[i][k] * rhs[k][j]).sum())
                 .collect::<ArrayVec<T, 9>>()
                 .into_inner()
                 .unwrap(),

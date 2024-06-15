@@ -125,6 +125,7 @@ impl Sampler for StratifiedSampler {
 #[cfg(test)]
 mod tests {
     use std::io::Write;
+
     use approx::{assert_abs_diff_eq, assert_abs_diff_ne};
 
     use super::*;
@@ -134,19 +135,19 @@ mod tests {
     fn test_fn() {
         let seed = 42;
         let mut sampler = StratifiedSampler::new(5, 5, true, seed);
-        
+
         let mut one = std::fs::File::create("./dump_1d").unwrap();
         let mut two = std::fs::File::create("./dump_2d").unwrap();
         let n = 1_000;
 
         sampler.start_pixel_sample(point2!(1, 2), 3);
-        for i in (0..n){
+        for i in (0..n) {
             let s = sampler.get_1d();
             one.write(format!("{}\n", s).as_bytes());
         }
 
         sampler.start_pixel_sample(point2!(1, 2), 3);
-        for i in (0..n){
+        for i in (0..n) {
             let s = sampler.get_2d();
             two.write(format!("{} {}\n", s.x, s.y).as_bytes());
         }

@@ -1,5 +1,6 @@
 pub use debug_normal::DebugNormalIntegrator;
 use image::{ImageBuffer, Rgb};
+pub use path::PathIntegrator;
 pub use random_walk::RandomWalkIntegrator;
 use rayon::iter::ParallelIterator;
 pub use simple_path::SimplePathIntegrator;
@@ -9,7 +10,6 @@ use crate::{
     scene::{cameras::Camera, film::Film, Scene},
     Int, Point2u,
 };
-pub use path::PathIntegrator;
 
 mod debug_normal;
 mod path;

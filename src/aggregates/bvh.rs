@@ -3,29 +3,30 @@ use std::{
     fmt::Debug,
     ops::{AddAssign, Deref, DerefMut},
     sync::{
-        Arc,
-        atomic::{AtomicUsize, Ordering}, Mutex,
+        atomic::{AtomicUsize, Ordering},
+        Arc, Mutex,
     },
+    time::Instant,
 };
-use std::time::Instant;
 
 use derive_new::new;
-use itertools::{Itertools, partition};
+use itertools::{partition, Itertools};
 use log::{debug, info};
 use num_traits::{Float, Zero};
 use rayon::join;
 
 use crate::{
-    aggregates::{Aabb, aabb::Sign, Bounded},
+    aggregates::{aabb::Sign, Aabb, Bounded},
     breakpoint,
     core::{Ray, SurfaceInteraction},
     math::{axis::Axis3, Normed, Number, Point3},
-    normal3, Pair,
-    point3,
+    normal3, point3,
     scene::primitives::PrimitiveEnum,
-    shapes::Intersectable, unit_normal3, vec3,
+    shapes::Intersectable,
+    unit_normal3,
+    utils::time_it,
+    vec3, Pair,
 };
-use crate::utils::time_it;
 
 // TODO: allocator
 
@@ -102,7 +103,8 @@ impl BVH<f32> {
                 })
             }
 
-            let mut ordered_primitives: Mutex<Vec<Arc<PrimitiveEnum>>> = Mutex::new(Vec::with_capacity(primitives.len()));
+            let mut ordered_primitives: Mutex<Vec<Arc<PrimitiveEnum>>> =
+                Mutex::new(Vec::with_capacity(primitives.len()));
             let mut total_nodes = AtomicUsize::new(0);
             max_in_node = max_in_node.min(255);
             let root = Self::recursive_build(
@@ -126,7 +128,7 @@ impl BVH<f32> {
                 height,
             }
         });
-        
+
         info!("BVH built in {time:.3}s");
         bvh
     }
@@ -300,8 +302,8 @@ impl BVH<f32> {
                     let offset = lin_root.len();
                     match lin_root.get_mut(idx) {
                         Some(BVHLinearNode::Interior {
-                                 second_child_offset, ..
-                             }) => *second_child_offset = offset,
+                            second_child_offset, ..
+                        }) => *second_child_offset = offset,
                         _ => unreachable!(),
                     };
                     rec(children.1.as_ref(), lin_root);
@@ -453,9 +455,8 @@ impl<T: Number> Bounded<T> for BVH<T> {
 mod tests {
     use test::Bencher;
 
-    use crate::{math::Transform, point3, ray, shapes::sphere::Sphere, unit3};
-
     use super::*;
+    use crate::{math::Transform, point3, ray, shapes::sphere::Sphere, unit3};
 
     extern crate test;
 

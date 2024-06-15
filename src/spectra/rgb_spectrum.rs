@@ -1,6 +1,9 @@
 use std::sync::Arc;
 
-use crate::spectra::{rgb::{RGBColorSpace, RGBSigmoidPoly, RGB}, DenselySampledSpectrum, Spectrum, SpectrumEnum};
+use crate::spectra::{
+    rgb::{RGBColorSpace, RGBSigmoidPoly, RGB},
+    DenselySampledSpectrum, Spectrum, SpectrumEnum,
+};
 
 #[derive(Clone, Debug)]
 pub struct RGBAlbedoSpectrum {
@@ -81,7 +84,6 @@ mod tests {
 
     #[test]
     fn test_albedo() {
-        // TODO: at some point it started to fail :(
         let bl = RGB::BLACK;
         let wh = RGB::WHITE;
         let r = RGB::R;
@@ -92,10 +94,7 @@ mod tests {
 
         for rgb in [bl, wh, r, g, b] {
             let lambda = SampledWavelengths::<470>::sample_visible(random());
-            // let lambda = SampledWavelengths::<470>::sample_uniform(0., VISIBLE_MIN, VISIBLE_MAX);
             let albedo = RGBAlbedoSpectrum::new(&sRGB, rgb);
-            // let albedo = RGBUnboundedSpectrum::new(&sRGB, rgb);
-            // let spectrum = albedo.sample(&lambda);
             let spectrum = albedo.sample(&lambda) * color_space.illuminant.sample(&lambda);
             let result = spectrum.to_rgb(&lambda, &sRGB);
 

@@ -6,20 +6,19 @@ use ouroboros::self_referencing;
 use rand::Rng;
 
 use crate::{
-    bxdf::{BSDF, BxDFFlags},
+    bxdf::{BxDFFlags, BSDF},
     core::{Ray, SurfaceInteraction},
     integrators::{
-        Integrator,
-        IState,
-        ray::{RayIntegrator, RIState}, tile::TIState,
+        ray::{RIState, RayIntegrator},
+        tile::TIState,
+        IState, Integrator,
     },
     light::{Light, LightEnum, LightSampler, UniformLightSampler},
-    math::{dot, Normed, utils::power_heuristic},
-    SampledSpectrum,
-    SampledWavelengths,
-    samplers::{Sampler, SamplerType, StratifiedSampler}, scene::Scene,
+    math::{dot, utils::power_heuristic, Normed, Unit},
+    samplers::{Sampler, SamplerType, StratifiedSampler},
+    scene::Scene,
+    SampledSpectrum, SampledWavelengths,
 };
-use crate::math::Unit;
 
 #[self_referencing]
 pub struct PathIntegrator {
@@ -96,12 +95,20 @@ impl PathIntegrator {
                     Some(weight_light * sample.radiance * reflected / prob_light)
                 }
             }
-        } else {None}
+        } else {
+            None
+        }
     }
 }
 
 impl RayIntegrator for PathIntegrator {
-    fn light_incoming(&self, ray: &Ray, lambda: &mut SampledWavelengths, sampler: &mut SamplerType, alloc: &mut Bump) -> SampledSpectrum {
+    fn light_incoming(
+        &self,
+        ray: &Ray,
+        lambda: &mut SampledWavelengths,
+        sampler: &mut SamplerType,
+        alloc: &mut Bump,
+    ) -> SampledSpectrum {
         let mut ray = *ray;
         let mut depth = 0;
         // Total radiance from the current path
@@ -126,19 +133,21 @@ impl RayIntegrator for PathIntegrator {
 
             // TODO: emitted light
             // Incorporate emission from surface hit by ray
-            if let Some(emitted) = interaction.emitted_light(lambda){
+            if let Some(emitted) = interaction.emitted_light(lambda) {
                 if (depth == 0 || specular_bounce) {
                     radiance += throughput * emitted;
                 } else {
                     // Compute MIS weight for area light
                     let light_source = interaction.area_light.as_ref().unwrap().as_ref();
-                    let prob_light = self.borrow_light_sampler().pmf(&prev_surf_int, light_source) * light_source.pdf_incoming(ray.dir, &prev_surf_int);
+                    let prob_light = self.borrow_light_sampler().pmf(&prev_surf_int, light_source)
+                        * light_source.pdf_incoming(ray.dir, &prev_surf_int);
                     let weight_light = power_heuristic(1, prob_bsdf, 1, prob_light);
                     radiance += throughput * weight_light * emitted;
                 }
             }
 
-            let Some(bsdf) = interaction.get_bsdf(&ray, lambda, &self.borrow_state().scene.camera, sampler, alloc) else {
+            let Some(bsdf) = interaction.get_bsdf(&ray, lambda, &self.borrow_state().scene.camera, sampler, alloc)
+            else {
                 // TODO: medias
                 continue;
             };
@@ -168,7 +177,7 @@ impl RayIntegrator for PathIntegrator {
             prob_bsdf = bsdf_sample.pdf;
             specular_bounce = bsdf_sample.flags.contains(BxDFFlags::Specular);
             any_non_specular_bounces |= specular_bounce;
-            if bsdf_sample.flags.contains(BxDFFlags::Transmission){
+            if bsdf_sample.flags.contains(BxDFFlags::Transmission) {
                 eta_scale *= bsdf_sample.eta.powi(2)
             }
             prev_surf_int = interaction.clone();

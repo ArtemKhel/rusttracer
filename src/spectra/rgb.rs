@@ -79,8 +79,8 @@ impl RGBSigmoidPoly {
     pub fn max_value(&self) -> f32 {
         let result = f32::max(self.eval(LAMBDA_MIN), self.eval(LAMBDA_MAX));
         let lambda = -self.c1 / (2.0 * self.c0);
-        if lambda >= LAMBDA_MIN && lambda <= LAMBDA_MAX {
-            return f32::max(result, self.eval(lambda));
+        if (LAMBDA_MIN..=LAMBDA_MAX).contains(&lambda) {
+            f32::max(result, self.eval(lambda))
         } else {
             result
         }
@@ -104,9 +104,9 @@ impl RGBColorSpace {
     pub fn new(r: Point2f, g: Point2f, b: Point2f, illuminant: Arc<SpectrumEnum>, gamut: Gamut) -> Self {
         let w = XYZ::from(illuminant.as_ref());
         let whitepoint = w.xy();
-        let xyz_r = XYZ::from_xy(r); 
-        let xyz_g = XYZ::from_xy(g); 
-        let xyz_b = XYZ::from_xy(b); 
+        let xyz_r = XYZ::from_xy(r);
+        let xyz_g = XYZ::from_xy(g);
+        let xyz_b = XYZ::from_xy(b);
 
         #[rustfmt::skip]
             let rgb = Matrix3::from_elements(

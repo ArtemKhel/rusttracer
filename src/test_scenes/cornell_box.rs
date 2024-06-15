@@ -19,13 +19,12 @@ use crate::{
         named::NamedSpectra,
         piecewise_linear::PiecewiseLinearSpectrum,
         rgb::{sRGB, RGB},
-        RGBAlbedoSpectrum, SpectrumEnum, VISIBLE_MAX, VISIBLE_MIN,
+        RGBAlbedoSpectrum, RGBIlluminantSpectrum, SpectrumEnum, VISIBLE_MAX, VISIBLE_MIN,
     },
     test_scenes::teapot_triangles,
     textures::{constant::ConstantSpectrumTexture, SpectrumTextureEnum},
     vec3, Bounds2f,
 };
-use crate::spectra::RGBIlluminantSpectrum;
 
 fn base_box(
     left_wall: &Arc<MaterialsEnum>,
