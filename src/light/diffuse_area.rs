@@ -79,6 +79,6 @@ impl Light for DiffuseAreaLight {
     }
 
     fn pdf_incoming(&self, incoming: Unit<Vec3f>, surf_int: &SurfaceInteraction) -> f32 {
-        self.shape.pdf_incoming(&surf_int, incoming)
+        self.shape.pdf_incoming(surf_int, incoming)
     }
 }

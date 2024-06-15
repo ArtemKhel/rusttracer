@@ -119,11 +119,7 @@ impl Intersectable for Sphere {
 
     fn check_intersect(&self, ray: &Ray, t_max: f32) -> bool {
         let ray = ray.inv_transform(&self.object_to_world);
-        if let Some(_) = self.basic_intersect(ray, t_max) {
-            true
-        } else {
-            false
-        }
+        self.basic_intersect(ray, t_max).is_some()
     }
 }
 

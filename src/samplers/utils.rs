@@ -67,12 +67,12 @@ pub fn sample_uniform_disk_concentric(u: Point2f) -> Point2f {
 }
 
 /// Samples visible wavelength according to it visual importance
-pub fn sample_visible_wavelengths(rnd_c: f32) -> f32 { 538.0 - 138.888889 * (0.85691062 - 1.82750197 * rnd_c).atanh() }
+pub fn sample_visible_wavelengths(rnd_c: f32) -> f32 { 538.0 - 138.888_89 * (0.85691062 - 1.827_502 * rnd_c).atanh() }
 
 /// PDF for a chosen in [sample_visible_wavelengths] wavelength
 pub fn visible_wavelengths_pdf(lambda: f32) -> f32 {
     if (VISIBLE_MIN..VISIBLE_MAX).contains(&lambda) {
-        0.0039398042 / ((0.0072 * (lambda - 538.)).cosh()).powi(2)
+        0.003_939_804 / ((0.0072 * (lambda - 538.)).cosh()).powi(2)
     } else {
         0.
     }

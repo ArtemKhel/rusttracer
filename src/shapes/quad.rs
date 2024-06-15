@@ -118,11 +118,7 @@ impl Intersectable for Quad {
         let alpha = dot(&self.w, &cross(&planar_hit_point, &self.ab));
         let beta = dot(&self.w, &cross(&self.ac, &planar_hit_point));
 
-        if (0.0..=1.0).contains(&alpha) && (0.0..=1.0).contains(&beta) {
-            true
-        } else {
-            false
-        }
+        (0.0..=1.0).contains(&alpha) && (0.0..=1.0).contains(&beta)
     }
 }
 

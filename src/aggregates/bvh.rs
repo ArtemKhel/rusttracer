@@ -439,7 +439,7 @@ impl Intersectable for BVH<f32> {
                 }
             }
         }
-        return false;
+        false
     }
 }
 

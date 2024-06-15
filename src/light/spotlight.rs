@@ -57,11 +57,11 @@ impl Spotlight {
 
 impl Light for Spotlight {
     fn flux(&self, lambda: &SampledWavelengths) -> SampledSpectrum {
-        return self.spectrum.sample(lambda)
+        self.spectrum.sample(lambda)
             * 2.
             * PI
             * self.scale
-            * ((1. - self.cos_falloff_start) + (self.cos_falloff_start - self.cos_falloff_end) / 2.);
+            * ((1. - self.cos_falloff_start) + (self.cos_falloff_start - self.cos_falloff_end) / 2.)
     }
 
     fn light_type(&self) -> LightType { self.base.light_type }

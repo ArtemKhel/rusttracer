@@ -67,7 +67,7 @@ impl DebugNormalIntegrator {
                 interaction.hit.normal.z.abs(),
             );
             let rgb_to_spec = RGBAlbedoSpectrum::new(&self.color_space, rgb);
-            rgb_to_spec.sample(&lambda)
+            rgb_to_spec.sample(lambda)
         } else {
             SampledSpectrum::zero()
         }

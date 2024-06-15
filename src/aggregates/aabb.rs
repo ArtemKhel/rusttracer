@@ -37,8 +37,8 @@ impl<T: Number> Aabb<T> {
     }
 
     pub fn from_points(p1: Point3<T>, p2: Point3<T>) -> Self {
-        let mut aabb = Aabb::new(Point3::min_coords(p1, p2), Point3::max_coords(p1, p2));
-        aabb
+        
+        Aabb::new(Point3::min_coords(p1, p2), Point3::max_coords(p1, p2))
     }
 
     pub fn union(&self, p: Point3<T>) -> Self {

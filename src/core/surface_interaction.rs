@@ -204,21 +204,21 @@ impl SurfaceInteraction {
 impl Transformable<f32> for SurfaceShading {
     fn transform(&self, trans: &Transform<f32>) -> Self {
         SurfaceShading {
-            normal: self.normal.transform(&trans).to_unit(),
-            dp_du: self.dp_du.transform(&trans),
-            dp_dv: self.dp_dv.transform(&trans),
-            dn_du: self.dn_du.transform(&trans),
-            dn_dv: self.dn_dv.transform(&trans),
+            normal: self.normal.transform(trans).to_unit(),
+            dp_du: self.dp_du.transform(trans),
+            dp_dv: self.dp_dv.transform(trans),
+            dn_du: self.dn_du.transform(trans),
+            dn_dv: self.dn_dv.transform(trans),
         }
     }
 
     fn inv_transform(&self, trans: &Transform<f32>) -> Self {
         SurfaceShading {
-            normal: self.normal.inv_transform(&trans).to_unit(),
-            dp_du: self.dp_du.inv_transform(&trans),
-            dp_dv: self.dp_dv.inv_transform(&trans),
-            dn_du: self.dn_du.inv_transform(&trans),
-            dn_dv: self.dn_dv.inv_transform(&trans),
+            normal: self.normal.inv_transform(trans).to_unit(),
+            dp_du: self.dp_du.inv_transform(trans),
+            dp_dv: self.dp_dv.inv_transform(trans),
+            dn_du: self.dn_du.inv_transform(trans),
+            dn_dv: self.dn_dv.inv_transform(trans),
         }
     }
 }

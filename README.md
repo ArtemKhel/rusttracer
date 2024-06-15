@@ -3,7 +3,7 @@ Based on Ray Tracing: in one weekend / the next week / the rest of your life and
 
 <details>
   <summary>Cornell box</summary>
-  <img src="./images/cornell_transformed.png">
+  <img src="./images/cornell_foggy_box.png">
 </details>
 
 <details>

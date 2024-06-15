@@ -51,7 +51,6 @@ pub enum SpectrumEnum {
 
 fn inner_product<F: Spectrum, G: Spectrum>(f: &F, g: &G) -> f32 {
     (LAMBDA_MIN as i32..=LAMBDA_MAX as i32)
-        .into_iter()
         .map(|x| f.value(x as f32) * g.value(x as f32))
         .sum()
 }
