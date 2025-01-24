@@ -38,7 +38,6 @@ impl<T: Number> Bounds2<T> {
     }
 
     pub fn from_points(p1: Point2<T>, p2: Point2<T>) -> Self {
-        
         Bounds2::new(Point2::min_coords(p1, p2), Point2::max_coords(p1, p2))
     }
 

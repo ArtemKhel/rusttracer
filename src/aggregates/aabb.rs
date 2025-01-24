@@ -37,7 +37,6 @@ impl<T: Number> Aabb<T> {
     }
 
     pub fn from_points(p1: Point3<T>, p2: Point3<T>) -> Self {
-        
         Aabb::new(Point3::min_coords(p1, p2), Point3::max_coords(p1, p2))
     }
 

@@ -8,8 +8,8 @@ use num_traits::Signed;
 use crate::{
     math::Matrix3,
     point2,
-    Point2f,
-    spectra::{gamut::Gamut, LAMBDA_MAX, LAMBDA_MIN, named::NamedSpectra, SpectrumEnum, xyz::XYZ}, Vec3f,
+    spectra::{gamut::Gamut, named::NamedSpectra, xyz::XYZ, SpectrumEnum, LAMBDA_MAX, LAMBDA_MIN},
+    Point2f, Vec3f,
 };
 
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
@@ -170,9 +170,8 @@ mod tests {
 
     use approx::assert_abs_diff_eq;
 
-    use crate::spectra::{RGBAlbedoSpectrum, RGBUnboundedSpectrum, Spectrum, VISIBLE_MIN};
-
     use super::*;
+    use crate::spectra::{RGBAlbedoSpectrum, RGBUnboundedSpectrum, Spectrum, VISIBLE_MIN};
 
     #[test]
     fn from_xy_zero() {
